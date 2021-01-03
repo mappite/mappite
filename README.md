@@ -12,7 +12,7 @@ For code issues or proposal use GitHub Issues.
 
 ### Files
 
-Start with `index.html` and js files in `mappite-js/` - the latter are collated in the `mappite.js` file which is the project core component.
+Start with `index.html` and js files in `mappite-js/` - the latter gets collated in the `mappite.js` file which is the project core component.
 
 ### Mappite Routing 
 
