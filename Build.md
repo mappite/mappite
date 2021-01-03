@@ -5,7 +5,7 @@ Run:
 
     ./make.sh php prod 
 
-to create the dist/ directory (wwwroot) with all files and mappite.js minimized nn;
+to create the dist/ directory (wwwroot) with all files and mappite.js minimized
 
 Run:
 
