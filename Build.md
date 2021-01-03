@@ -1,5 +1,5 @@
 # Build Mappite 
-Edit `make.sh` to set keys (See `001-Keys.js`) 
+Edit `make.sh` to set keys (See [001-Keys.js](mappite-js/001-Keys.js)) 
 
 Run:
 
