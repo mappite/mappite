@@ -186,9 +186,6 @@ function getRoutes($conn) {
 	//where user_id= (select id from USERS where token = ?)
 	//order by 1
 
-	$user_id = -1; // dummy for now !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	
-
 	$stmt = $conn->prepare("SELECT NAME 'name', URL 'url' FROM  ROUTES WHERE USER_ID = (SELECT USER_ID FROM  USERS WHERE TOKEN = :token ) ORDER BY 1");
 	$stmt->bindParam(':token', $_COOKIE['_mappite_token']);
 	$stmt->execute();
@@ -196,7 +193,6 @@ function getRoutes($conn) {
 	
 	$rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ;
 
-	
 	$json = ' "routes": ' .json_encode($rows). '';
 	
 	return $json;
