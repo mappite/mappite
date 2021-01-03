@@ -1,18 +1,20 @@
-### Mappite 👋
+# Mappite 👋
 
 Welcome to https://mappite.org GitHub repository. Mappite project is Open Source. All code is publicly available under GPL v3 license.
 
-This page will grow with details to help volounteers to provide feedback and enhancements, to build a local mappite environment (except internal routing) see [Build](./Build.md) 
+This page will grow with details to help volounteers to provide feedback and enhancements. 
 
-# Mappite Routing 
+To build a local mappite environment (except internal routing) see [Build](./Build.md) 
+
+### Mappite Routing 
 
 Mappite can use OpenRouteService, Mapquest and Graphhopper as routing engine. To setup your routing engine...
 
-# Map Layers
+### Map Layers
 
 Mappite uses Leaflet to display map tiles (map images) at different zoom levels. 
 
-# Files
+### Files
 
 Here goes an high level description of files in src/ directory.
 
