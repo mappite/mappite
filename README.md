@@ -2,7 +2,7 @@
 
 Welcome to https://mappite.org GitHub repository. Mappite project is Open Source. Code is publicly available under GPL v3 license.
 
-This page will grow with details to help volounteers providing feedback and enhancements. 
+This page will grow with details to help volunteers providing feedback and enhancements. 
 
 To build a local mappite environment (except internal routing) see [Build](./Build.md) 
 
