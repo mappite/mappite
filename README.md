@@ -16,9 +16,7 @@ Start with `index.html` and js files in `mappite-js/` - the latter gets collated
 
 ### Mappite Routing 
 
-Mappite can use OpenRouteService, Mapquest and Graphhopper as routing engines. Register on their project page to get the key to use online - see [001-Keys.js](mappite-js/001-Keys.js) - or download and make your local install. The public https://mappite.org web site uses a customized version of Graphhopper (currently for Europe).
-
-The engine selected for route calculation depends on some criterias - see `computeRoute()` in [100-Routing.js](mappite-js/100-Routing.js). 
+Mappite can use OpenRouteService (ORS), Graphhopper and Mapquest as routing engines. Register on their project page to get the key to use them online - see [001-Keys.js](mappite-js/001-Keys.js) - or download and make your local install for ORS or Graphhopper. The public https://mappite.org web site uses a customized version of Graphhopper (for Europe) and the other two based on some criterias - see `computeRoute()` in [100-Routing.js](mappite-js/100-Routing.js). 
 
 ### Map Layers
 
@@ -26,7 +24,7 @@ Mappite uses Leaflet to display map tiles (map images) from different providers,
 
 ### Database and php
 
-Mappite uses a mysql database and a few php pages to generate short urls and to provide cloud functionalities (login, save route etc.) - see php/ and sql/ folder.
+Mappite uses a mysql database and a few php pages to generate short urls and to provide cloud functionalities (login, save route etc.) - see `php/` and `sql/` folder.
 
 ### Todo
 
