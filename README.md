@@ -16,7 +16,7 @@ Start with `index.html` and js files in `mappite-js/` - the latter gets collated
 
 ### Mappite Routing 
 
-Mappite can use OpenRouteService, Mapquest and Graphhopper as routing engines. Register on their project page to get the key to use - see [001-Keys.js](mappite-js/001-Keys.js).  The public https://mappite.org web site uses also a customized version of Graphhopper (currently for Europe).
+Mappite can use OpenRouteService, Mapquest and Graphhopper as routing engines. Register on their project page to get the key to use online - see [001-Keys.js](mappite-js/001-Keys.js) - or download and make your local install. The public https://mappite.org web site uses a customized version of Graphhopper (currently for Europe).
 
 The engine selected for route calculation depends on some criterias - see `computeRoute()` in [100-Routing.js](mappite-js/100-Routing.js). 
 
