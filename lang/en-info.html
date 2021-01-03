@@ -1,0 +1,113 @@
+
+<div class="info" style="overflow: auto">
+
+<img src="./mappiteLabel.png" width="300px"><br>
+<small>the fastest way to create and share routes to friends&GPS devices</small><br>
+<p>
+<b>Check on <a href='https://www.youtube.com/channel/UCKJxebv2y3DJsLm2yudi9Wg' target='_blank'>youtube channel <img src='./icons/youtube.png' target="_blank"></a> for a video features overview.</b>
+</p>
+<p>Please send suggestions via
+<a href="https://groups.google.com/forum/#!forum/mappite" target="_blank">mappite</a> or <a href="http://advrider.com/index.php?threads/mappite-org-create-routes-easily-feedback-wanted.1055040/">advrider</a> forums (english), <a href="http://www.quellidellelica.com/vbforums/showthread.php?t=433039" target="_blank">qde fourm</a> (italian) or <a href="mailto:info@mappite.org">info@mappite.org</a>. 
+</p><p>  Contribute to translations for your language, see <a href="https://groups.google.com/forum/#!topic/mappite/xQ3kNgsL4Y8" target="_blank">here</a>!</p>
+
+<h3>Route Creation - How to...</h3>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>create a route?</a>
+<div class="howtoItem" style="display: none">Click (or Long Tap on touchscreens) to add a via point. 
+Right Click (or again Long Tap on touchscreens) to remove it. 
+That's all!<br><br>
+The default behavior when clicking on the map is to find the closest road, to change that see <a onclick='javascript:$("#unpaved").toggle( { direction: "down" });'> below</a>.<br>
+If you want to locate an address click on lens icon on top-right, type address/city/POI name and press enter. 
+</div></div>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>add a via point among two existing points?</a>
+<div id ="addVia" class="howtoItem" style="display: none">From a PC you can drag any pixel in the route to transform it in a new via point.<br> <b> If you want the next via point to be at a specific leg</b> (i.e. among two existing via points),  from any device  go to bottom-left panel, <img src="https://www.mappite.org/scripts/images/map-marker.svg" width="20px">, click on <span class="gactions">+</span> sign among two points, the sign becomes green:
+<br><img src="./lang/shots/route-addPoint.png">
+</div></div>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>move an existing via point?</a>
+<div class="howtoItem" style="display: none">From a PC you can drag any via point or to change a via point order, from any device, go to bottom-left panel, <img src="https://www.mappite.org/scripts/images/map-marker.svg" width="20px">, click on red up or down arrow.
+<br><img src="./lang/shots/route-movePoint.png">
+</div></div>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'> close loop or invert a route?</a>
+<div class="howtoItem" style="display: none">From bottom-left panel, click on <span class="gactions">&#8634;</span> to close a route or <span class="gactions">&#8644;</span> to invert it. When route is in close loop mode the <span class="gactions">&#8634;</span> icon becomes green and last route point will match with first one: any new via point will be added before the last one.
+<br><img src="./lang/shots/route-invertClose.png">
+</div></div>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>see cumulative distance among via points?</a>
+<div class="howtoItem" style="display: none">Click on leg timing/distance to toggle among showing relative or cumulative figures.
+<br><img src="./lang/shots/route-Cumulative.png">
+</div></div>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>add Mountain Passes, Fuel Stations, etc. to a route?</a>
+<div class="howtoItem" style="display: none">From the top-right bar click on the proper icon, available items will appear on the map. 
+Click/Tap on icons on map to display details, Right-Click/Long-Tap to add to the route. By default it gets added at the end but if you want it among two existing via points remember to set the leg as described <a onclick='javascript:$("#addVia").toggle( { direction: "down" });'> here</a>
+To remove all icons form the map Right-Click/Long-Tap on top-right bar icon.
+<br><img src="./lang/shots/route-Passes.png">
+</div></div>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>add points in unpaved roads/tracks?</a>
+<div id="unpaved" class="howtoItem" style="display: none" >
+From bottom-left panel, <img src="https://www.mappite.org/scripts/images/wrench.svg" width="20px" height="20px"> , select <b>Click Anywhere</b>. This will enable to select points outside of paved roads. The default <b>Snap On Road</b> tries to snap to the closest paved road. <br>Unpaved roads are usually slower/longer than paved so you may need to add extra points to force the route to pass on them. <br>When you export a route to GPX format for a GPS Navigator, make sure your navigator maps contains unpaved roads as well. For best result use OSM maps.
+</div></div>
+
+
+<h3>Sharing - How to...</h3>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>share routes with fiends?</a>
+<div class="howtoItem" style="display: none"> From bottom-left panel, <img src="https://www.mappite.org/scripts/images/share.svg" width="20px" height="20px"> , you can click on <b>Create Short Link</b> to get a short URL to share (like </i>https://mappite.org/abcd</i>), click on <b>Facebook</b> or <b>Whatsapp</b> icon (whatsapp this is supported in mobile devices where Whatsapp is installed), click on <b>Forum</b> to get the BB code to copy and paste in your Forum.
+<br><img src="./lang/shots/share-Social.png">
+</div></div>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>export a route to a file?</a>
+<div class="howtoItem" style="display: none">From bottom-left panel, <img src="https://www.mappite.org/scripts/images/share.svg" width="20px" height="20px"> , you can select format (gpx route/track/waypoints or itn route) and click on <b>Export</b> button. <br><i>Note Apple Safari users: due to a bug in some Safari versions, the file may be saved with name "Unknown", rename to "something.gpx" to use it.</i>
+<br><img src="./lang/shots/share-ExportGpx.png">
+</div></div>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>transfer a mappite route to a GPS Navigator?</a>
+<div class="howtoItem" style="display: none"> In general just export the route as a file, plug your navigator via USB and copy the exported file in the proper folder according to your navigator instructions (i.e. on Garmin copy the gpx file in \GARMIN\GPX folder of internal memory or SD card, unplug and turn on your navigator, go to routes menu and follow import routes link if the new route does not appear in the list).
+<br><b>Note:</b> on Android smartphones you can connect your navigator to the phone with an usb otg cable and save the mappite route or track directly in the navigator... useful when travelling.
+</div></div>
+
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>import a route or a track into mappite?</a>
+<div class="howtoItem" style="display: none">From bottom-left panel, <img src="https://www.mappite.org/scripts/images/data-transfer-download.svg" width="20px" height="20px"> icon, select <b>Import</b> and pick the file. You can import gpx tracks and gpx&itn routes. Routes can be edited, saved, exported. You can import multiple routes to collate them. Tracks are displayed on top of the map with altitude (if available) and discarded once you close the browser
+<br><img src="./lang/shots/share-ImportGpxTrack.png">
+</div></div>
+
+<h3>Save - How to...</h3>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>save a route?</a>
+<div class="howtoItem" style="display: none">
+From bottom-left panel, <img src="https://www.mappite.org/scripts/images/data-transfer-download.svg" width="20px" height="20px"> type a name and click the save button.<br> Routes are saved in your browser local storage, do not delete your browser local storage <b>unless you register to mappite</b>
+</div></div>
+
+<!--<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>use tags to save&filter available routes?</a>
+<div class="howtoItem" style="display: none">Try it out.
+</div></div>-->
+
+<div class="howto"><a class="glinks" style="color: #DC614F;" onclick='javascript:$(this).next().toggle( { direction: "down" });'>save routes in cloud and have them available from any device (PC, Smartphone, Tablet etc)?</a>
+<div class="howtoItem" style="display: none">
+All features above are provided for free but we have to sustain costs for the servers and services used by mappite, time and dedication is a pleasure: if you like mappite please consider to support it, in turn we'll provide you credentials to enroll and thus the ability to save routes in cloud.
+<div class="clsEnroll" onClick='javascript:$( "#gHeaderContent" ).load( enrollFile);'>Enroll to support mappite and access your routes from any device you own!</div>
+</div></div>
+
+<!-- <h3>FAQ</h3>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>Why I cant drag a route segment to add a via point?</a>
+<div class="howtoItem" style="display: none">
+At the moment this will cause too many route calculation and it would be unpractical to implement for mobile/touch devices.
+</p></div>-->
+<div>
+<br> <small>mappite just glues together a series of wonderful open projects, thanks to:
+<a href='http://openstreetmap.org' target='_blank'>OpenStreetMap</a> , 
+<a href='https://www.graphhopper.com/' target='_blank'>Graphhopper</a> , 
+<a href='http://leafletjs.com' target='_blank'>Leaflet</a>,
+<a href='https://openrouteservice.org/' target='_blank'>OpenRouteService</a>, 
+<a href='http://project-osrm.com' target='_blank'>OSRM</a>, 
+<a href='http://wiki.openstreetmap.org/wiki/Nominatim' target='_blank'>Nominatim</a>, 
+<a href='https://photon.komoot.io' target='_blank'>Photon</a>.
+</div>
+
+</div>

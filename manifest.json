@@ -1,0 +1,25 @@
+{
+	"lang" : "en",
+	"short_name" : "Mappite",
+	"name" : "mappite - the fastest route planner",
+	"scope" : "/",
+	"display" : "standalone",
+	"start_url" : "/?utm_source=homescreen",
+	"theme_color" : "transparent",
+	"description" : "mappite easily create routes, share with friends, export to gps devices - based on openstreetmap. HAVE FUN!",
+	"orientation" : "any",
+	"background_color" : "transparent",
+	"icons" : [
+		{
+			"src": "https://www.mappite.org/icons/mappiteLogo-192x192.png",
+			"type": "image/png",
+			"sizes": "192x192"
+		},
+		{
+			"src": "https://www.mappite.org/icons/mappiteLogo-512x512.png",
+			"type": "image/png",
+			"sizes": "512x512"
+		}
+		],
+	"generated" : "true"
+}

@@ -1,0 +1,171 @@
+20210101
+. Files review and js by section to publish in github
+
+20201020
+. fix bug on gpx 1.0 export (author tag)
+
+20201010
+. OSR v2
+. route calc errors are not cached
+. .htaccess update to force https and js code removed
+. js version is shown on map attrs when info panel is activated
+. gpx 1.1 and 1.0 on route export
+
+202005xx
+ . Mapsurfer out, OpenTopoMap in
+ . $650 mapbox! Credited, phew
+
+202002xx
+ . pp IPN
+
+20200209
+ . Password Reset
+ . YT Channel
+
+20191112
+ . MarkerDrag on touch devices
+ . Red Banner to delete markers on drop
+ . Bug Fix move of origin in closed loop
+ . gh contabo europe
+
+20191020
+ . Search with Photon
+
+XXXXXXXX
+ . Google Map integration
+ .  Search as you type on saved routes
+ .  FB share fix with route infro
+ . warnign if subscription expired
+ . Graphhopper
+	allow Ford + rebuild pbfs (Apr 28)
+	Fix barrier= cattle_grid
+
+20181030
+ . js to disable HTTP
+ . warning on save if not enrolled
+ . google maps link
+
+20181024
+ . Draggable Markers
+ . Draggable Route
+
+20180805
+ . Loop
+ . Red/Green End/Start point
+ . Pointer disappears when overlap, click to zoom
+ . locator does not refocus
+
+20180528
+ . defaulted to mapsurfer
+
+20180523
+ . cloud save
+ . map layer changes to OSM when zoom > 14
+ . fix: load route now honors the map type
+ . defautl map to mapbox street (waitign for mapsurfer cache?)
+ . Allow Track now use Mapquest, otherwise OSR
+
+201804-3
+ . Track Height can be hidden w/ right click or clicking on track name
+ . Fix: Whatsapp link for 1 point shows NaN km
+ . Move wrench/share etc icons on bottom div
+ . cumulative distance/time when clicking on leg timing/distance
+ . if tag is selected, add that tag to route when saving
+ . Added camping
+ . UI improvements, font Open Sans
+
+201804-2
+ . minify with https://jscompress.com/ 
+ . refactoring route to allow multiple routes in the future
+ . load route without reloading page
+ . short URL does reuse id if existent
+ . whatsapp support, displays distance 
+
+201804
+ . passes/fuel/market icons grouped
+ . bigger icons
+ . route gpx import prompt to delete current or append
+ . default map changed to OSM one
+
+201801
+ . internal short url
+ . ors replaces mapzen 
+ . addedd mapbox street maps (english) 
+
+201706x
+ . import gpx route, itn routes, gpx tracks
+ . tags
+ . leaflet 1.1.0
+
+20170420
+ . route cache (pc.php)
+
+20170404
+ . geolocalization works, almost ready in https
+ . all icons can be removed with long tap/right click on bar
+ . cookies for map options are properly read when accessing the site (so you can set a default map)
+ . gheader fullscreen
+ . warning message if max via points is reached
+
+201703xx
+ . https ready
+ . timeout on getpoint
+
+20170128
+ . support for https is almost ready
+ . addedd "Lat,Lng" support on search
+ . invert route
+
+2017010x
+ . hosting move, SSL enabled
+
+20161025
+ . Renewed layout
+ . in prod Sep 17 version
+
+20160917
+ . added mapsurfer maps
+ . osrm neares new api
+ . removed https from overpass (cerfificate expired)
+ . facebook share now shows route name instead of generic message (fb.php)
+
+20160901 
+ . alert on overwrite route
+ . extend timeout to 8secs for route calculation
+ . improved feedback on route calculation error or timeout
+ . single point links zooms to level 16
+ . visual feedback when route is computing (spinner)
+
+20160612
+ . wikipedia articles
+ . improved waypoints numbers visibility
+
+20160604
+ . overpass api: fuel, market
+
+20160530
+ . overpass api: mountain passes
+
+20160414
+ . donate
+
+20160320
+ . ITN format export (tomtom)
+ . Mapzen routing engine as default one
+
+20160218
+ . Short Url: you can now get a short url to easily share within applications (whatsapp etc). 
+ . url rewrite
+ . multilanguage
+ . add point at the beginning
+ . show list of points with info (for copy&paste)
+ . on touch-screen devices you need to long-tap to add a via point
+ . upgraded leaflet
+
+20150629
+ . It is now possible to add a new viapoint in the middle of a trip,
+   tap or click on the "+" sign next to each le
+20150326 autocenter on country, viapoint index appears on map
+20150313 Scale, Bike and Walk, Select point on unpaved
+20150223 Second Beta - addedd track, fix on gpx 1.1 format, text autoselect for ipad
+20150215 First Beta - announced on qde
