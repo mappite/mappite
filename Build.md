@@ -1,28 +1,30 @@
 # Build Mappite 
-Edit `make.sh` to set keys (See `001-Keys.js`)
+Edit `make.sh` to set keys (See `001-Keys.js`) 
+
 Run:
 
     ./make.sh php prod 
 
-to create the dist/ directory (wwwroot) with all files and mappite.js minimized
+to create the dist/ directory (wwwroot) with all files and mappite.js minimized nn;
+
+Run:
 
     ./make.sh
 
-to create the dist/ directory (wwwroot) without php and mappite.js not minimized
+to create the dist/ directory (wwwroot) without php and mappite.js not minimized - which is what you usually want when developing change on main javascript files.
 
 ## Php&Database
 
 This is needed to generate shorturls and for cloud management (login, save routes, etc) .
 
 Create mysql database using `./sql/tables.sql`
-running mappite with no php&database is possible but some cleanup is needed
-to remove references to ".php" from `mappite.js`
+running mappite with no php&database is still possible but some cleanup is needed to remove references to ".php" from `mappite.js`
 
 ## Web Server Setup
  Optional - needed for short urls 
  
- Apache `.htaccess` file
-   - add www. prefix to url (if missed)
+ Apache `.htaccess` file to copy in wwwroot
+   - adds www. prefix to url (if missed)
    - forces httpS
    - redirects short urls to su.php page
 
