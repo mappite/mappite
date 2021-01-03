@@ -22,7 +22,7 @@ The engine to use depends on some criterias - see `computeRoute()` in [100-Routi
 
 ### Map Layers
 
-Mappite uses Leaflet to display map tiles (map images) from different providers, first option is (OSM)[https://openstreetmap.org] - see [030-Map.js](mappite-js/030-Map.js).
+Mappite uses Leaflet to display map tiles (map images) from different providers, first option is [OSM](https://openstreetmap.org) - see [030-Map.js](mappite-js/030-Map.js).
 
 ### Database and php
 
