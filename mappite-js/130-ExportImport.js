@@ -172,8 +172,8 @@ function onExportClick(e) {
 		return;
 	}
 	var fileStream;
-	var dataType = "application/gpx+xml";
-	var ext = "gpx"; // file extension
+	var dataType = "application/gpx+xml"; // default 
+	var ext = "gpx"; // default file extension
 	var type = "rte";
 	
 	var sel = $( "#exportSelect" ).val();
@@ -195,7 +195,11 @@ function onExportClick(e) {
 		} else if (sel === "routeWpGpx") { // gpx route with waypoints
 			fileStream = exportGpx("routeWp");
 			type ="rtewp";
-		} 
+		} else if (sel === "spreadsheetCsv") { // // itn route
+			fileStream = exportCsv();
+			dataType ="text/csv";
+			ext = "csv";
+		}
 		
 	} else {
 		alert(translations["export.noRoute"]);
@@ -234,11 +238,11 @@ function exportGpx(type, ver) {
 		gpxXml += '<?xml version="1.0" encoding="UTF-8"?>';
 		gpxXml += '\n<gpx version="1.1" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">';
 		gpxXml += '\n<metadata>';
-		 gpxXml += '\n<name>'+activeRoute.name+'</name>';
-		 gpxXml += '\n<author><name>mappite.org</name><link href="https://www.mappite.org"><text>mappite routes made easy thanks to openstreetmap and others</text></link></author>';
-		 // gpxXml += '\n<copyright author="OpenStreetMap contributors"/>';
-		 gpxXml += '\n<link href="'+link+'"><text>'+activeRoute.name+'</text></link>';
-		 gpxXml += '\n<time>'+time+'</time>';
+		gpxXml += '\n<name>'+activeRoute.name+'</name>';
+		gpxXml += '\n<author><name>mappite.org</name><link href="https://www.mappite.org"><text>mappite routes made easy thanks to openstreetmap and others</text></link></author>';
+		// gpxXml += '\n<copyright author="OpenStreetMap contributors"/>';
+		gpxXml += '\n<link href="'+link+'"><text>'+activeRoute.name+'</text></link>';
+		gpxXml += '\n<time>'+time+'</time>';
 		gpxXml += '\n</metadata>';
 	} else { // assume 1.0 // FIXME: this will be the default for trxk as well
 		gpxXml += '<?xml version="1.0" encoding="UTF-8"?>';
@@ -283,7 +287,7 @@ function exportGpx(type, ver) {
 function exportItn() {
 	var vps =  activeRoute.viaPoints;
 	
-	itn = itnCoord(vps[0].lng)+'|'+itnCoord(vps[0].lat)+'|'+vps[0].name+'|4|\n'; // start
+	var itn = itnCoord(vps[0].lng)+'|'+itnCoord(vps[0].lat)+'|'+vps[0].name+'|4|\n'; // start
 	for (i = 1; i < vps.length-1; i++) {
 		itn += itnCoord(vps[i].lng)+'|'+itnCoord(vps[i].lat)+'|'+vps[i].name+'|0|\n'; // via
 	}
@@ -292,4 +296,23 @@ function exportItn() {
 }
 function itnCoord(l) { // convert from std lat/lng format to tom tom one...
 	return Math.round(l*100000);
+}
+
+function exportCsv() { // https://tools.ietf.org/html/rfc4180
+	var vps = activeRoute.viaPoints;
+	var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
+	var csv = '"Name","Lng","Lat","Distance ('+uom+')","Time","Tot Distance ('+uom+')","Tot Time"\r\n';
+	csv += '"'+vps[0].name.replace('"',' ')+'",'+Number(vps[0].lat).toFixed(6)+','+Number(vps[0].lng).toFixed(6)+',0,0,0,0\r\n';
+	legsTimeTotal = 0;
+	legsDistanceTotal = 0;
+	
+	for (i = 1; i < vps.length; i++) {
+		vp  =  activeRoute.viaPoints[i];
+		leg = activeRoute.legs[i-1];
+		legsTimeTotal     = legsTimeTotal+leg.time;
+		legsDistanceTotal = legsDistanceTotal+leg.distance;
+		csv += '"'+vps[i].name.replace('"',' ')+'",'+Number(vps[i].lat).toFixed(6)+','+Number(vps[i].lng).toFixed(6)+','+Number(leg.distance).toFixed(2)+','+formatTime(leg.time)+','+Number(legsDistanceTotal).toFixed(2)+','+formatTime(legsTimeTotal)+'\r\n';
+	}
+
+	return csv;
 }

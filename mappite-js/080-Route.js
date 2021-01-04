@@ -265,8 +265,9 @@ var Route = L.Class.extend({
 	this.linePoly.redraw(); // red line (connects via Points)
 	this.refreshHtml(); // promptly re-draw gRoute panel
 	if ( this.viaPoints.length>1) { computeRoute(this.viaPoints, false); }// green line (route), this redraws again the gRoute panel to update time/distance
-	else if ( this.viaPoints.length==1 & activeRoute.routePoly!=null) {	// if last point has been removed, remove green route
+	else if ( this.viaPoints.length==1 & activeRoute.routePoly!=null) {	// if last point has been removed, remove green route and circles
 		map.removeLayer(activeRoute.routePoly); 
+		routeMilestonesGroup.clearLayers();
 	} 
     },
     
@@ -523,9 +524,31 @@ function createRoutePoly(lls) {
 	if (activeRoute.routePoly ) { 
 		activeRoute.routePoly.off();
 		map.removeLayer(activeRoute.routePoly);
+		routeMilestonesGroup.clearLayers();
 	}	
 	
 	activeRoute.routePoly = L.polyline(lls, {color: 'green', opacity: 0.8, weight: 4}).addTo(map);
+	
+	/* Add a circle milestone on route each d km/miles */
+	var d= 100; // default to 100 km or mi - FIXME: need to allow user to set this on UI and save as a cookie
+	var dist = []; // holds points total distance from start
+	dist[0] = 0;
+	//var segment = 0; // id of each route segment with lenght d
+	var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
+	//var idx[]; // array with lls ids with circle
+	for(var i = 1; i<lls.length;i++) {
+		var ll = lls[i];
+		dist[i] =  dist[i-1]+getDistance([lls[i][0],lls[i][1]], [lls[i-1][0],lls[i-1][1]], 0,0)*(uom=="km"?1:0.621371);
+		if (dist[i]>=d) { // we reached the first route point after d
+			//idx[segment++]=i;
+			var cm =   L.circleMarker(lls[i], {color: 'green', fill: true, fillOpacity: 1, radius: 3}).bindTooltip(d + uom );
+			cm.on('mouseover',function(e) { e.target.openTooltip(); });
+			cm.on('mouseout' ,function(e) { e.target.closeTooltip();});			
+			routeMilestonesGroup.addLayer(cm);
+			d = d+100;
+		}
+	}
+	routeMilestonesGroup.addTo(map);
 	
 	var tmpMarker=new L.marker();
 

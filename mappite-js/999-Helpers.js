@@ -4,12 +4,12 @@ function consoleLog(str) {
 	if (LOG_ENABLED) console.log(str);
 }
 
-/* detect if mobile device */
-
+/* detect if touch device */
 function isTouchDevice(){
     return typeof window.ontouchstart !== 'undefined';
 }
 
+/* detect if mobile device */
 function isMobile() {
     return navigator.userAgent.match(/Android|iPhone|Opera Mini|IEMobile/i); // |iPad|iPod
 }
@@ -83,7 +83,7 @@ function warnIfNoName() {
 /* FUNCTION getDistance()
  *  Calculate distance among two points considering elevation 
  *   Used when loading gpx tracks to calculate track lenght
- *   Used by ComputeReout function to fin track closest point to viapoint
+ *   Used by ComputeRoute methods to find track closest point to viapoint
  */
 function getDistance(coords1, coords2, ele1, ele2) { // in meters 
   // haversine distance - credits https://stackoverflow.com/questions/14560999/using-the-haversine-formula-in-javascript
@@ -115,6 +115,28 @@ function getDistance(coords1, coords2, ele1, ele2) { // in meters
 
   return Math.sqrt(d*d+h*h);
 }
+
+/* FUNCTION: getSegments
+ * Input: ll[], distance in current uom
+ * returns an array containing the ll indexes at given distance
+ */
+/*function getSegments (lls, d) { // lls = activeRoute.routePoly.getLatLngs();
+	var idx[]; 		
+	var dist[0] = 0;
+	var segment = 0;
+	for(var i = 1; i<lls.length;i++) {
+		dist[i] =  dist[i-1]+getDistance([lls[i].lat,lls[i].lng], [lls[i-1].lat,lls[i-1].lng], 0,0);
+		if (dist[i]>=d) { // we reached the first point after d
+			idx[segment++]=i;
+			// add dot
+			d = d*(segment+1);
+		}
+	}
+	return idx;
+} 
+see createRoutePoly and update to add a dot at each idx or include this there. update
+any map.removeLayer(activeRoute.routePoly); to remove the dots
+*/
 
 
 /* FUNCTION: getParameterByName

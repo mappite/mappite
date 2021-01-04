@@ -49,8 +49,10 @@ var markersCluster = L.markerClusterGroup({
 		});
 
 var markers = {}; // contains all route markers or potential route markers with their id as key
+var routeMilestonesGroup = new L.LayerGroup(); // circles that appears at each given segment
 
 var geoResultsNames = {};  // contains all markers geoResults names  with their id as key
+
 
 // Route
 var activeRoute; // The active Route object containing viapoints
