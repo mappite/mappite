@@ -298,11 +298,13 @@ function itnCoord(l) { // convert from std lat/lng format to tom tom one...
 	return Math.round(l*100000);
 }
 
-function exportCsv() { // https://tools.ietf.org/html/rfc4180
+function exportCsv() { // https://tools.ietf.org/html/rfc4180 + numbers use locale decimal separator
 	var vps = activeRoute.viaPoints;
 	var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
 	var csv = '"Name","Lng","Lat","Distance ('+uom+')","Time","Tot Distance ('+uom+')","Tot Time"\r\n';
-	csv += '"'+vps[0].name.replace('"',' ')+'",'+Number(vps[0].lat).toFixed(6)+','+Number(vps[0].lng).toFixed(6)+',0,0,0,0\r\n';
+	csv += '"'+vps[0].name.replace('"',' ')+'","'+getLocaleDecimal(vps[0].lat,6)+'","'+getLocaleDecimal(vps[0].lng,6)+'","0","0","0","0"\r\n';
+	
+	// WORKS add function getLocale(n,decimals)
 	legsTimeTotal = 0;
 	legsDistanceTotal = 0;
 	
@@ -311,7 +313,10 @@ function exportCsv() { // https://tools.ietf.org/html/rfc4180
 		leg = activeRoute.legs[i-1];
 		legsTimeTotal     = legsTimeTotal+leg.time;
 		legsDistanceTotal = legsDistanceTotal+leg.distance;
-		csv += '"'+vps[i].name.replace('"',' ')+'",'+Number(vps[i].lat).toFixed(6)+','+Number(vps[i].lng).toFixed(6)+','+Number(leg.distance).toFixed(2)+','+formatTime(leg.time)+','+Number(legsDistanceTotal).toFixed(2)+','+formatTime(legsTimeTotal)+'\r\n';
+		csv += '"'+vps[i].name.replace('"',' ')+'","'+
+		       getLocaleDecimal(vps[i].lat,6)+'","'+getLocaleDecimal(vps[i].lng,6)+'","'+
+		       getLocaleDecimal(leg.distance,2)+'","'+formatTime(leg.time)+'","'+
+		       getLocaleDecimal(legsDistanceTotal,2)+'","'+formatTime(legsTimeTotal)+'"\r\n';
 	}
 
 	return csv;

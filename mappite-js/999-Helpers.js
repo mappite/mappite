@@ -116,29 +116,6 @@ function getDistance(coords1, coords2, ele1, ele2) { // in meters
   return Math.sqrt(d*d+h*h);
 }
 
-/* FUNCTION: getSegments
- * Input: ll[], distance in current uom
- * returns an array containing the ll indexes at given distance
- */
-/*function getSegments (lls, d) { // lls = activeRoute.routePoly.getLatLngs();
-	var idx[]; 		
-	var dist[0] = 0;
-	var segment = 0;
-	for(var i = 1; i<lls.length;i++) {
-		dist[i] =  dist[i-1]+getDistance([lls[i].lat,lls[i].lng], [lls[i-1].lat,lls[i-1].lng], 0,0);
-		if (dist[i]>=d) { // we reached the first point after d
-			idx[segment++]=i;
-			// add dot
-			d = d*(segment+1);
-		}
-	}
-	return idx;
-} 
-see createRoutePoly and update to add a dot at each idx or include this there. update
-any map.removeLayer(activeRoute.routePoly); to remove the dots
-*/
-
-
 /* FUNCTION: getParameterByName
  * Input: parameter_name, (url)
  * get the parametere value from an url or location.search is url is not provided
@@ -156,5 +133,12 @@ function getParameterByName(name, src) {
 }
 
 
+/* FUNCTION: getLocaleDecimal(n,d)
+ * Returns a numeric string with d decimals 
+ * and decimal separator based on locale (i.e. , or .)
+ */
+function getLocaleDecimal(n,d) {
+    return Number(Number(n).toFixed(d)).toLocaleString();
+}
 
 
