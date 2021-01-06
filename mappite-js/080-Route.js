@@ -175,6 +175,30 @@ var Route = L.Class.extend({
 	this.viaPoints.splice(i, 1); // remove element at pos i
 
     },
+    
+    splice: function (start,end) { // remove points from start to end
+	if (this.closedLoop != true) {
+		consoleLog("splice("+start+","+start+")");
+		if (end == -1) end = this.viaPoints.length; // remove up to last point
+		
+		if (end<start) {
+			consoleLog("splice: end before start");
+		} else {
+			// remove markers first
+			for(k = start; k < end; k++) {
+				consoleLog("inverseSplice: removing marker k: " + k);
+				markersCluster.removeLayer(markers[this.viaPoints[k].id]);
+			}
+			this.linePoly.getLatLngs().splice(start,(end-start)); 
+			this.viaPoints.splice(start,(end-start)); 
+			this.redraw();	
+			insertPointAt = -1; //
+		}
+	} else {
+		alert("I can't splice closed loop routes");
+	}
+    },
+    
 
     moveViaPoint: function (id, offset) { // move a viapoint in the list by offset // could be use to implement drag&drop in gRoute panel
 	for (i = 0; i < this.viaPoints.length; i++) {
@@ -261,7 +285,7 @@ var Route = L.Class.extend({
 	return null;
     }, 
     
-    redraw: function () { // redraw the viaPoints connection polyline (red) and recompute the route, drawgin it (green) plus refresh the html divs
+    redraw: function () { // redraw the viaPoints connection polyline (red) and recompute the route, draw it (green) plus refresh the html divs
 	this.linePoly.redraw(); // red line (connects via Points)
 	this.refreshHtml(); // promptly re-draw gRoute panel
 	if ( this.viaPoints.length>1) { computeRoute(this.viaPoints, false); }// green line (route), this redraws again the gRoute panel to update time/distance
@@ -288,7 +312,7 @@ var Route = L.Class.extend({
     },
     
     // Note: this is called twice every time a new poit is added (to provide a prompt feedback and then to update with new leg info)
-    refreshHtml: function () { // refreshes gRouteInfo & gRoute divs... THIS SHOULD BE MOVED OUTSIDE ROUTE CLASS!!!
+    refreshHtml: function () { // refreshes gRouteInfo & gRoute divs... FIXME: THIS SHOULD BE MOVED OUTSIDE ROUTE CLASS!!!
 	
 	var arrayLength = this.viaPoints.length;
 
@@ -392,7 +416,13 @@ var Route = L.Class.extend({
 			    time = legsTimeTotal;
 			    distance = legsDistanceTotal;
 			}
-			s = s + "<div class='legsInfo' onclick='javascript:legsCumulativeToggle()'><span style='width: 20px; display: inline-block;'></span> &#8870; "+(this.legs[i].hasUnpaved?'~':'')+Number(distance).toFixed(2)+ uom + " ("+ formatTime(time) + ") </div>&nbsp;<a class='gaddWayPoint' title='Add Point Here'  onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>";
+			// The "+" sign can be clicked on to add next point after this one
+			// keyboard keys pressed when "+" sign is focused are passed to onCutKeyPress
+			// to cut the route
+			s = s + "<div class='legsInfo' onclick='javascript:legsCumulativeToggle()'>"+ 
+			        "<span style='width: 20px; display: inline-block;'></span> &#8870; "+
+			        (this.legs[i].hasUnpaved?'~':'')+Number(distance).toFixed(2)+ uom +
+				" ("+ formatTime(time) + ") </div>&nbsp;<a class='gaddWayPoint' title='Add Point Here'  onkeydown='javascript:onCutKeyPress(event);' onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>";
 			//consoleLog("* leg("+ i +"): dist/time" + time  + "/" + distance);
 			
 		}
@@ -445,6 +475,7 @@ var Route = L.Class.extend({
 		}
 		map.removeLayer(activeRoute.routePoly); // hide route
 		map.removeLayer(activeRoute.linePoly);  // hide red poly
+		routeMilestonesGroup.clearLayers(); // remove milestones
 		// note this function does not clean all...
 	}
 	// reset
@@ -530,25 +561,27 @@ function createRoutePoly(lls) {
 	activeRoute.routePoly = L.polyline(lls, {color: 'green', opacity: 0.8, weight: 4}).addTo(map);
 	
 	/* Add a circle milestone on route each d km/miles */
-	var d= 100; // default to 100 km or mi - FIXME: need to allow user to set this on UI and save as a cookie
-	var dist = []; // holds points total distance from start
-	dist[0] = 0;
-	//var segment = 0; // id of each route segment with lenght d
-	var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
-	//var idx[]; // array with lls ids with circle
-	for(var i = 1; i<lls.length;i++) {
-		var ll = lls[i];
-		dist[i] =  dist[i-1]+getDistance([lls[i][0],lls[i][1]], [lls[i-1][0],lls[i-1][1]], 0,0)*(uom=="km"?1:0.621371);
-		if (dist[i]>=d) { // we reached the first route point after d
-			//idx[segment++]=i;
-			var cm =   L.circleMarker(lls[i], {color: 'green', fill: true, fillOpacity: 1, radius: 3}).bindTooltip(d + uom );
-			cm.on('mouseover',function(e) { e.target.openTooltip(); });
-			cm.on('mouseout' ,function(e) { e.target.closeTooltip();});			
-			routeMilestonesGroup.addLayer(cm);
-			d = d+100;
+	if ( !isTouchDevice()){ // no with touch devices since onmousehover would fail
+		var d= 100; // default in uom (km/mi) - FIXME: need to allow user to set this on UI and save as a cookie
+		var dist = []; // holds points total distance from start
+		dist[0] = 0;
+		//var segment = 0; // id of each route segment with lenght d
+		var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
+		//var idx[]; // array with lls ids with circle
+		for(var i = 1; i<lls.length;i++) {
+			var ll = lls[i];
+			dist[i] =  dist[i-1]+getDistance([lls[i][0],lls[i][1]], [lls[i-1][0],lls[i-1][1]], 0,0)*(uom=="km"?1:0.621371);
+			if (dist[i]>=d) { // we reached the first route point after d
+				//idx[segment++]=i;
+				var cm =   L.circleMarker(lls[i], {color: 'green', fill: true, fillOpacity: 1, radius: 3}).bindTooltip(d + uom );
+				cm.on('mouseover',function(e) { e.target.openTooltip(); });
+				cm.on('mouseout' ,function(e) { e.target.closeTooltip();});			
+				routeMilestonesGroup.addLayer(cm);
+				d = d+100;
+			}
 		}
+		routeMilestonesGroup.addTo(map);
 	}
-	routeMilestonesGroup.addTo(map);
 	
 	var tmpMarker=new L.marker();
 
@@ -614,3 +647,20 @@ function onRouteNameChange (){
 		history.pushState(name, name, activeRoute.getUrl());
 	}
 }
+
+/* FUNCTION: onCutKeyPress
+ * Perform actions when keys are pressed on "+" route sign
+ */
+function onCutKeyPress(e) {
+	// if event comes from leaflet, the key pressed is contained in e.originalEvent.key
+	// e = e.originalEvent;
+	console.log("onKeyPress: key " + e.key);
+	//console.log(e);
+	if (e.ctrlKey) {
+		if ( e.key == 'b' && window.confirm(translations["route.cutBefore"]+insertPointAt)) {
+			activeRoute.splice(0,insertPointAt-1); // remove from 0 to active point
+		} else if ( e.key == 'a' && window.confirm(translations["route.cutAfter"]+insertPointAt)) {
+			activeRoute.splice(insertPointAt, -1); // remove from active point to the end
+		}
+	}
+} 

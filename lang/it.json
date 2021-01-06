@@ -23,6 +23,8 @@
    "route.invert": "Inverti Percorso",
    "route.closedLoop": "Percorso ad Anello",
    "route.sureDeleteCurrentRoute": "Sicuro di voler rimuovere il percorso corrente?",
+   "route.cutAfter": "Rimuovo il percorso dopo il punto: ",
+   "route.cutBefore": "Rimuovo il percorso prima del punto: ",
    "saveLoad.appendToCurrentRoute": "Vuoi appenderlo al percorso corrente?",
    "route.createBeforeSaving": "Crea un percorso prima di salvare",
    "route.maxViaPointsReached": "Hai raggiunto il numero massimo di punti. Salva il percorso e creane uno nuovo.",

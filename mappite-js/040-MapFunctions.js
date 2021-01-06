@@ -69,6 +69,8 @@ function initiateMap(ll, z) {
 		
 	});
 	
+	// map.on('keypress', onKeyPress);
+	
 	map.on('locationfound', onLocationFound);
 	map.on('locationerror', onLocationError);
 	
@@ -117,7 +119,6 @@ function initiateMap(ll, z) {
 }
 
 
-
 /* FUNCTION: onMapClick
  * Add a new point to the route where user clicked
  */
@@ -126,6 +127,7 @@ function onMapClick(e) {
 	var ll = e.latlng;
 	addPoint(ll);
 }
+
 
 /* FUNCTION: addPoint
  * Add a new point to route calling proper reverse geocode function to determine street name
@@ -143,14 +145,11 @@ function addPoint(ll) {
 }
 
 
-
 /* FUNCTION: addRoutePointOnStreet using Nominatim
  * Input: LatLng , String 
  * do a reverse geocode to get the nearest LatLng point on street, with name, and adds to the route that nearest point
  * ref. https://nominatim.org/release-docs/develop/api/Reverse/
-
  */
-
 function addRoutePointOnStreet(ll, id) {
 	consoleLog( "addRoutePointOnStreet Nominatim" );
 	processingStart();
