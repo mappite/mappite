@@ -1,7 +1,7 @@
 /*** GPX/ITN Export/Import ***/
 
 
-/* Import GPX/ITN */
+/* File Import GPX/ITN */
 function onImportChange(e) {
 	var file = $("#JgImportFile")[0].files[0];
 	consoleLog("Fiel Size: " + file.size);
@@ -160,7 +160,7 @@ function loadGpxRoute(points, fileName) {
 	return true;	
 }
 
-/* GPX/ITN Export */
+/* File Export */
 
 function onExportClick(e) {
 	if (isIE()) { 
@@ -195,7 +195,7 @@ function onExportClick(e) {
 		} else if (sel === "routeWpGpx") { // gpx route with waypoints
 			fileStream = exportGpx("routeWp");
 			type ="rtewp";
-		} else if (sel === "spreadsheetCsv") { // // itn route
+		} else if (sel === "spreadsheetCsv") { // csv route
 			fileStream = exportCsv();
 			dataType ="text/csv";
 			ext = "csv";
@@ -304,7 +304,6 @@ function exportCsv() { // https://tools.ietf.org/html/rfc4180 + numbers use loca
 	var csv = '"Name","Lng","Lat","Distance ('+uom+')","Time","Tot Distance ('+uom+')","Tot Time"\r\n';
 	csv += '"'+vps[0].name.replace('"',' ')+'","'+getLocaleDecimal(vps[0].lat,6)+'","'+getLocaleDecimal(vps[0].lng,6)+'","0","0","0","0"\r\n';
 	
-	// WORKS add function getLocale(n,decimals)
 	legsTimeTotal = 0;
 	legsDistanceTotal = 0;
 	
