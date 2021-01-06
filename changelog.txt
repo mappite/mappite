@@ -1,6 +1,8 @@
 20210106
 . csv export
 . milestones (circles) at each 100km/mi
+. preliminary support for cutting route
+. major code review&restructure to publish in github
 
 20210101
 . Files review and js by section to publish in github
