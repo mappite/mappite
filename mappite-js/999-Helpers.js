@@ -58,7 +58,7 @@ function formatTime(t){
  *  decimal separator based on browser locale (i.e. . or ,)
  */
 function formatDecimal(n,d) {
-    return Number(Number(n).toFixed(d)).toLocaleString();
+    return Number(n).toLocaleString(undefined, { maximumFractionDigits: d});
 }
 
 
