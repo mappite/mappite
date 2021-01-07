@@ -302,7 +302,7 @@ function exportCsv() { // https://tools.ietf.org/html/rfc4180 + numbers use loca
 	var vps = activeRoute.viaPoints;
 	var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
 	var csv = '"Name","Lng","Lat","Distance ('+uom+')","Time","Tot Distance ('+uom+')","Tot Time"\r\n';
-	csv += '"'+vps[0].name.replace('"',' ')+'","'+getLocaleDecimal(vps[0].lat,6)+'","'+getLocaleDecimal(vps[0].lng,6)+'","0","0","0","0"\r\n';
+	csv += '"'+vps[0].name.replace('"',' ')+'","'+formatDecimal(vps[0].lat,6)+'","'+formatDecimal(vps[0].lng,6)+'","0","0","0","0"\r\n';
 	
 	legsTimeTotal = 0;
 	legsDistanceTotal = 0;
@@ -313,9 +313,9 @@ function exportCsv() { // https://tools.ietf.org/html/rfc4180 + numbers use loca
 		legsTimeTotal     = legsTimeTotal+leg.time;
 		legsDistanceTotal = legsDistanceTotal+leg.distance;
 		csv += '"'+vps[i].name.replace('"',' ')+'","'+
-		       getLocaleDecimal(vps[i].lat,6)+'","'+getLocaleDecimal(vps[i].lng,6)+'","'+
-		       getLocaleDecimal(leg.distance,2)+'","'+formatTime(leg.time)+'","'+
-		       getLocaleDecimal(legsDistanceTotal,2)+'","'+formatTime(legsTimeTotal)+'"\r\n';
+		       formatDecimal(vps[i].lat,6)+'","'+formatDecimal(vps[i].lng,6)+'","'+
+		       formatDecimal(leg.distance,2)+'","'+formatTime(leg.time)+'","'+
+		       formatDecimal(legsDistanceTotal,2)+'","'+formatTime(legsTimeTotal)+'"\r\n';
 	}
 
 	return csv;

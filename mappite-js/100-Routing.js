@@ -191,7 +191,7 @@ function computeRouteGSpeed(rvps, focus){
 		      if(instr.sign == 5 || instr.sign == 4) { // viapoint or finish
 				// legIdx contains the lls index where thsi leg ends 
 				legsIdx[legIdx] = instr.interval[1]; //legIdx;
-				//consoleLog("Leg: "+ legIdx +" ends at point: " + legIdx);
+				//consoleLog("______Leg: "+ legIdx +" time: " + (time/1000) + "formattime: " + formatTime(time/1000));
 				legs[legIdx++] = new Leg((distance/uomFactor/1000), (time/1000), false );
 				distance = 0;
 				time = 0;

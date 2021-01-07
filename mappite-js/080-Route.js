@@ -335,11 +335,11 @@ var Route = L.Class.extend({
 	var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
 	var routeInfo= "";
 	if (arrayLength> 1 && this.routeDistance != "n/a" ) { 
-		//var r = "Via Points ("+arrayLength+") "+ Number(routeDistance).toFixed(2)+ "km ("+ routeFormattedTime+")";
 		var closedRouteStyle="";
 		if (this.closedLoop) { closedRouteStyle='style="color: green;"'; }
 		routeInfo = '<a class="gactions" href="javascript:activeRoute.clean();" title="Clean Current Route">&#215;</a> ' +
-			Number(this.routeDistance).toFixed(2)+ uom +" ("+ this.routeFormattedTime+")" +
+			//Number(this.routeDistance).toFixed(2)+ uom +" ("+ this.routeFormattedTime+")" +
+			formatDecimal(this.routeDistance,2)+ uom +" ("+ this.routeFormattedTime+")" +
 			'&nbsp;<a id="gClosedRoute" class="gactions" href="javascript:activeRoute.toggleLoop();" title="'+translations["route.closedLoop"]+'" '+closedRouteStyle+'>&#8634;</a> ' +
 			'&nbsp;<a class="gactions" href="javascript:activeRoute.reverse();" title="'+translations["route.invert"]+'">&#8644;</a> ';
 	}
@@ -421,7 +421,8 @@ var Route = L.Class.extend({
 			// to cut the route
 			s = s + "<div class='legsInfo' onclick='javascript:legsCumulativeToggle()'>"+ 
 			        "<span style='width: 20px; display: inline-block;'></span> &#8870; "+
-			        (this.legs[i].hasUnpaved?'~':'')+Number(distance).toFixed(2)+ uom +
+			        //(this.legs[i].hasUnpaved?'~':'')+Number(distance).toFixed(2)+ uom +
+			        (this.legs[i].hasUnpaved?'~':'')+formatDecimal(distance,2)+ uom +
 				" ("+ formatTime(time) + ") </div>&nbsp;<a class='gaddWayPoint' title='Add Point Here'  onkeydown='javascript:onCutKeyPress(event);' onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>";
 			//consoleLog("* leg("+ i +"): dist/time" + time  + "/" + distance);
 			

@@ -40,20 +40,30 @@ function setCookie(cname, cvalue, expireDays) {
     document.cookie = cname + "=" + cvalue + "; " + expires;
 }
 
-
-function formatTime(t){ // format time in sec to "xd hh:mi:ss" where xd is optional and x is number of days
+/* FUNCTION: formatTime
+ * Input: time in seconds
+ * Returns string with format"xd hh:mi:ss" where xd is optional and x is number of days
+ */
+function formatTime(t){ 
     var d = Math.floor(t/86400),
-        h = ('0'+Math.floor(t/3600) % 24).slice(-2),
-        m = ('0'+Math.floor(t/60)%60).slice(-2),
-        s = ('0' + t % 60).slice(-2);
+	h = ('0'+Math.floor(t/3600) % 24).slice(-2),
+	m = ('0'+Math.floor(t/60)%60).slice(-2),
+	s = ('0' + parseInt(t) % 60).slice(-2);
     return (d>0?d+'d ':'')+(h>0?h+':':'00:')+(m>0?m+':':'00:')+(t>60?s:s+'s');
 }
 
-function escapeHTML(s) { // slash is escaped to avoud \\u to be interpreted as an unicode char in js
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;').replace(/'/g,'&#39;').replace(/\\/g,'\\\\');
+
+/* FUNCTION: formatDecimal(n,d)
+ * Returns a numeric string with d decimals and
+ *  decimal separator based on browser locale (i.e. . or ,)
+ */
+function formatDecimal(n,d) {
+    return Number(Number(n).toFixed(d)).toLocaleString();
 }
 
+
 /*
+ * FUNCTION: formatUom 
  * Format, convert, and rounds to precision digits
  * Input: value number, precision int, uom can be "km" or "mt"
  * Returnd: NNNuom,  convert NNN from km/mt to mi/ft  if imperial UOM is selected
@@ -66,6 +76,12 @@ function formatUom(value, precision, uom) {
 		uom = ( uom === "km" )? "mi" : "ft";
 	}
 	return ((precision === 0 ) ? Math.round(value) : value.toFixed(2)) + uom
+}
+
+/* Escape special chars
+ */
+function escapeHTML(s) { // slash is escaped to avoud \\u to be interpreted as an unicode char in js
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;').replace(/'/g,'&#39;').replace(/\\/g,'\\\\');
 }
 
 /* FUNCTION: warnIfNoName
@@ -132,13 +148,5 @@ function getParameterByName(name, src) {
     return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
-
-/* FUNCTION: getLocaleDecimal(n,d)
- * Returns a numeric string with d decimals 
- * and decimal separator based on locale (i.e. , or .)
- */
-function getLocaleDecimal(n,d) {
-    return Number(Number(n).toFixed(d)).toLocaleString();
-}
 
 
