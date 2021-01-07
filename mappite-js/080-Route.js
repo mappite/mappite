@@ -658,8 +658,9 @@ function onCutKeyPress(e) {
 	console.log("onKeyPress: key " + e.key);
 	//console.log(e);
 	if (e.ctrlKey) {
+		e.preventDefault(); //e.stopPropagation();
 		if ( e.key == 'b' && window.confirm(translations["route.cutBefore"]+insertPointAt)) {
-			activeRoute.splice(0,insertPointAt-1); // remove from 0 to active point
+			activeRoute.splice(0,insertPointAt-1); // remove from 0 to active point			
 		} else if ( e.key == 'a' && window.confirm(translations["route.cutAfter"]+insertPointAt)) {
 			activeRoute.splice(insertPointAt, -1); // remove from active point to the end
 		}
