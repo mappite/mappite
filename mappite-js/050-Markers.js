@@ -10,8 +10,10 @@ function addMarkerToMap(vp) { // shall this be renamed add marker to route ????
 		removeText = doubleClickText+"/"+rightClickText+" " + translations["popup.remove"]; 
 	}
 	popupText =  	"<div class='gmid'>"+escapeHTML(vp.name)+"</div>" +
-			"<div class='gsmall'>Lat,Lng ("+ vp.latLng.lat.toFixed(6) + ","+ vp.latLng.lng.toFixed(6)+  ")<br>"+
-			 removeText +"</div>";
+			"<div class='gsmall'>Lat,Lng ("+ vp.latLng.lat.toFixed(6) + ","+ vp.latLng.lng.toFixed(6)+  ")<br>"+ removeText +"</div>"+
+			"<span style='float: right; cursor: pointer;'>"+
+			"<img src='./icons/leftBarredArrow.svg'  onclick='javascript:cutRouteBefore(\""+vp.id+"\");' title='Cut Before' width='15' height='8' />&nbsp;&nbsp;"+
+			"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' ></span>";
 	
 	marker.bindPopup(popupText); //.addTo(map);// rfcuster
 	markersCluster.addLayer(marker);
@@ -86,7 +88,11 @@ function addPotentialMarkerToMap(vp, info, icon) {
 				"<div id='"+"a_"+id +"' class='gsmall'>"+rightClickText+ " " + translations["popup.remove"] + "</div>" +
 				"<div class='gmid'>"+escapeHTML(label)+"</div>" +
 				"<div class='gsmall'>Lat,Lng  ("+ ll.lat.toFixed(6)+","+ll.lng.toFixed(6)+  ")</div>" +
-				(info != null?info:'');
+				(info != null?info:'') +
+				"<span style='float: right; cursor: pointer;'>"+
+				"<img src='./icons/leftBarredArrow.svg'  onclick='javascript:cutRouteBefore(\""+vp.id+"\");' title='Cut Before' width='15' height='8' />&nbsp;&nbsp;"+
+				"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' ></span>";
+
 			geoResultsNames[id]= info ;
 			e.target.setPopupContent(popupText);  
 			addNewViaPoint(ll.lat,ll.lng, label,id);  

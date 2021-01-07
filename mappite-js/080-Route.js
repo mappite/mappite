@@ -39,7 +39,10 @@ function updateViaPoint(lat,lng,name, id){
 	}
 	
 	popupText = "<div class='gmid'>"+escapeHTML(name)+"</div>" +
-			"<div class='gsmall'>Lat,Lng  ("+ lat +","+ lng + ")<br>"+rightClickText+" on this viapoint to remove</div>";
+			"<div class='gsmall'>Lat,Lng  ("+ lat +","+ lng + ")<br>"+rightClickText+" on this viapoint to remove</div>"+
+			"<span style='float: right; cursor: pointer;'>"+
+			"<img src='./icons/leftBarredArrow.svg'  onclick='javascript:cutRouteBefore(\""+vp.id+"\");' title='Cut Before' width='15' height='8' />&nbsp;&nbsp;"+
+			"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' ></span>";
 	if ( geoResultsNames[id] != null) popupText = popupText + geoResultsNames[id] ;  
 	markers[id].setPopupContent(popupText); // unbindPopup().bindPopup(popupText).openPopup();
 }
@@ -423,7 +426,7 @@ var Route = L.Class.extend({
 			        "<span style='width: 20px; display: inline-block;'></span> &#8870; "+
 			        //(this.legs[i].hasUnpaved?'~':'')+Number(distance).toFixed(2)+ uom +
 			        (this.legs[i].hasUnpaved?'~':'')+formatDecimal(distance,2)+ uom +
-				" ("+ formatTime(time) + ") </div>&nbsp;<a class='gaddWayPoint' title='Add Point Here'  onkeydown='javascript:onCutKeyPress(event);' onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>";
+				" ("+ formatTime(time) + ") </div>&nbsp;<a class='gaddWayPoint' title='Add Point Here' onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>";
 			//consoleLog("* leg("+ i +"): dist/time" + time  + "/" + distance);
 			
 		}
@@ -649,20 +652,21 @@ function onRouteNameChange (){
 	}
 }
 
-/* FUNCTION: onCutKeyPress
- * Perform actions when keys are pressed on "+" route sign
- */
-function onCutKeyPress(e) {
-	// if event comes from leaflet, the key pressed is contained in e.originalEvent.key
-	// e = e.originalEvent;
-	console.log("onKeyPress: key " + e.key);
-	//console.log(e);
-	if (e.ctrlKey) {
-		e.preventDefault(); //e.stopPropagation();
-		if ( e.key == 'b' && window.confirm(translations["route.cutBefore"]+insertPointAt)) {
-			activeRoute.splice(0,insertPointAt-1); // remove from 0 to active point			
-		} else if ( e.key == 'a' && window.confirm(translations["route.cutAfter"]+insertPointAt)) {
-			activeRoute.splice(insertPointAt, -1); // remove from active point to the end
-		}
+
+function cutRouteBefore(id) {
+	for (i = 0; i < activeRoute.viaPoints.length; i++) { // is this optimal?
+	    if (activeRoute.viaPoints[i].id == id) { break; }
 	}
-} 
+	if (window.confirm(translations["route.cutBefore"]+(i+1))) {
+		activeRoute.splice(0,i); // remove from 0 to this point id			
+	}
+}
+
+function cutRouteAfter(id) {
+	for (i = 0; i < activeRoute.viaPoints.length; i++) { // is this optimal?
+	    if (activeRoute.viaPoints[i].id == id) { break; }
+	}
+	if (window.confirm(translations["route.cutAfter"]+(i+1))) {
+		activeRoute.splice(i+1,-1); // remove from 0 to this point id			
+	}
+}
