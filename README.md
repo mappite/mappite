@@ -24,7 +24,7 @@ Mappite uses Leaflet to display map tiles (map images) from different providers,
 
 ### Database and php
 
-Mappite uses a mysql database and a few php pages to maintain short urls and to provide cloud functionalities (login, save route etc.) - see `php/` and `sql/` folders and [140-Cloud.js](mappite-js/140-Cloud.js), the latter to check how the front end interacts with the php back-end.
+Mappite uses a mysql database and a few php pages to maintain short urls, provide cloud functionalities (login, save route etc.) and cache routing results - see `php/` and `sql/` folders and [140-Cloud.js](mappite-js/140-Cloud.js), the latter to check how the front end interacts with the php back-end.
 
 ### Todo
 
