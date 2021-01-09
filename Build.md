@@ -5,13 +5,13 @@ Run:
 
     ./make.sh
 
-to create the `dist/` directory (wwwroot) without php and mappite.js not minimized - which is what you usually want when developing changes on main javascript files. Add `php` to 
+to create the `dist/` directory (wwwroot) without php and mappite.js not minimized - which is what you usually want when developing changes on main javascript files.
 
 Run:
 
     ./make.sh php prod 
 
-to create the `dist/` directory (wwwroot) with all files and mappite.js minimized
+to create the `dist/` directory (wwwroot) with all files and mappite.js minimized (requires nodejs uglify-js).
 
 ## Database & Php
  _Optional_ This is needed to generate shorturls, for cloud management (login, save routes, etc) and to cache route results - the latter happens when the first user follows an existing link to a mappite URL (see proxy-cache page [pc.php](php/pc.php)).
