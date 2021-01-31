@@ -16,12 +16,12 @@ Start with `index.html` and js files in `mappite-js/` - the latter gets collated
 
 ### Mappite Routing 
 
-Mappite can use OpenRouteService (ORS), Graphhopper and Mapquest as routing engines. Register on their project page to get the key to use them online - see [001-Keys.js](mappite-js/001-Keys.js) - or download and make your local install for ORS or Graphhopper. If you plan to use an internal routing engine look at Internal Routing section in [000-GlobalVars.js](mappite-js/000-GlobalVars.js) and _isInternalRoutingArea()_ in [100-Routing.js](mappite-js/100-Routing.js). 
+Mappite can use OpenRouteService ([ORS](https://openrouteservice.org/)), [Graphhopper](https://www.graphhopper.com/) and [Mapquest](https://developer.mapquest.com/) as routing engines. Register on their project page to get the key to use them online - see [001-Keys.js](mappite-js/001-Keys.js) - or download and make your local install for ORS or Graphhopper. If you plan to use an internal routing engine look at Internal Routing section in [000-GlobalVars.js](mappite-js/000-GlobalVars.js) and _isInternalRoutingArea()_ in [100-Routing.js](mappite-js/100-Routing.js). 
 The public https://mappite.org web site currently uses an internal customized version of Graphhopper (for Europe) and other engines depending on route options.
 
 ### Map Layers
 
-Mappite uses Leaflet to display map tiles (map images) from different providers, first option is [OSM](https://openstreetmap.org) - see [030-Map.js](mappite-js/030-Map.js).
+Mappite is built upon  [Leaflet](https://leafletjs.com/) open-source JavaScript library to display map tiles (map images) from different providers, first option is [OSM](https://openstreetmap.org) - see [030-Map.js](mappite-js/030-Map.js).
 
 ### Database and php
 
