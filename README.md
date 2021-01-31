@@ -6,7 +6,7 @@ This page will grow with details to help volunteers providing feedback and enhan
 
 To build a local mappite environment (except internal routing) see [Build](./Build.md) 
 
-Mappite functional discussions are on [Advrider.com](https://advrider.com/f/threads/mappite-org-create-routes-easily-feedback-wanted.1055040/) (English) and [Quellidellelica.com](quellidellelica.com/vbforums/showthread.php?t=433039) (Italian) forums.
+Mappite functional discussions are on [Advrider.com](https://advrider.com/f/threads/mappite-org-create-routes-easily-feedback-wanted.1055040/) (English) and [Quellidellelica.com](http://quellidellelica.com/vbforums/showthread.php?t=433039) (Italian) forums.
 
 For code issues or proposals use GitHub Issues.
 
