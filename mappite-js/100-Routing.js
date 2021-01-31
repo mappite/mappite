@@ -3,15 +3,9 @@
 
 /* Internal Graphhopper routing Engine area - 202008 covers Europe*/
 function isInternalRoutingArea(rvps) {
-	// Ita alps
-	//var lats = [ [ 47.369, 38.651, 5.845, 15.557]
-	//                , [42,36.315,11.646,18.984]]; // top, bottom, left, right
-	// Europe // top, bottom, left, right	
-	var lats = [ [ 71.30, 37.79, -24.87, 44.03] // most eur
-	                , [38,34,20,35.5] // greece south cyprus
-			, [38,35,11.5,16] // sicily
-			, [38,36,-9,0] // south spain
-		]; 
+	
+	var lats = INTERNAL_ROUTING_LATS;
+	
 	for (var i = 0; i < rvps.length; i++) {
 		lat = rvps[i].lat
 		lng = rvps[i].lng;
@@ -98,10 +92,10 @@ function computeRouteGSpeed(rvps, focus){
 		consoleLog("Looking if Cached");
 		var cacheKey= getOptionsString() + "_" +  activeRoute.getCompressedPoints();
 		url="pc.php?cache="+cacheKey+"&method=GET" +
-		    "&url=https://"+MAPPITE_SERVER+".mappite.com/route/&"; 
+		    "&url=https://"+MAPPITE_SERVER+"/route/&"; 
 	} else {
 		consoleLog("Direct");
-		url="https://"+MAPPITE_SERVER+".mappite.com/route/?";
+		url="https://"+MAPPITE_SERVER+"/route/?";
 	}
 	
 	queryString= '';

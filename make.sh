@@ -25,6 +25,9 @@ sed -i "s/__mversion__/$mversion/g" dist/scripts/mappite.js
 sed -i 's/__mapquestKey__/KEY_GOES_HERE/g' dist/scripts/mappite.js
 sed -i 's/__orsKey__/KEY_GOES_HERE/g' dist/scripts/mappite.js
 sed -i 's/__mapboxKey__/KEY_GOES_HERE/g' dist/scripts/mappite.js
+# if internal routing is enabled, your graphopper server:
+sed -i 's/__mserver__/your_server_url/g' dist/scripts/mappite.js
+
 
 # ** Database ** 
 if [[ $1 == "php" || $2 == "php" ]]; then

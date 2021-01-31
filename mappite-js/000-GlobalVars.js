@@ -19,7 +19,6 @@
 // mappite version (release date), click on "i" in bottom left panel to display version number in bottom right attribute area
 var mversion = __mversion__; 
 var LOG_ENABLED = true;
-MAPPITE_SERVER = "graphs"; // graphs|routing
 
 var map;  // The Leaflet Map
 var curL; // Current Layer
@@ -63,6 +62,21 @@ var viaPointId = 0; // unique index of each viaPoint showed on screen
 	
 var insertPointAt = -1; // by default insert new via point at the end of the current route
 var MAX_ROUTE_POINTS = 50; // max numbers of points in a route
+
+// Internal Routing - set when internal routing is used, this requires
+// to setup a graphhopper routing server.
+// set 0,0,0,0 to disable
+
+// see 100-Routing.js isInternalRoutingArea()
+
+//var INTERNAL_ROUTING_LATS = [ [ 0,0,0,0] ]; // DISABLE 
+var INTERNAL_ROUTING_LATS = [  // top, bottom, left, right 
+	  [ 71.30, 37.79, -24.87, 44.03] // most eur
+	, [38,34,20,35.5] // greece south cyprus
+	, [38,35,11.5,16] // sicily
+	, [38,36,-9,0] // south spain
+	]; 
+var MAPPITE_SERVER = "__mserver__"; // internal routing server (optional)
 	
 // Tracks
 var trackCanvas;// 
