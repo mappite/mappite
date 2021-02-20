@@ -212,11 +212,16 @@ function getTags() {
 
 
 /* FUNCTION: loadRoute
- * INPUT: mappite url (full url or just location search), initiateMap true or false
- * Load a route from a mappite URL, withotu refreshing the page
+ * INPUT: localStorage index of saved route url
  * NOTE: Current active route is lost without any warning
  */
-function loadRoute(url) {
+function loadRoute(idx) {
+	var key = localStorage.key(idx);
+	var url = localStorage.getItem(key);
+	if (url.substring(0,2) === "C_") { // it's saved in cloud as well
+	    url = url.substring(2);
+	}
+	consoleLog("Loading route url:" + url);
 	var curMapLayer = document.getElementById("gOptions.mapLayer").value;
 	if (activeRoute != null) activeRoute.forceClean();
 	
@@ -337,12 +342,12 @@ function refreshSavedRoutesHtml() {
 				// see note in onDeleteSaved() comment
 				cloudTag = "";
 				if (val.substring(0,2) === "C_") { 
-					val = val.substring(2)
+					//val = val.substring(2);
 					cloudTag = "<img src='./scripts/images/cloud.svg' width='18' height='18'>";
 				}
 
 				routeNamesAndHTML.push({name: routeName, html: "<a class='gactions' href='javascript:onDeleteSaved(\""+i+"\")'>&#215;</a>&nbsp;&nbsp;"+
-					               "<a class='glinks' href='javascript:loadRoute(\""+escapeHTML(val)+"\")'>"+routeName+"</a>"+cloudTag+"<br/>"});
+					               "<a class='glinks' href='javascript:loadRoute(\""+i+"\")'>"+routeName+"</a>"+cloudTag+"<br/>"});
 				
 			}
 		}
