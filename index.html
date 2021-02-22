@@ -476,13 +476,6 @@
 				<span tkey="info.removeViaPointTouch"></span> <br/>
 				<span tkey="info.ytChannel"></span> <a href='https://www.youtube.com/channel/UCKJxebv2y3DJsLm2yudi9Wg' target='_blank'><img src='./icons/youtube.png'></a>
 			</div>
-			<script>
-				if (isTouchDevice()) { document.getElementById("gMouseInfo").style.display = "none";}
-				else { 
-					document.getElementById("gTouchInfo").style.display = "none"; 
-					document.getElementById("gMarkerDrag").style.display = "none"; 
-				}
-			</script>
 			<span tkey="info.welcome"></span>
 			<a href="cookies.txt"><span class="gsmall" tkey="info.cookies"></span></a><br>
 		<div id="gHeaderEnroll" class="clsEnroll"><span tkey="cloud.enrollInvite"></span></div>
@@ -692,6 +685,13 @@
 			if ( this.id =="locate" && "https:" != document.location.protocol) $(this).remove(); 
 		});		
 
+		if (isTouchDevice()) { 
+			document.getElementById("gMouseInfo").style.display = "none";
+		} else { 
+			document.getElementById("gTouchInfo").style.display = "none"; 
+			document.getElementById("gMarkerDrag").style.display = "none"; 
+		}
+				
 		console.log("mappite ready");
 
 		// Decode URL and detect if this is a direct call to a route
@@ -700,7 +700,10 @@
 			setOptionsString(options); // set options as per called route, initiateMap loads the correct map
 			initiateMap([0,0], 2);
 			loadRoute(location.search);
-			if (isTouchDevice()) { $( "#gPanelToggle" ).click(); } // close panel to gain space on screen...
+			if (isTouchDevice()) { 
+				$( "#gPanelToggle" ).click();    // close panel to gain space on screen...
+				map.removeLayer(markersCluster); // hide Markers (until ones click on map, see addPoint(ll))
+			} 
 		} else { // loosely locate IP, initiate and center map on it
 			if (getParameterByName("enroll") === 'true') { // just enrolled!
 				$( "#gHeaderContent" ).load(enrollDoneFile); // show welcome message

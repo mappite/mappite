@@ -103,10 +103,14 @@ function initiateMap(ll, z) {
 		    ll = map.containerPointToLatLng(L.point([(el.left+12),(el.top+41)]));
 		    addPoint(ll);
 	    } else {
-		var msg = "<br><br><div>"+translations['info.dragMarker']+"</div>"; //  translations["cloud.unenrolledWarning"] + "<div class='clsEnroll' onClick=\"javascript:$( \'#gHeaderContent\' ).load(\'"+ enrollFile+"\');\">" +translations["cloud.enrollInvite"] + "</div>";
-		$( "#gHeaderContent" ).html(msg); 
-		headerCls.show();
-		//map.removeLayer(markersCluster); // this removes markers from map until div is closed
+		if (!map.hasLayer(markersCluster)) { // toggle markersCluster on click
+			map.addLayer(markersCluster);
+			var msg = "<br><br><div>"+translations['info.dragMarker']+"</div>"; //  translations["cloud.unenrolledWarning"] + "<div class='clsEnroll' onClick=\"javascript:$( \'#gHeaderContent\' ).load(\'"+ enrollFile+"\');\">" +translations["cloud.enrollInvite"] + "</div>";
+			$( "#gHeaderContent" ).html(msg); 
+			headerCls.show();
+		} else {
+			map.removeLayer(markersCluster);
+		}
 	    }
 	    // place it back to original position
 	    draggableMarker.style.top= '';
