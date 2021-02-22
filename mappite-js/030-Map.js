@@ -30,6 +30,15 @@ mapLayer["osm"] 	= L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.p
 mapLayer["opentopo"] 	= L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
 mapLayer["stamen.terrain"] 	= L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg');
 
+/* Map Route Color */
+var mapRouteColor = {};
+mapRouteColor["mapboxCust"] = "green";
+mapRouteColor["mapboxOut"]  = "green";
+mapRouteColor["mapboxSat"]  = "green";
+mapRouteColor["osm"] 	 = "green";
+mapRouteColor["opentopo"] 	 = "#ff00ff";
+mapRouteColor["stamen.terrain"]  = "green";
+
 /* FUNCTION: onMapLayersChange 
  * aet map layer to selected map in list
  * called from:

@@ -102,7 +102,7 @@ var Route = L.Class.extend({
     initialize: function (vp,name) { // a viapoint and a name
 	this.name = name;
 	this.viaPoints = [ vp ];
-	this.linePoly = L.polyline([vp.latLng], {color: 'red', opacity: 0.2}).addTo(map);
+	this.linePoly = L.polyline([vp.latLng], {color: 'red', opacity: 0}).addTo(map); // used only for fit bound before calculation, maybe REMOVE?
 	this.legs = new Array();
 	this.legsIdx = new Array(); // start (or end) point in lls
 
@@ -562,7 +562,8 @@ function createRoutePoly(lls) {
 		routeMilestonesGroup.clearLayers();
 	}	
 	
-	activeRoute.routePoly = L.polyline(lls, {color: 'green', opacity: 0.8, weight: 4}).addTo(map);
+	routeColor = mapRouteColor[document.getElementById("gOptions.mapLayer").value];
+	activeRoute.routePoly = L.polyline(lls, {color: routeColor, opacity: 0.8, weight: 4}).addTo(map);
 	
 	/* Add a circle milestone on route each d km/miles */
 	if ( !isTouchDevice()){ // no with touch devices since onmousehover would fail
@@ -577,7 +578,8 @@ function createRoutePoly(lls) {
 			dist[i] =  dist[i-1]+getDistance([lls[i][0],lls[i][1]], [lls[i-1][0],lls[i-1][1]], 0,0)*(uom=="km"?1:0.621371);
 			if (dist[i]>=d) { // we reached the first route point after d
 				//idx[segment++]=i;
-				var cm =   L.circleMarker(lls[i], {color: 'green', fill: true, fillOpacity: 1, radius: 3}).bindTooltip(d + uom );
+				routeColor = mapRouteColor[document.getElementById("gOptions.mapLayer").value];
+				var cm =   L.circleMarker(lls[i], {color: routeColor, fill: true, fillOpacity: 1, radius: 3}).bindTooltip(d + uom );
 				cm.on('mouseover',function(e) { e.target.openTooltip(); });
 				cm.on('mouseout' ,function(e) { e.target.closeTooltip();});			
 				routeMilestonesGroup.addLayer(cm);
@@ -592,10 +594,12 @@ function createRoutePoly(lls) {
 	if (!isIE()) { 
 		activeRoute.routePoly.on('mouseover',function(e) { 
 			//consoleLog("mouseover");
-			e.target.setStyle({color: '#00EE00', opacity: 0.8, weight: 5});
+			//e.target.setStyle({color: '#00EE00', opacity: 0.8, weight: 5});
+			e.target.setStyle({color: routeColor, opacity: 1, weight: 5});
 			});
 		activeRoute.routePoly.on('mouseout',function(e) { 
-			e.target.setStyle({color: 'green', opacity: 0.8, weight: 4});
+			routeColor = mapRouteColor[document.getElementById("gOptions.mapLayer").value];
+			e.target.setStyle({color: routeColor, opacity: 0.8, weight: 4});
 			});
 		activeRoute.routePoly.on('click', function (e) { // avoid click on line to be a click on map and generate a new point
 			L.DomEvent.stopPropagation(e);
