@@ -102,14 +102,16 @@ function initiateMap(ll, z) {
 		    // left/top are marker div topleft point: +12/+41 is the marker bottom point
 		    ll = map.containerPointToLatLng(L.point([(el.left+12),(el.top+41)]));
 		    addPoint(ll);
-	    } else {
+	    } else { // it's a click
+		if (activeRoute == null) { // if no route exists show a message
+		   var msg = "<br><br><div>"+translations['info.dragMarker']+"</div>"; //  translations["cloud.unenrolledWarning"] + "<div class='clsEnroll' onClick=\"javascript:$( \'#gHeaderContent\' ).load(\'"+ enrollFile+"\');\">" +translations["cloud.enrollInvite"] + "</div>";
+		   $( "#gHeaderContent" ).html(msg); 
+		   headerCls.show();
+		}
 		if (!map.hasLayer(markersCluster)) { // toggle markersCluster on click
-			map.addLayer(markersCluster);
-			var msg = "<br><br><div>"+translations['info.dragMarker']+"</div>"; //  translations["cloud.unenrolledWarning"] + "<div class='clsEnroll' onClick=\"javascript:$( \'#gHeaderContent\' ).load(\'"+ enrollFile+"\');\">" +translations["cloud.enrollInvite"] + "</div>";
-			$( "#gHeaderContent" ).html(msg); 
-			headerCls.show();
+		   map.addLayer(markersCluster);
 		} else {
-			map.removeLayer(markersCluster);
+		   map.removeLayer(markersCluster);
 		}
 	    }
 	    // place it back to original position

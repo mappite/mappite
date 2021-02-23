@@ -34,10 +34,10 @@ mapLayer["stamen.terrain"] 	= L.tileLayer('https://stamen-tiles.a.ssl.fastly.net
 var mapRouteColor = {};
 mapRouteColor["mapboxCust"] = "green";
 mapRouteColor["mapboxOut"]  = "green";
-mapRouteColor["mapboxSat"]  = "green";
+mapRouteColor["mapboxSat"]  = "#ff00ff";
 mapRouteColor["osm"] 	 = "green";
 mapRouteColor["opentopo"] 	 = "#ff00ff";
-mapRouteColor["stamen.terrain"]  = "green";
+mapRouteColor["stamen.terrain"]  = "#ff00ff";
 
 /* FUNCTION: onMapLayersChange 
  * aet map layer to selected map in list
@@ -63,10 +63,13 @@ function setMapLayer (ml){
 	map.addLayer(curL);
 	map.addControl(curA);
 	map.addControl(scale); 
-	//getOptionsString(); // re-builds options string (to set selected map and set the browser cookie) => included in getUrl() below
-	// update url if route exist:
+
 	if (activeRoute != null) { 
+		// update url if route exist:
 		history.pushState(name, name, activeRoute.getUrl()); 
+		// set active route color
+		routeColor = mapRouteColor[document.getElementById("gOptions.mapLayer").value];
+		activeRoute.routePoly.setStyle({color: routeColor, opacity: 0.8, weight: 4});
 	} else {
 		getOptionsString(); // re-builds options string and sets the browser cookie
 	}
