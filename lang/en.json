@@ -13,7 +13,7 @@
    "info.doubleClickText": "Double-Click",
    "info.doubleTapText": "Double-Tap",
    "info.cookies": "This site uses cookies, you accept this by continuing.",
-   "info.dragMarker": "Drag marker on map to create a new point",
+   "info.dragMarker": "Drag marker on map to create a new point. Click to hide/show markers.",
    "popup.remove": "on marker to remove",
    "popup.add": "on marker to add to route",
    "route.noRoute": "No Route Yet",
@@ -101,8 +101,5 @@
    "cloud.unenrollConfirm": "Do you want to unenroll this device?",
    "cloud.unenrollClearRoutes": "Device Unenrolled. Do you want to remove all saved routes from this device?",
    "cloud.unenrolled": "Device Unenrolled. Reload the page to enroll again.",
-   "cloud.unenrolledWarning": "<b>Warning:</b> your route is saved in browser local storage cache,<br/> if you delete it you'll lose all saved routes!",
-   "http.info1": "For your security mappite is deprecating access via unencrypted <b>http</b> protocol, only secure <b>httpS</b> is allowed.<br>",
-   "http.info2": "<br>New secure link to the page you where looking for: ",
-   "http.info3": "<br>You saved some routes in <b>http</b>://mappite.org, please copy all new secure links below or follow each one and resave in <b>https</b>://mappite.org by Feb, 1st 2019<br/><br/><span style='color: #DC614F;'>If not done already, please consider to enroll to support mappite and save your routes in cloud to have them available in any device you own, including mobile.</span></br>"
+   "cloud.unenrolledWarning": "<b>Warning:</b> your route is saved in browser local storage cache,<br/> if you delete it you'll lose all saved routes!"
  }

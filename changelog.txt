@@ -1,3 +1,9 @@
+20210222
+. Active Route color can be defined per each map layer
+. Red Line hidden
+. On Touch Devices default markers are hidden
+. Fix for route point names with " char
+
 20210106
 . csv export
 . milestones (circles) at each 100km/mi

@@ -13,7 +13,7 @@
    "info.doubleClickText": "Doppio-Click",
    "info.doubleTapText": "Doppio-Tap",
    "info.cookies": "Questo sito usa cookies. Continuando la navigazione li accetti o clicca qui.",
-   "info.dragMarker": "Trascina il segnalino sulla mappa per creare un nuovo punto",
+   "info.dragMarker": "Trascina il segnalino sulla mappa per creare un nuovo punto. Click per nascondere i segnalini.",
    "popup.remove": "sul segnalino per rimuoverlo",
    "popup.add": "sul segnalino per aggiungerlo al percorso",
    "route.noRoute": "Nessun Percorso Definito",
@@ -101,8 +101,5 @@
    "cloud.unenrollConfirm": "Vuoi che questo dispositivo esca dal cloud?",
    "cloud.unenrollClearRoutes": "Questo dispositivo è uscito dal cloud. Rimuovo tutti i percorsi salvati in questo dispositivo?",
    "cloud.unenrolled": "Questo dispositivo è uscito dal cloud. Ricarica Mappite.org nel browser per effettuare un nuovo accesso.",
-   "cloud.unenrolledWarning": "<b>Attenzione</b>: il percorso è salvato nel browser,<br/> se cancelli i file temporanei (local storage) perderai tutti i percorsi salvati!",
-   "http.info1": "Per la tua sicurezza mappite permette da ora solo l'accesso via il protocollo sicuro <b>httpS</b>.<br>",
-   "http.info2": "<br>Il nuovo link sicuro alla pagina che stavi cercando è: ",
-   "http.info3": "<br>Hai dei percorsi salvati in <b>http</b>://mappite.org, copiati i nuovi link sicuri o seguili e salva ogni percorso in <b>httpS</b>://mappite.org entro il Primo Febbraio 2019<br/><br/><span style='color: #DC614F;'>Se non l'hai già fatto considera di supportare mappite e registrarti per salvare ogni tuo percorso in cloud e averlo disponibile in tutti i tuoi dispositivi, smartphone inclusi.</span></br>"
+   "cloud.unenrolledWarning": "<b>Attenzione</b>: il percorso è salvato nel browser,<br/> se cancelli i file temporanei (local storage) perderai tutti i percorsi salvati!"
  }
