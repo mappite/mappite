@@ -25,11 +25,11 @@ function onImportChange(e) {
 			//OK: x[0].attributes.getNamedItem("lat").value;
 			//OK: x[0].getAttribute("lat")
 			//ok. x[0].getElementsByTagName("name")[0].textContent
-			points = xmlDoc.getElementsByTagName("rtept");
-	
-			if (points.length>0) { // it's a route!
+			
+			// route FIXME: this assumes one single route only
+			var points = xmlDoc.getElementsByTagName("rtept");
+			if (points.length>0) { // contains a route
 				isLoadSuccess = true;
-
 				if (points.length > MAX_ROUTE_POINTS && window.confirm(translations["saveLoad.maxViaPointsOnRouteImport"])) {	
 					loadGpxTrack(points, file.name); // load as track
 				} else {
@@ -46,13 +46,29 @@ function onImportChange(e) {
 						// do nothing
 					}
 				}
-			} else { // try with track
-				points = xmlDoc.getElementsByTagName("trkpt");
-				if (points.length>0) { // it's a track!
+			} 
+			
+			// track
+			var trk = xmlDoc.getElementsByTagName("trk");
+			for (i = 0; i < trk.length; i++) {
+				var trkname = trk[i].getElementsByTagName("name")[0].textContent;
+				consoleLog("*** trkname" +trkname)
+				var trksegs = trk[i].getElementsByTagName("trkseg");
+				for (j = 0; j < trksegs.length; j++) {
+					consoleLog("*** segment " + j)
 					isLoadSuccess = true;
-					loadGpxTrack(points, file.name);
+					points = trksegs[j].getElementsByTagName("trkpt");
+					if (points.length>0) {loadGpxTrack(points, trkname);}
 				}
 			}
+			
+			// wpt
+			points = xmlDoc.getElementsByTagName("wpt");
+			if (points.length>0) { // waypoints
+				isLoadSuccess = true;
+				loadGpxWaypoints(points, file.name);
+			}				
+			
 		} else if (fileExt === "ITN") {
 			fileText = reader.result;
 			consoleLog("the file:\n" +fileText)
@@ -84,7 +100,7 @@ function onImportChange(e) {
 	reader.readAsText(file);  
 }
 
-function loadGpxTrack(points, fileName) {
+function loadGpxTrack(points, trackName) {
 	// Create a new polyline
 	var lls = [];
 	var ele = [];
@@ -108,11 +124,12 @@ function loadGpxTrack(points, fileName) {
 			// we could compute dist at max elevation
 		}
 	}
+	/*
 	if (typeof xmlDoc.getElementsByTagName("trk")[0].getElementsByTagName("name")[0] !== 'undefined') { // has name?
 		trackName = xmlDoc.getElementsByTagName("trk")[0].getElementsByTagName("name")[0].textContent;
 	} else { // use file name
 		trackName = fileName.substring(0,fileName.length-4);
-	}
+	}*/
 	var track = new Track(trackName, lls);
 	track.setEle(ele);
 	track.setDist(dist);
@@ -133,6 +150,7 @@ function loadGpxRoute(points, fileName) {
 		} else {
 			pointName = "Point " + (i+1);	
 		}
+		
 		// var id = "vp_"+i;
 		var id = "vp_"+viaPointId++; // viaPointId stores current route next point id!
 		vp = new ViaPoint(points[i].getAttribute("lat"),
@@ -157,6 +175,39 @@ function loadGpxRoute(points, fileName) {
 	activeRoute.setName(routeName);
 	document.getElementById("sRouteName").value = activeRoute.name;
 	activeRoute.redrawAndFocus(); // look in cache also...
+	return true;	
+}
+
+function loadGpxWaypoints(points, fileName) {
+	var icon="./icons/wayPoints.svg";
+	var iconPlus="./icons/wayPointsPlus.svg";
+	var wayPointsCG = L.markerClusterGroup({
+		maxClusterRadius: 40,
+		showCoverageOnHover: true,
+		iconCreateFunction: function (cluster) {
+			return L.icon({ iconUrl: iconPlus, iconSize: [20, 20] });
+		}
+	});
+	for (i = 0; i < points.length; i++) {
+		var elem = new Object();
+		if ( typeof points[i].getElementsByTagName("name")[0] !== 'undefined') {
+			elem.name = points[i].getElementsByTagName("name")[0].textContent;
+		} else {
+			elem.name = "Point " + (i+1);	
+		}
+		elem.lat = points[i].getAttribute("lat");
+		elem.lon = points[i].getAttribute("lon");
+		
+		cm = L.marker(L.latLng(elem.lat,elem.lon), {icon: L.icon({ iconUrl: icon, iconSize: [20, 20] })});
+		cm.bindPopup(elem.name+"<br/><div class='gsmall'>"+rightClickText+ " " + translations["popup.add"] +"</div>", {offset: L.point(0,-13)}); // also doubleclick
+
+		cm.on('contextmenu dblclick', L.bind(addJsonNode, this, elem) ); // dblclick does not work since 1st click is consumed by popup...
+		wayPointsCG.addLayer(cm); 
+	
+	}
+	map.addLayer(wayPointsCG);
+	//mapIcons[id].push(wayPointsCG); // FIXME: shoudl implement this to allow waypoint removal...
+
 	return true;	
 }
 

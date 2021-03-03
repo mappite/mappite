@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg4038"
+   height="125"
+   width="125"
+   version="1.1"
+   sodipodi:docname="wayPoints.svg"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1350"
+     inkscape:window-height="773"
+     id="namedview16"
+     showgrid="false"
+     inkscape:zoom="1.888"
+     inkscape:cx="63.029661"
+     inkscape:cy="62.5"
+     inkscape:window-x="0"
+     inkscape:window-y="31"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg4038" />
+  <defs
+     id="defs4040" />
+  <metadata
+     id="metadata4043">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     transform="matrix(0.8,0,0,1.0309084,2.9336328,-482.98747)">
+    <g
+       id="g3123"
+       transform="matrix(0.03543307,0,0,0.03543307,-426.85368,121.58083)">
+      <g
+         id="g76"
+         transform="translate(-766.77238,-514.4743)">
+        <rect
+           style="fill:#ff6600;fill-rule:evenodd;stroke:none;stroke-width:31.07679176px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1"
+           id="rect4545"
+           width="3195.1802"
+           height="2363.5063"
+           x="13382.71"
+           y="10870.994" />
+      </g>
+    </g>
+  </g>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:76.73892975px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;stroke-width:1.91847324px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     x="27.529716"
+     y="89.049538"
+     id="text4549"
+     transform="scale(0.97747404,1.0230451)"><tspan
+       sodipodi:role="line"
+       id="tspan4547"
+       x="27.529716"
+       y="89.049538"
+       style="stroke-width:1.91847324px">W</tspan></text>
+</svg>

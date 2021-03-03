@@ -6,7 +6,7 @@
  * Optional: elevation
  */
 function addJsonNode(node,e) {
-	//consoleLog("Adding  node"+node.id+" to route");
+	//consoleLog("Adding  node"+node.name+" to route");
 	var label =  node.name;
 	if (node.elevation) label = label + " ("+node.elevation+"mt)"; 
 	var id = "vp_"+viaPointId++;	
