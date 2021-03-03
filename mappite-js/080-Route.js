@@ -566,7 +566,7 @@ function createRoutePoly(lls) {
 	activeRoute.routePoly = L.polyline(lls, {color: routeColor, opacity: 0.8, weight: 4}).addTo(map);
 	
 	/* Add a circle milestone on route each d km/miles */
-	if ( !isTouchDevice()){ // no with touch devices since onmousehover would fail
+	if ( !isTouchDevice()){ // no with touch devices since onmouseout would fail
 		var d= 100; // default in uom (km/mi) - FIXME: need to allow user to set this on UI and save as a cookie
 		var dist = []; // holds points total distance from start
 		dist[0] = 0;
@@ -605,44 +605,46 @@ function createRoutePoly(lls) {
 			L.DomEvent.stopPropagation(e);
 			//L.DomEvent.preventDefault(e);
 		});
-		activeRoute.routePoly.on('mousedown', function (e) {
-			map.dragging.disable();		
-			// chrome need to disable click on map
-			map.off('click');
+		if ( !isTouchDevice()) { // drag route - not on touch device since it's too hard to pick it
+			activeRoute.routePoly.on('mousedown', function (e) {
+				map.dragging.disable();		
+				// chrome need to disable click on map
+				map.off('click');
 
-			//pressTimer = window.setTimeout(function() { // DRAG BEGINS
-				//consoleLog("200ms after mousedown");
-			consoleLog("Down at:" + e.latlng );
-			//console.log("legsIdx length :" + activeRoute.legsIdx.length );
-			//console.log("legs length :" + activeRoute.legs.length );
-			onDrag = true;
+				//pressTimer = window.setTimeout(function() { // DRAG BEGINS
+					//consoleLog("200ms after mousedown");
+				consoleLog("Down at:" + e.latlng );
+				//console.log("legsIdx length :" + activeRoute.legsIdx.length );
+				//console.log("legs length :" + activeRoute.legs.length );
+				onDrag = true;
 
-			var idx =  getPointLegIdx(e.latlng);
+				var idx =  getPointLegIdx(e.latlng);
 
-			//console.log("clicked point is in leg (start from 0): " + (idx));
+				//console.log("clicked point is in leg (start from 0): " + (idx));
 
-			activeRoute.insertPointAt(idx+1);
+				activeRoute.insertPointAt(idx+1);
 
-			tmpMarker.setLatLng(e.latlng);
-			map.addLayer(tmpMarker);
-			map.on('mousemove', function (e) {
-				  tmpMarker.setLatLng(e.latlng);
-				});
-			map.on('mouseup', function (e)  { // clear event 
-				map.dragging.enable();
-				map.removeEventListener('mousemove');
-				map.removeEventListener('mouseup');
-				map.removeLayer(tmpMarker);
-				onMapClick(e);
-				// chrome needs to renable but after a while
-				// ref https://gis.stackexchange.com/questions/190049/leaflet-map-draggable-marker-events			
-				setTimeout(function() {
-					map.on(isTouchDevice()?'contextmenu':'click', onMapClick);
-				      }, 100);
-				consoleLog("Up at:" + e.latlng);
-			});				   
-			
-		});
+				tmpMarker.setLatLng(e.latlng);
+				map.addLayer(tmpMarker);
+				map.on('mousemove', function (e) {
+					  tmpMarker.setLatLng(e.latlng);
+					});
+				map.on('mouseup', function (e)  { // clear event 
+					map.dragging.enable();
+					map.removeEventListener('mousemove');
+					map.removeEventListener('mouseup');
+					map.removeLayer(tmpMarker);
+					onMapClick(e);
+					// chrome needs to renable but after a while
+					// ref https://gis.stackexchange.com/questions/190049/leaflet-map-draggable-marker-events			
+					setTimeout(function() {
+						map.on(isTouchDevice()?'contextmenu':'click', onMapClick);
+					      }, 100);
+					consoleLog("Up at:" + e.latlng);
+				});				   
+				
+			});
+		}
 	}
 }
 
