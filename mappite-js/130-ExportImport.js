@@ -19,7 +19,7 @@ function onImportChange(e) {
 		fileExt = file.name.toUpperCase().substring(file.name.length-3);
 		var isLoadSuccess = false;
 		if (fileExt === "GPX") {
-			processingStart();
+			processingStart(); // FIXME: does not work...
 			parser = new DOMParser();
 			xmlDoc = parser.parseFromString(reader.result,"text/xml");
 			// x = xmlDoc.getElementsByTagName("rtept");
@@ -49,13 +49,13 @@ function onImportChange(e) {
 				}
 			} 
 			
-			// track
+			// tracks
 			var trk = xmlDoc.getElementsByTagName("trk");
-			for (i = 0; i < trk.length; i++) {
+			for (var i = 0; i < trk.length; i++) {
 				var trkname = trk[i].getElementsByTagName("name")[0].textContent;
-				consoleLog("*** trkname" +trkname)
+				consoleLog("*** trkname: " +trkname)
 				var trksegs = trk[i].getElementsByTagName("trkseg");
-				for (j = 0; j < trksegs.length; j++) {
+				for (var j = 0; j < trksegs.length; j++) {
 					consoleLog("*** segment " + j)
 					isLoadSuccess = true;
 					points = trksegs[j].getElementsByTagName("trkpt");
