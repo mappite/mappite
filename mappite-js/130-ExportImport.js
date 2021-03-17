@@ -19,6 +19,7 @@ function onImportChange(e) {
 		fileExt = file.name.toUpperCase().substring(file.name.length-3);
 		var isLoadSuccess = false;
 		if (fileExt === "GPX") {
+			processingStart();
 			parser = new DOMParser();
 			xmlDoc = parser.parseFromString(reader.result,"text/xml");
 			// x = xmlDoc.getElementsByTagName("rtept");
@@ -67,7 +68,8 @@ function onImportChange(e) {
 			if (points.length>0) { // waypoints
 				isLoadSuccess = true;
 				loadGpxWaypoints(points, file.name);
-			}				
+			}
+			processingEnd();
 			
 		} else if (fileExt === "ITN") {
 			fileText = reader.result;
@@ -179,13 +181,13 @@ function loadGpxRoute(points, fileName) {
 }
 
 function loadGpxWaypoints(points, fileName) {
-	var icon="./icons/wayPoints.svg";
-	var iconPlus="./icons/wayPointsPlus.svg";
+	var iconDefault="./icons/wayPoints.svg";
+	var iconPlusDefault="./icons/wayPointsPlus.svg";
 	var wayPointsCG = L.markerClusterGroup({
-		maxClusterRadius: 40,
+		maxClusterRadius: 10, // default was 40
 		showCoverageOnHover: true,
 		iconCreateFunction: function (cluster) {
-			return L.icon({ iconUrl: iconPlus, iconSize: [20, 20] });
+			return L.icon({ iconUrl: iconPlusDefault, iconSize: [20, 20] });
 		}
 	});
 	for (i = 0; i < points.length; i++) {
@@ -197,6 +199,21 @@ function loadGpxWaypoints(points, fileName) {
 		}
 		elem.lat = points[i].getAttribute("lat");
 		elem.lon = points[i].getAttribute("lon");
+		
+		var icon = iconDefault;
+		// detect symbol
+		if (  typeof  points[i].getElementsByTagName("sym")[0] !== 'undefined') {
+		   // <sym>Triangle, Blue</sym>
+		   //var sym = points[i].getElementsByTagName("sym")[0].textContent.split(",");
+		   //if (sym[0] == "MountainPasses") { icon="./icons/mountainPasses.svg"; }
+		   var sym = points[i].getElementsByTagName("sym")[0].textContent;
+		   if (sym == "Triangle, Red") { icon="./icons/mountainPasses.svg"; }
+		} 
+		if (  typeof  points[i].getElementsByTagName("cmt")[0] !== 'undefined') {
+		   // natural=saddle
+		   var cmt  = points[i].getElementsByTagName("cmt")[0].textContent;
+		   if (cmt.indexOf("natural=saddle") !== -1) { icon="./icons/mountainPasses.svg"; }
+		} 
 		
 		cm = L.marker(L.latLng(elem.lat,elem.lon), {icon: L.icon({ iconUrl: icon, iconSize: [20, 20] })});
 		cm.bindPopup(elem.name+"<br/><div class='gsmall'>"+rightClickText+ " " + translations["popup.add"] +"</div>", {offset: L.point(0,-13)}); // also doubleclick

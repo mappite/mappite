@@ -11,9 +11,11 @@ function addMarkerToMap(vp) { // shall this be renamed add marker to route ????
 	}
 	popupText =  	"<div class='gmid'>"+escapeHTML(vp.name)+"</div>" +
 			"<div class='gsmall'>Lat,Lng ("+ vp.latLng.lat.toFixed(6) + ","+ vp.latLng.lng.toFixed(6)+  ")<br>"+ removeText +"</div>"+
+			"<span style='float: left; cursor: pointer;'>"+
+			"<img src='./icons/startArrow.svg' onclick='javascript:rollFirst(\""+vp.id+"\");'  title='Make First' width='15' height='8' /></span>" +
 			"<span style='float: right; cursor: pointer;'>"+
 			"<img src='./icons/leftBarredArrow.svg'  onclick='javascript:cutRouteBefore(\""+vp.id+"\");' title='Cut Before' width='15' height='8' />&nbsp;&nbsp;"+
-			"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' ></span>";
+			"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' /></span>";
 	
 	marker.bindPopup(popupText); //.addTo(map);// rfcuster
 	markersCluster.addLayer(marker);

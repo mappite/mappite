@@ -25,6 +25,8 @@
    "route.sureDeleteCurrentRoute": "Sicuro di voler rimuovere il percorso corrente?",
    "route.cutAfter": "Rimuovo il percorso dopo il punto ",
    "route.cutBefore": "Rimuovo il percorso prima del punto ",
+   "route.cantCutClosed": "Rendi il percorso non ad anello prima del taglio",
+   "route.makeFirst": "Rendi questo punto il primo del percorso?",
    "saveLoad.appendToCurrentRoute": "Vuoi appenderlo al percorso corrente?",
    "route.createBeforeSaving": "Crea un percorso prima di salvare",
    "route.maxViaPointsReached": "Hai raggiunto il numero massimo di punti. Salva il percorso e creane uno nuovo.",

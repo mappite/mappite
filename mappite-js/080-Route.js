@@ -39,10 +39,12 @@ function updateViaPoint(lat,lng,name, id){
 	}
 	
 	popupText = "<div class='gmid'>"+escapeHTML(name)+"</div>" +
-			"<div class='gsmall'>Lat,Lng  ("+ lat +","+ lng + ")<br>"+rightClickText+" on this viapoint to remove</div>"+
+			"<div class='gsmall'>Lat,Lng  ("+ formatDecimal(lat,6) +","+ formatDecimal(lng,6) + ")<br>"+rightClickText+" on this viapoint to remove</div>"+
+			"<span style='float: left; cursor: pointer;'>"+
+			"<img src='./icons/startArrow.svg' onclick='javascript:rollFirst(\""+vp.id+"\");'  title='First' width='15' height='8' /></span>" +
 			"<span style='float: right; cursor: pointer;'>"+
 			"<img src='./icons/leftBarredArrow.svg'  onclick='javascript:cutRouteBefore(\""+vp.id+"\");' title='Cut Before' width='15' height='8' />&nbsp;&nbsp;"+
-			"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' ></span>";
+			"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' /></span>";
 	if ( geoResultsNames[id] != null) popupText = popupText + geoResultsNames[id] ;  
 	markers[id].setPopupContent(popupText); // unbindPopup().bindPopup(popupText).openPopup();
 }
@@ -171,9 +173,10 @@ var Route = L.Class.extend({
     },
     
     removeViaPoint: function (id) {
-	for (i = 0; i < this.viaPoints.length; i++) {
-	    if (this.viaPoints[i].id == id) { break; }
-	}
+	//for (i = 0; i < this.viaPoints.length; i++) {
+	//    if (this.viaPoints[i].id == id) { break; }
+	//}
+	var i = getViaPointIndex(id);
 	this.linePoly.getLatLngs().splice(i, 1); // remove element at pos i
 	this.viaPoints.splice(i, 1); // remove element at pos i
 
@@ -204,9 +207,10 @@ var Route = L.Class.extend({
     
 
     moveViaPoint: function (id, offset) { // move a viapoint in the list by offset // could be use to implement drag&drop in gRoute panel
-	for (i = 0; i < this.viaPoints.length; i++) {
-	    if (this.viaPoints[i].id == id) { break; }
-	}
+	//for (i = 0; i < this.viaPoints.length; i++) {
+	//    if (this.viaPoints[i].id == id) { break; }
+	//}
+	var i = getViaPointIndex(id);
 	if ( i == this.viaPoints.length) { 
 		consoleLog("attempt to move a point not in route");
 	} else if ( ( i+offset)>  this.viaPoints.length-1 || (i+offset) <  0) {
@@ -221,6 +225,31 @@ var Route = L.Class.extend({
 	//this.redraw();
     },
     
+    rollFirst: function (id) { // make this point the first one
+	var isLoop = false;
+	if (this.closedLoop) { // unloop for the roll
+	   isLoop = true;
+	   this.toggleLoop(false);
+	}
+
+	var idx = getViaPointIndex(id);
+	if (idx == 0) return; // it's already the first
+	    
+	var offset = idx;
+	var j = 0;
+	var newVps =  [];
+	while ( idx != offset-1) {
+	   newVps[j++] = this.viaPoints[idx++];	
+	   if ( idx > this.viaPoints.length-1) { idx = 0; }
+	}
+	newVps[j] = this.viaPoints[idx];	
+	this.viaPoints = newVps;
+	
+	if (isLoop) { this.toggleLoop(false); } // reloop
+	
+	this.redraw();
+    },
+
     moveUp: function (id) { // move up
 	this.moveViaPoint(id,-1);
 	this.redraw();
@@ -658,20 +687,36 @@ function onRouteNameChange (){
 	}
 }
 
-
-function cutRouteBefore(id) {
+function getViaPointIndex(id) {
 	for (i = 0; i < activeRoute.viaPoints.length; i++) { // is this optimal?
 	    if (activeRoute.viaPoints[i].id == id) { break; }
 	}
+	return i;	
+}
+
+function rollFirst(id) { // roll and make viapoint ID the first point in the route
+	if (window.confirm(translations["route.makeFirst"])) {
+		activeRoute.rollFirst(id);
+	}
+}
+
+function cutRouteBefore(id) {
+	if (activeRoute.closedLoop) {
+		alert(translations["route.cantCutClosed"]);
+		return;
+	}
+	var i = getViaPointIndex(id);
 	if (window.confirm(translations["route.cutBefore"]+(i+1))) {
 		activeRoute.splice(0,i); // remove from 0 to this point id			
 	}
 }
 
 function cutRouteAfter(id) {
-	for (i = 0; i < activeRoute.viaPoints.length; i++) { // is this optimal?
-	    if (activeRoute.viaPoints[i].id == id) { break; }
+	if (activeRoute.closedLoop) {
+		alert(translations["route.cantCutClosed"]);
+		return;
 	}
+	var i = getViaPointIndex(id);
 	if (window.confirm(translations["route.cutAfter"]+(i+1))) {
 		activeRoute.splice(i+1,-1); // remove from 0 to this point id			
 	}
