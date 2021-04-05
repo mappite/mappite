@@ -76,7 +76,7 @@
    "saveLoad.sureRenameTag": "Rinomina #tag: Vuoi rinominare il tag ",
    "saveLoad.keepRouteTags": "Il percorso salvato contiene altri tags, vuoi mantenerli?",
    "saveLoad.failedLoad": "File non supportato, puoi importare percorsi o tracce in formato gpx o itn",
-   "saveLoad.saveFirst": "Beta: Apri e salva il percorso una volta per visualizzarlo in sovrimpressione",
+   "saveLoad.saveFirst": "Apri (click sul nome) e salva il percorso una volta per visualizzarlo in sovrimpressione",
    "overpass.noResults": "Non vi sono risultati nell'area visibile",
    "overpass.overLimit": "Vi sono più di 50 elementi: solo i primi 50 sono visualizzati. Restringi l'area di ricerca",
    "overpass.zoomInAlert": "Zoom in per vedere gli elementi",

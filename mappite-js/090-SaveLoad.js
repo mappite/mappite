@@ -407,18 +407,20 @@ function refreshSavedRoutesHtml() {
 				&& (sayt == "" || routeName.toLowerCase().indexOf(sayt)>-1 ) ) {
 				var val= localStorage.getItem(key); // url
 				consoleLog( "route found: " + routeName);//key, localStorage.getItem(key)); 
-				cloudTag = "";
+				
+					var cloudImg= "";
 				if (val.substring(0,2) === "C_") { 
 					//val = val.substring(2);
-					cloudTag = "<img src='./scripts/images/cloud-gray.svg' width='18' height='18'>";
+					cloudImg= "<img src='./scripts/images/cloud-gray.svg' width='18' height='18'>";
 				}
-				eyeTag = "<img src='./icons/eye-red.svg' width='17' height='17'>";
+				
+				var eyeImg =  "<img src='./icons/eye-"+(!localStorage.getItem("gRTrack|"+routeName)?"gray":"red")+".svg' width='17' height='17'>";
 				
 
 				routeNamesAndHTML.push({name: routeName, html: "<a class='gactions' href='javascript:deleteRouteId(\""+i+"\")'>&#215;</a>&nbsp;"+
-						       "<a class='gactions' href='javascript:showHideRouteTrackId(\""+i+"\")'>"+eyeTag+"</a>&nbsp;" +
+						       "<a class='gactions' href='javascript:showHideRouteTrackId(\""+i+"\")'>"+eyeImg+"</a>&nbsp;" +
 					               "<a class='glinks' href='javascript:loadRouteId(\""+i+"\")'>"+routeName+"</a>&nbsp;"+
-							cloudTag+"<br/>"});
+							cloudImg+"<br/>"});
 				
 			}
 		}
