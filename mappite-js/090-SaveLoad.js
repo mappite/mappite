@@ -48,7 +48,7 @@ function saveRoute() {
 		var routeUrl = activeRoute.getUrl();
 		
 		
-		// local storage save incl. tags // ugly duplicate code shall refactor
+		// save route gRoute| - local storage save includes saving tags
 		if (localStorage.getItem(key)) { // route exists
 			if (window.confirm(translations["saveLoad.sureOverwriteSavedRoute"])) {
 				// cloud save
@@ -67,6 +67,12 @@ function saveRoute() {
 				saveRouteTags(routeNameAndTags);
 			}
 		}
+		
+		// save track gRTrack|
+		var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
+		var length = formatDecimal(activeRoute.routeDistance,2);
+		var compressedTrack = activeRoute.getCompressedTrack();
+		localStorage.setItem("gRTrack|"+routeName , length+"|"+uom+"|"+compressedTrack); // lenght|uom|encoded
 		
 		// Show warning every some days if not enrolled
 		if (getCookie("enrolled") != "yes") {
@@ -192,6 +198,9 @@ function deleteRouteId(idx) {
 
 		saveRouteTags([ key.replace("gRoute|","") ]); // remove route's tags if...
 		localStorage.removeItem(key); // remove route
+		
+		localStorage.removeItem("gRTrack|"+routeName); // remove associated Route Track (if any)
+		
 		refreshSavedRoutes(false); // do not resync with cloud since we may still be deleting...
 	}
 }
@@ -209,6 +218,57 @@ function getTags() {
 	return tagsArray.sort()	
 }
 
+/* FUNCTION: showHideRouteTrackId
+ * INPUT: localStorage index of saved route url
+ * 
+ */
+function showHideRouteTrackId(idx) {
+	var key = localStorage.key(idx);
+	var routeName = key.substring(7);
+	
+	if (routesTrackMap.has(routeName)) { // if route track is shown on screen, turn off
+		consoleLog("Removing Track for: " + routeName);
+		map.removeLayer(routesTrackMap.get(routeName));
+		routesTrackMap.delete(routeName);		
+	} else {	
+		var rTrack  = localStorage.getItem("gRTrack|"+routeName);
+		if (rTrack != null) { // route track exists
+			var i = rTrack.indexOf("|");  // "distance|km|compressedTrack" or "distance|mi|compressedTrack"
+			var distance = rTrack.substring(0,i);
+			var uom = rTrack.substring((i+1),(i+3));
+			var compressedTrack = rTrack.substring((i+4));
+			consoleLog("Distance: " +distance + " Uom: "+ uom); //+ "\n track: " + compressedTrack);
+			
+			// check loadTrack(trackName) in tracks.js
+			
+			pa = trackDecompress(compressedTrack,5);
+			var lls = new Array();
+			j = 0;
+			for (i = 0; i < pa.length; i++) {
+				lls[j++]=[pa[i++],pa[i]];
+			}
+			trackPoly = L.polyline(lls, {color: 'blue', opacity: 0.7}).addTo(map);	
+			trackPoly.bindTooltip("<b>"+routeName+"</b><br/> " + distance + uom).openTooltip();	
+			
+			trackPoly.on('mouseover',function(e) { 
+				e.target.openTooltip();
+				e.target.setStyle({color: 'blue', weight: 4});				
+			});
+			trackPoly.on('mouseout' ,function(e) { 
+				e.target.closeTooltip();
+				e.target.setStyle({color: 'blue', weight: 2});				
+			});
+			
+			map.fitBounds(trackPoly.getBounds());
+			
+			consoleLog("Removing Track for: " + routeName);
+			routesTrackMap.set(routeName,trackPoly);
+			
+		} else {
+			alert(translations["saveLoad.saveFirst"]);
+		}
+	}
+}
 
 /* FUNCTION: loadRouteId
  * INPUT: localStorage index of saved route url
@@ -350,11 +410,15 @@ function refreshSavedRoutesHtml() {
 				cloudTag = "";
 				if (val.substring(0,2) === "C_") { 
 					//val = val.substring(2);
-					cloudTag = "<img src='./scripts/images/cloud.svg' width='18' height='18'>";
+					cloudTag = "<img src='./scripts/images/cloud-gray.svg' width='18' height='18'>";
 				}
+				eyeTag = "<img src='./icons/eye-red.svg' width='17' height='17'>";
+				
 
-				routeNamesAndHTML.push({name: routeName, html: "<a class='gactions' href='javascript:deleteRouteId(\""+i+"\")'>&#215;</a>&nbsp;&nbsp;"+
-					               "<a class='glinks' href='javascript:loadRouteId(\""+i+"\")'>"+routeName+"</a>"+cloudTag+"<br/>"});
+				routeNamesAndHTML.push({name: routeName, html: "<a class='gactions' href='javascript:deleteRouteId(\""+i+"\")'>&#215;</a>&nbsp;"+
+						       "<a class='gactions' href='javascript:showHideRouteTrackId(\""+i+"\")'>"+eyeTag+"</a>&nbsp;" +
+					               "<a class='glinks' href='javascript:loadRouteId(\""+i+"\")'>"+routeName+"</a>&nbsp;"+
+							cloudTag+"<br/>"});
 				
 			}
 		}

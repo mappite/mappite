@@ -537,7 +537,7 @@ var Route = L.Class.extend({
 	return shortUrl;
     },
     
-    getCompressedPoints: function () { 
+    getCompressedPoints: function () { // it'a actually the ViaPoints
 	var points = [];
 	var j=0;
 	for (var i = 0; i < this.viaPoints.length; i++) {
@@ -547,6 +547,16 @@ var Route = L.Class.extend({
 	return compressed = trackCompress(points,5);
     },
 
+    getCompressedTrack: function () { // return compressed route track
+	var points = [];
+	var track = this.routePoly.getLatLngs();
+	var j=0;
+	for (var i = 0; i < track.length; i++) {
+	    points[j++] = track[i].lat;
+	    points[j++] = track[i].lng;
+	}
+	return compressed = trackCompress(points,5);
+    },
     toString: function () {
 	var arrayLength = this.viaPoints.length;
 	var s = "Via Points ="+arrayLength;

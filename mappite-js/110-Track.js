@@ -178,7 +178,7 @@ function loadTrack(trackName) { // unused
 	var lls = new Array();
 	j = 0;
 	for (i = 0; i < pa.length; i++) {
-		lls[j++]=[pa[i++],pa[i++]];
+		lls[j++]=[pa[i++],pa[i]];
 	}
 	trackPoly = L.polyline(lls, {color: 'blue', opacity: 0.8}).addTo(map);		
 	map.fitBounds(trackPoly.getBounds()); 	

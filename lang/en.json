@@ -76,6 +76,7 @@
    "saveLoad.sureRenameTag": "#tag rename: Do you want to rename tag ",
    "saveLoad.keepRouteTags": "The existing route contains additional tags, do you want to keep them?",
    "saveLoad.failedLoad": "File not supported, you can import routes or tracks in gpx/itn format only.",
+   "saveLoad.saveFirst": "Experimental: open and save a route once to hover it on map",
    "overpass.noResults": "No results in visible area",
    "overpass.overLimit": "More than 50 elements detected: only the first 50 are displayed. Please narrow your search area.",   
    "overpass.zoomInAlert": "Zoom in to get results",

@@ -56,7 +56,7 @@ var geoResultsNames = {};  // contains all markers geoResults names  with their 
 
 // Route
 var activeRoute; // The active Route object containing viapoints
-var routesList = [];
+var routesTrackMap = new Map(); // mantain map of visible route tracks
 	
 var viaPointId = 0; // unique index of each viaPoint showed on screen 
 	
@@ -83,4 +83,5 @@ var trackCanvas;//
 var trackCircleMarker; // cirleMarker that apperas on track when mouseover canvas
 var activeTrack; // the one selected (red)
 var tracksList = [];
+
 
