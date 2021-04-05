@@ -573,20 +573,24 @@ var Route = L.Class.extend({
  * Input: LatLng
  */
 function getPointLegIdx (ll) {
-	var idx = 0; // detect in which leg is the point to be added		
+	var idx = -1; // detect in which leg is the point to be added. -1 is last one	
 	var minDist = 1000; // mt
 	var llsIdx = -1;
-	var lls = activeRoute.routePoly.getLatLngs();
-	for(var i = 0; i<lls.length;i++) {
-		d =  getDistance([lls[i].lat,lls[i].lng], [ll.lat, ll.lng], 0,0);
-		if (d<minDist) { minDist = d; llsIdx=i; }
-	} //  llsIdx contains the lls index of the closest point to click event
-	console.log("clicked point is at index: " + llsIdx);
-	while( idx < activeRoute.legsIdx.length) {
-		if ( llsIdx < activeRoute.legsIdx[idx] ) break;
-		idx++;
-	}
+	if (activeRoute.routePoly) { 
+		var lls = activeRoute.routePoly.getLatLngs();
+		idx = 0;
+		for(var i = 0; i<lls.length;i++) {
+			d =  getDistance([lls[i].lat,lls[i].lng], [ll.lat, ll.lng], 0,0);
+			if (d<minDist) { minDist = d; llsIdx=i; }
+		} //  llsIdx contains the lls index of the closest point to click event
+		console.log("clicked point is at index: " + llsIdx);
+		while( idx < activeRoute.legsIdx.length) {
+			if ( llsIdx < activeRoute.legsIdx[idx] ) break;
+			idx++;
+		}
+	} 
 	return idx;
+	
 }
 
 /* FUNCTION: createRoutePoly

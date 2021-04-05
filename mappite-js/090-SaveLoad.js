@@ -247,16 +247,16 @@ function showHideRouteTrackId(idx) {
 			for (i = 0; i < pa.length; i++) {
 				lls[j++]=[pa[i++],pa[i]];
 			}
-			trackPoly = L.polyline(lls, {color: 'blue', opacity: 0.7}).addTo(map);	
+			trackPoly = L.polyline(lls, {color: 'blue', opacity: 0.6, weight: 3}).addTo(map);	
 			trackPoly.bindTooltip("<b>"+routeName+"</b><br/> " + distance + uom).openTooltip();	
 			
 			trackPoly.on('mouseover',function(e) { 
 				e.target.openTooltip();
-				e.target.setStyle({color: 'blue', weight: 4});				
+				e.target.setStyle({color: 'blue', opacity: 0.7, weight: 4});				
 			});
 			trackPoly.on('mouseout' ,function(e) { 
 				e.target.closeTooltip();
-				e.target.setStyle({color: 'blue', weight: 2});				
+				e.target.setStyle({color: 'blue', opacity: 0.6, weight: 3});				
 			});
 			
 			map.fitBounds(trackPoly.getBounds());
