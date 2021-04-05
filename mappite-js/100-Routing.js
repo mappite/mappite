@@ -27,6 +27,10 @@ function computeRoute(rvps, cacheAndfocus){
 	//cacheAndfocus=false // DEV
 	
 	processingStart();
+	
+	if (xAjax != null) {
+		xAjax.abort(); // make sure previous call is aborted
+	}
 
 	var attrDir ;
 	var routeType = $('input[name="gOptions.type"]:checked').val();  // s f b p
@@ -144,7 +148,7 @@ function computeRouteGSpeed(rvps, focus){
 	var computeStartTime = new Date().getTime();
 	consoleLog(">>>> GSPEED Start Time: " + computeStartTime );
 	
-	$.ajax({
+	xAjax = $.ajax({
 	    type: "GET",
 	    dataType: "json",
 	    url: url+queryString,
@@ -302,7 +306,7 @@ function computeRouteGFlex(rvps, focus){
 	consoleLog(">>>> GFLEX Start Time: " + computeStartTime );
 
 	
-	$.ajax({
+	xAjax = $.ajax({
 	    url: url,
 	    dataType: 'json',
 	    type: 'POST',
@@ -444,7 +448,7 @@ function computeRouteMapQuest(rvps, focus){
 	var computeStartTime = new Date().getTime();
 	consoleLog(">>>> MQ Start Time " + computeStartTime );
 
-	$.ajax({
+	xAjax = $.ajax({
 	    url: url,
 	    dataType: 'json',
 	    type: 'POST',
@@ -600,7 +604,7 @@ function computeRouteORS(rvps, focus){
 	var computeStartTime = new Date().getTime();
 	consoleLog(">>>> ORS Start Time " + computeStartTime );
 	
-	$.ajax({
+	xAjax = $.ajax({
 	    url: url,
 	    dataType: 'json',
 	    type: 'POST',

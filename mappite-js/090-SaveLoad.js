@@ -229,7 +229,9 @@ function showHideRouteTrackId(idx) {
 	if (routesTrackMap.has(routeName)) { // if route track is shown on screen, turn off
 		consoleLog("Removing Track for: " + routeName);
 		map.removeLayer(routesTrackMap.get(routeName));
-		routesTrackMap.delete(routeName);		
+		routesTrackMap.delete(routeName);
+		$("#geye_"+idx).attr("src", "./icons/eye-red.svg");
+		consoleLog("**** RED");		
 	} else {	
 		var rTrack  = localStorage.getItem("gRTrack|"+routeName);
 		if (rTrack != null) { // route track exists
@@ -260,6 +262,9 @@ function showHideRouteTrackId(idx) {
 			});
 			
 			map.fitBounds(trackPoly.getBounds());
+			$("#geye_"+idx).attr("src", "./icons/eye-green.svg");		
+			consoleLog("**** GREEN");		
+
 			
 			consoleLog("Removing Track for: " + routeName);
 			routesTrackMap.set(routeName,trackPoly);
@@ -413,8 +418,9 @@ function refreshSavedRoutesHtml() {
 					//val = val.substring(2);
 					cloudImg= "<img src='./scripts/images/cloud-gray.svg' width='18' height='18'>";
 				}
-				
-				var eyeImg =  "<img src='./icons/eye-"+(!localStorage.getItem("gRTrack|"+routeName)?"gray":"red")+".svg' width='17' height='17'>";
+				// if it is displayed green, if is available red, otherwise gray
+				var eyeColor = (routesTrackMap.has(routeName)?"green":(!localStorage.getItem("gRTrack|"+routeName)?"gray":"red"));
+				var eyeImg =  "<img id='geye_"+i+"' src='./icons/eye-"+eyeColor+".svg' width='17' height='17'>";
 				
 
 				routeNamesAndHTML.push({name: routeName, html: "<a class='gactions' href='javascript:deleteRouteId(\""+i+"\")'>&#215;</a>&nbsp;"+

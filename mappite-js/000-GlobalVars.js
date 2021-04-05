@@ -84,4 +84,5 @@ var trackCircleMarker; // cirleMarker that apperas on track when mouseover canva
 var activeTrack; // the one selected (red)
 var tracksList = [];
 
-
+// ajax event
+var xAjax = null;
