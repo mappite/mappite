@@ -48,7 +48,7 @@ function computeRoute(rvps, cacheAndfocus){
 			attrDir = attrs['ors_dir'];
 		}
 	} else {
-		if (document.getElementById("gOptions.paved").value === "n" || rvps.length > 30 ) { // document.getElementById('gOptions.tolls').checked  ||
+		if ((routeType === "f" || routeType === "s") && (document.getElementById("gOptions.paved").value === "n" || rvps.length > 30 )) { 
 			consoleLog("Using MapQuest");
 			computeRouteMapQuest(rvps, cacheAndfocus);
 			attrDir = attrs['mapquest_dir'];
