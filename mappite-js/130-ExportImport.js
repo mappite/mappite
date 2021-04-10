@@ -251,6 +251,8 @@ function onExportClick(e) {
 	} else if ( activeRoute.viaPoints.length > 1)  { // check if more than one waypoint is defined 
 		if (sel === "routeGpx") { // gpx route
 			fileStream = exportGpx("route","1.1");
+		} else if (sel === "routeShpGpx") { // gpx route
+			fileStream = exportGpx("routeShp","1.1");
 		} else if (sel === "routeGpxOld") { // gpx route
 			fileStream = exportGpx("route");
 		} else if (sel === "routeItn") { // // itn route
@@ -304,7 +306,8 @@ function exportGpx(type, ver) {
 	// Header and metadata
 	if (ver == "1.1") {
 		gpxXml += '<?xml version="1.0" encoding="UTF-8"?>';
-		gpxXml += '\n<gpx version="1.1" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">';
+		if ( type === "routeShp") { gpxXml += '\n<gpx version="1.1" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v2" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" xmlns:trp="http://www.garmin.com/xmlschemas/TripExtensions/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v2 http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd http://www.garmin.com/xmlschemas/TripExtensions/v1 http://www.garmin.com/xmlschemas/TripExtensionsv1.xsd">'; }
+		else {gpxXml += '\n<gpx version="1.1" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">';}
 		gpxXml += '\n<metadata>';
 		gpxXml += '\n<name>'+activeRoute.name+'</name>';
 		gpxXml += '\n<author><name>mappite.org</name><link href="https://www.mappite.org"><text>mappite routes made easy thanks to openstreetmap and others</text></link></author>';
@@ -346,6 +349,46 @@ function exportGpx(type, ver) {
 			gpxXml += '\n<trkpt lat="'+lls[i].lat.toFixed(6)+'" lon="'+lls[i].lng.toFixed(6)+'"></trkpt>';
 		}
 		gpxXml += '\n</trkseg></trk>';
+	}
+	
+	if (type === "routeShp") {
+		// Garmin extention, Route with shapepoints
+		alert("Experimental: route for Garmin devices that supports shapingpoint. Additional points (one each 10km) are generated. ");
+		var routeType = $('input[name="gOptions.type"]:checked').val();
+		var vps =  activeRoute.viaPoints;
+		gpxXml += '\n<rte><name>'+activeRoute.name+'</name>';
+		gpxXml += "<extensions><trp:Trip><trp:TransportationMode>Motorcycling</trp:TransportationMode></trp:Trip></extensions>";
+		
+		var calcMode = (routeType=== "s"?"ShorterDistance":"FasterTime"); //FasterTime, CurvyRoads, Direct, ShorterDistance
+		var wayPtTag = "<extensions><trp:ViaPoint><trp:CalculationMode>"+calcMode+"</trp:CalculationMode></trp:ViaPoint></extensions>";
+		var shpPtTag = "<extensions><trp:ShapingPoint/></extensions>";
+		
+		var vps =  activeRoute.viaPoints;
+		var lls =  activeRoute.routePoly.getLatLngs();
+		var llsIdx= 1; // start from 2nd point to calculate distance from previous
+		var distance = 0; // distance from previosu waypoint (start of leg)
+		for (var i = 0; i < vps.length; i++) {
+			gpxXml += '\n<rtept lat="'+vps[i].lat+'" lon="'+vps[i].lng+'">'+
+			          '<name>'+ vps[i].name+'</name>'+wayPtTag+'</rtept>';
+			consoleLog("Leg: " + i + " - llsIdx: " + llsIdx + " - activeRoute.legsIdx[i]: "+ activeRoute.legsIdx[i]);
+			consoleLog("distance: " + distance);
+			/*consoleLog("getDistance: " + getDistance(lls[1], lls[800], 0,0));
+			consoleLog("getDistance: " + getDistance([lls[1].lat,lls[1].lng], [lls[800].lat,lls[800].lng], 0,0));
+			consoleLog(lls[1]);
+			consoleLog(lls[800]);*/
+			while (llsIdx < activeRoute.legsIdx[i]) { //&& llsIdx < lls.length) {
+				distance = distance + getDistance([lls[llsIdx-1].lat,lls[llsIdx-1].lng], [lls[llsIdx].lat,lls[llsIdx].lng], 0,0);
+				//distance = distance + getDistance([lls[llsIdx][0],lls[llsIdx][1]], [lls[llsIdx-1][0],lls[llsIdx-1][1]], 0,0);
+				if (distance > 10) { // add shapepoint
+					consoleLog("Adding Shapepoint");
+					gpxXml += '\n<rtept lat="'+lls[llsIdx].lat.toFixed(6)+'" lon="'+lls[llsIdx].lng.toFixed(6)+'">'+
+						  '<name>continue</name>'+shpPtTag+'</rtept>';
+					distance = 0; // reset
+				}
+				llsIdx++;
+			}
+		}
+		gpxXml += '\n</rte>';
 	}
 
 	gpxXml += '\n</gpx>';

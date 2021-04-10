@@ -98,10 +98,12 @@ function warnIfNoName() {
 
 /* FUNCTION getDistance()
  *  Calculate distance among two points considering elevation 
- *   Used when loading gpx tracks to calculate track lenght
- *   Used by ComputeRoute methods to find track closest point to viapoint
+ *  Returns distance in Km
+ *   Used: . when loading gpx tracks to calculate track lenght
+ *         . by ComputeRoute methods to find track closest point to viapoint
+ *         . to export GPX with shapingpoint
  */
-function getDistance(coords1, coords2, ele1, ele2) { // in meters 
+function getDistance(coords1, coords2, ele1, ele2) { 
   // haversine distance - credits https://stackoverflow.com/questions/14560999/using-the-haversine-formula-in-javascript
   function toRad(x) {
     return x * Math.PI / 180;
