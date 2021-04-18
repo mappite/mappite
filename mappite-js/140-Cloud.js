@@ -79,20 +79,24 @@ function  cloudEnroll() {
 		  url: jurl,
 		  timeout: 1500,
 		  success: function( json ) {
-			// { "result": "ok" }
 			consoleLog("cloudEnroll() - json.status:" + json.status);
 			if (json.status === "ok" ) { // enroll successfull
 				setCookie("enrolled","yes",1825); // 5 yrs
 				consoleLog("cloudEnroll() - OK! refreshing routes");
-				// set html in div
-				document.getElementById("gEnroll").innerHTML=  translations["cloud.enrolled"];
+				var elem = document.getElementById("gHeaderEnroll"); // this element disappears when one clicks on info icon
+				if (elem != null) elem.innerHTML=  translations["cloud.enrolled"];
 				document.getElementById("JgEnrollButton").innerHTML=  translations["cloud.unenroll"];
-				refreshSavedRoutes()
-			} else {
+				refreshSavedRoutes();
+			} else if (json.tokenDate == "false") {
 				alert(translations["cloud.invalidEnroll"] );
 				consoleLog(json);
+			} else {  // a tokenDate exists, this is an expired token
+				alert(translations["cloud.enrollExpired"]); 
+				var elem = document.getElementById("gHeaderEnroll"); // this element disappears when one clicks on info icon
+				if (elem != null) elem.innerHTML= translations["cloud.enrollExpired"];
+				document.getElementById("gEnroll").innerHTML=  translations["cloud.enrollExpired"];
 			}
-			  
+			
 		  },
 		  error: function(jqXHR, textStatus, errorThrown) {
 			consoleLog( "cloudEnroll Failure: " + textStatus + " - " + errorThrown);
@@ -103,6 +107,7 @@ function  cloudEnroll() {
 
 /*
  * Refresh Cloud Routes
+ * invoked from SaveLoad.js if getCookie("enrolled") === "yes"
  */
 function refreshCloudRoutes() {
 	var jurl="./cloud.php?action=getRoutes"; 
@@ -112,34 +117,43 @@ function refreshCloudRoutes() {
 	  url: jurl,
 	  timeout: 2500,
 	  success: function( json ) {
-		if (json.status === "ok" ) { 
+		if (json.status === "ok" ) { // valid
 			
 			var routes = json.routes;
-			for (i=0;i<routes.length; i++){ 
+			for (i=0;i<routes.length; i++){ // add to local storage
 				consoleLog("Cloud Route found: " + routes[i].name); 
 				localStorage.setItem("gRoute|"+routes[i].name , "C_"+routes[i].url); // "C_ means from cloud
-				// <img src='./scripts/images/cloud.svg' width='15' height='15'>
 			}
-			refreshSavedRoutesHtml();
 			
-			/* Token Expiration */
-			// consoleLog("Token Date " + json.tokenDate);
+			
 			var jsTokenDate = new Date(Date.parse(json.tokenDate));
-			consoleLog("Token Date JS " + jsTokenDate);
 			
-			if (jsTokenDate.setFullYear(jsTokenDate.getFullYear() + 1)<(new Date()) ) { // token expired
-				consoleLog("Token Expired!");
-				// set text in top banner and cloud menu // note translations may overwrite this!!! not a good programign style...
-				document.getElementById("gHeaderEnroll").innerHTML= translations["cloud.enrollExpired"];
-				document.getElementById("gEnroll").innerHTML=  translations["cloud.enrollExpired"];
-				// re-enable button )better to keep it enabled!!!
+			if (jsTokenDate.setFullYear(jsTokenDate.getFullYear() + 1)<(new Date()) ) { // token expired GRACE PERIOD, show warning
+				consoleLog("Token in Grace Period: " + jsTokenDate);
+				// set text in top banner and cloud menu
+				var elem = document.getElementById("gHeaderEnroll"); // this element disappears when one clicks on info icon
+				if (elem != null) elem.innerHTML= translations["cloud.enrollGrace"];
+				document.getElementById("gEnroll").innerHTML=  translations["cloud.enrollGrace"];
 				enrollFile = enrollExpiredFile;
 			}
 			
-		} else {
+		} else if (json.tokenDate == "false") {
+			consoleLog("Token Invalid");
+
 			alert(translations["cloud.invalid"] );
-			consoleLog(json);
+
+		} else { // a tokenDate exists, this is an expired token
+			var jsTokenDate = new Date(Date.parse(json.tokenDate));
+			consoleLog("Token Expired: " + jsTokenDate);
+			alert(translations["cloud.enrollExpired"]); 
+			// set text in top banner and cloud menu
+			var elem = document.getElementById("gHeaderEnroll"); // this element disappears when one clicks on info icon
+			if (elem != null) elem.innerHTML= translations["cloud.enrollExpired"];
+			document.getElementById("gEnroll").innerHTML=  translations["cloud.enrollExpired"];
+			enrollFile = enrollExpiredFile;
 		}
+		
+		refreshSavedRoutesHtml(); // display in any case all route in local storage
 		  
 	  },
 	  error: function(jqXHR, textStatus, errorThrown) {
@@ -163,15 +177,16 @@ function  saveRouteCloud(name, url) {
 		consoleLog("saveRouteCloud()");
 		if (json.status === "ok"  ) { // token correct
 			consoleLog("Cloud Route Save, result: " +json.result ); // inserted or updated 
-			$("#gCloudIcon").attr("src", "./scripts/images/cloud.svg"); // stop spin
 		} else {
 			alert(translations["cloud.invalid"] );
 			consoleLog(json);
 		}
+		$("#gCloudIcon").attr("src", "./scripts/images/cloud.svg"); // stop spin
 
 	  },
 	  error: function(jqXHR, textStatus, errorThrown) {
-		consoleLog( "cloudEnroll Failure: " + textStatus + " - " + errorThrown);
+		consoleLog( "saveRouteCloud Failure: " + textStatus + " - " + errorThrown);
+		alert("SaveRouteCloud Failure: " + textStatus + " - " + errorThrown);
 	  }
 	});	
 }

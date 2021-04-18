@@ -297,7 +297,7 @@ function onExportClick(e) {
 	}
 }
 
-function exportGpx(type, ver) {
+function exportGpx(type, ver) { // FIXME: this code needs refactory with a dedicated UI dialog
 	var gpxXml = "";
 	var time = new Date().toISOString(); 	
 	consoleLog(time);
@@ -351,9 +351,14 @@ function exportGpx(type, ver) {
 		gpxXml += '\n</trkseg></trk>';
 	}
 	
-	if (type === "routeShp") {
-		// Garmin extention, Route with shapepoints
-		alert("Experimental: route for Garmin devices that supports shapingpoint. Additional points (one each 10km) are generated. ");
+	if (type === "routeShp") { // Experimental: Garmin extension, Route with shapepoints
+		var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
+		var shpDistance = window.prompt(translations["export.gpxShapingPoint"]+" ("+uom+"): ","10");
+		
+		if (isNaN(shpDistance) || shpDistance < 1) { shpDistance = 10; alert("Number error, defaulting to 10"); }
+		if ( uom === "mi") shpDistance = shpDistance/(0.621371);
+		consoleLog("Shapingpoint ditance in km: " + shpDistance);
+		
 		var routeType = $('input[name="gOptions.type"]:checked').val();
 		var vps =  activeRoute.viaPoints;
 		gpxXml += '\n<rte><name>'+activeRoute.name+'</name>';
@@ -372,17 +377,12 @@ function exportGpx(type, ver) {
 			          '<name>'+ vps[i].name+'</name>'+wayPtTag+'</rtept>';
 			consoleLog("Leg: " + i + " - llsIdx: " + llsIdx + " - activeRoute.legsIdx[i]: "+ activeRoute.legsIdx[i]);
 			consoleLog("distance: " + distance);
-			/*consoleLog("getDistance: " + getDistance(lls[1], lls[800], 0,0));
-			consoleLog("getDistance: " + getDistance([lls[1].lat,lls[1].lng], [lls[800].lat,lls[800].lng], 0,0));
-			consoleLog(lls[1]);
-			consoleLog(lls[800]);*/
-			while (llsIdx < activeRoute.legsIdx[i]) { //&& llsIdx < lls.length) {
+			while (llsIdx < activeRoute.legsIdx[i]) { 
 				distance = distance + getDistance([lls[llsIdx-1].lat,lls[llsIdx-1].lng], [lls[llsIdx].lat,lls[llsIdx].lng], 0,0);
-				//distance = distance + getDistance([lls[llsIdx][0],lls[llsIdx][1]], [lls[llsIdx-1][0],lls[llsIdx-1][1]], 0,0);
-				if (distance > 10) { // add shapepoint
+				if (distance > shpDistance) { // add shapepoint
 					consoleLog("Adding Shapepoint");
 					gpxXml += '\n<rtept lat="'+lls[llsIdx].lat.toFixed(6)+'" lon="'+lls[llsIdx].lng.toFixed(6)+'">'+
-						  '<name>continue</name>'+shpPtTag+'</rtept>';
+						  '<name>'+translations["export.shapingPointName"]+'</name>'+shpPtTag+'</rtept>';
 					distance = 0; // reset
 				}
 				llsIdx++;

@@ -8,7 +8,7 @@ header("Content-Type:application/json; charset=utf-8");
 $conn = null;
 include("db.php"); 
 
-$tokenDate = null;
+$tokenDate = "false";
 
 if (isset($_REQUEST['action'])) {
  try {
@@ -19,7 +19,7 @@ if (isset($_REQUEST['action'])) {
 		if (enroll($conn) ) {
 			echo '{"status": "ok"}'; // _mappite_token is set
 		} else {
-			echo '{"status": "invalidEnroll", "pwd": "'.$_REQUEST['pwd'].'", "email": "'.$_REQUEST['email'].'"}';
+			echo '{"status": "invalid", "email": "'.$_REQUEST['email'].'", "tokenDate": "'.$tokenDate.'"}';
 		}
 	} else if ( $action == "resetPwd") {
 		$res = resetPassword($conn);
@@ -55,7 +55,7 @@ if (isset($_REQUEST['action'])) {
 		}
 		echo '{'.$json.'}';
 	} else {
-		echo '{"status": "invalidToken"}'; // valid, invalid, expired!
+		echo '{"status": "invalidToken", "tokenDate": "'.$tokenDate.'"}';
 	}
 	
 
@@ -69,20 +69,26 @@ $conn  = null;
 
 function enroll($conn) { 
 	$email = filter_var(strtolower($_REQUEST['email']), FILTER_SANITIZE_EMAIL); // return false if invalid
-	$stmt = $conn->prepare("SELECT TOKEN FROM USERS WHERE PWD = MD5(:pwd) AND EMAIL=:email");
+	$stmt = $conn->prepare("SELECT TOKEN, DATE_FORMAT(TOKEN_DATE, '%Y/%m/%d') 'TOKEN_DATE' FROM USERS WHERE PWD = MD5(:pwd) AND EMAIL=:email");
 	$pwd = $_REQUEST['pwd'];
 	$stmt->bindParam(':pwd', $pwd);
 	$stmt->bindParam(':email', $email );
 	$stmt->execute();
-	$token = $stmt->fetchColumn(); // $result = token
-	$stmt->closeCursor();
-	if ($token == false) { 
-		return false; 
-	} else { 
-		setcookie('_mappite_token',$token,time()+86400*365,null,null,false, true); // token has been set in http_only cookie for 1 yr
-		$_SESSION['token'] = 'valid'; 
-		return true; 
-	}
+	
+        if ($result = $stmt->fetch(PDO::FETCH_ASSOC)) { // user exists
+		$stmt->closeCursor();
+	        $token = $result["TOKEN"];
+		global $tokenDate;
+		$tokenDate = $result["TOKEN_DATE"]; // it's a string
+		if ($tokenDate > date("Y/m/d", strtotime("-15 months"))) {
+			setcookie('_mappite_token',$token,time()+86400*365,null,null,false, true); // token has been set in http_only cookie for 1 yr
+			$_SESSION['token'] = 'valid'; 
+			return true; 
+		}
+	} 
+	
+	return false; 
+
 }
 
 
@@ -132,9 +138,9 @@ function validateToken($conn) {
 		$stmt->execute();
 		$result = $stmt->fetchColumn();
 		global $tokenDate;
-		$tokenDate = $result; // global var $tokenDate stores the TOKEN_DATE
+		$tokenDate = $result;
 		$stmt->closeCursor();
-		if ($result == false) { 
+		if ($result == false || $tokenDate < date("Y/m/d", strtotime("-15 months")) ) { // if no token or oldrer than 15 months
 			return false; 
 		} else { 
 			$_SESSION['token'] = 'valid'; 

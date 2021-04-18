@@ -13,9 +13,7 @@ function saveRoute() {
 	// Route Name is: "my route name #tag1 #tag2 ... #tagN"
 	var routeFullName = document.getElementById("sRouteName").value; //.value.replace("|"," ").replace(","," ").split("#"); // | is a special char mappite use to separate items in local storage
 	var routeNameAndTags = document.getElementById("sRouteName").value.replace("|"," ").replace(","," ").split("#"); // | is a special char mappite use to separate items in local storage
-	consoleLog("rfn: " + routeFullName);
-	consoleLog("charAt(0): " + routeFullName.charAt(0));
-	
+		
 	if (routeFullName.charAt(0) === "#" ) { // first char is #: this for tag maintenance
 		// routeNameAndTags[0] is empty...
 		if (routeNameAndTags.length == 2) { // only one tag in list: remove it
@@ -46,33 +44,53 @@ function saveRoute() {
 		activeRoute.setName(routeName);
 		var key = "gRoute|"+routeName;
 		var routeUrl = activeRoute.getUrl();
+
+		if (localStorage.getItem(key)) { // route exists
+			if (!window.confirm(translations["saveLoad.sureOverwriteSavedRoute"])) { return; }
+		}
+		consoleLog("Saving route");
+		var urlPrefix = "";
+		// Cloud Save
+		if (getCookie("enrolled") === "yes") {
+			saveRouteCloud(routeName,routeUrl); // spin the icon, save on cloud, reset icon
+			urlPrefix = "C_";
+		} 
 		
+		// Local Storage Save
+		localStorage.setItem("gRoute|"+routeName , urlPrefix+routeUrl);
 		
+		// Save/update Tags in Local storage
+		//if (routeNameAndTags.length > 1) // no!  if all tags are removed we need to make sure we clean up gTag|tagName
+		saveRouteTags(routeNameAndTags);
+		
+		/*
 		// save route gRoute| - local storage save includes saving tags
 		if (localStorage.getItem(key)) { // route exists
 			if (window.confirm(translations["saveLoad.sureOverwriteSavedRoute"])) {
 				// cloud save
-				if (getCookie("enrolled") === "yes") {
+				if (isEnrolled) {
 					saveRouteCloud(routeName,routeUrl); // spin the icon, save on cloud, reset icon
 				} 
-				localStorage.setItem("gRoute|"+routeName , routeUrl);
+				localStorage.setItem("gRoute|"+routeName , urlPrefix+routeUrl);
 				//if (routeNameAndTags.length > 1) // no!  if all tags are removed we need to make sure we clean up gTag|tagName
 				saveRouteTags(routeNameAndTags);
 			}
 		} else {
 			// cloud save
-			if (getCookie("enrolled") === "yes") saveRouteCloud(routeName,routeUrl); // spin the icon, save on cloud, reset icon
-			localStorage.setItem("gRoute|"+routeName , routeUrl);
+			if (isEnrolled) saveRouteCloud(routeName,routeUrl); // spin the icon, save on cloud, reset icon
+			localStorage.setItem("gRoute|"+routeName , urlPrefix+routeUrl);
 			if (routeNameAndTags.length > 1 || ($("#gTags").val() !=="all" )) { // saveTags also if a tag is selected
 				saveRouteTags(routeNameAndTags);
 			}
 		}
+		*/
 		
 		// save track gRTrack|
 		var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
 		var length = formatDecimal(activeRoute.routeDistance,2);
 		var compressedTrack = activeRoute.getCompressedTrack();
 		localStorage.setItem("gRTrack|"+routeName , length+"|"+uom+"|"+compressedTrack); // lenght|uom|encoded
+
 		
 		// Show warning every some days if not enrolled
 		if (getCookie("enrolled") != "yes") {
@@ -91,7 +109,7 @@ function saveRoute() {
 		// update url with new name
 		history.pushState(name, name, routeUrl);
 	}
-	refreshSavedRoutes() ; // actually we shall ignore cloud since we just saved locally but we woudl miss the cloud icon...
+	refreshSavedRoutes() ;
 }
 
 /* FUNCTION: saveRouteTags
