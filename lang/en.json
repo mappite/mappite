@@ -102,7 +102,7 @@
    "cloud.invalid": "Oops! Invalid token, log out and log in again if you have valid credentials",
    "cloud.invalidEnroll": "Oops! Invalid code or email",
    "cloud.enrolled": "You are enrolled, thanks for your support!",
-   "cloud.enrollGrace": "You're enrolled since more than 1 year, renew your support! Your cloud access will be removed shortly!",
+   "cloud.enrollGrace": "You're enrolled since more than 1 year, renew your support! Cloud access is in grace period.",
    "cloud.enrollExpired": "Your enrollment is expired! The last renewal was more than 15 months ago",
    "cloud.unenrollConfirm": "Do you want to unenroll this device?",
    "cloud.unenrollClearRoutes": "Device Unenrolled. Do you want to remove all saved routes from this device?",

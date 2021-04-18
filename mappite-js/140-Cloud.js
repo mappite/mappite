@@ -127,9 +127,10 @@ function refreshCloudRoutes() {
 			
 			
 			var jsTokenDate = new Date(Date.parse(json.tokenDate));
-			
+			consoleLog("Token Date: " + jsTokenDate);
+		
 			if (jsTokenDate.setFullYear(jsTokenDate.getFullYear() + 1)<(new Date()) ) { // token expired GRACE PERIOD, show warning
-				consoleLog("Token in Grace Period: " + jsTokenDate);
+				consoleLog("Token in Grace Period");
 				// set text in top banner and cloud menu
 				var elem = document.getElementById("gHeaderEnroll"); // this element disappears when one clicks on info icon
 				if (elem != null) elem.innerHTML= translations["cloud.enrollGrace"];

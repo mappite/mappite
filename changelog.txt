@@ -1,3 +1,12 @@
+20210411
+. Export GPX routes with ShapingPoints. 
+
+20210406
+. Display existing saved routes on map while creating new routes
+
+20210304
+. Waypoints and multiple Tracks in a single GPX file can be imported
+
 20210222
 . Active Route color can be defined per each map layer
 . Red Line hidden

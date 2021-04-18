@@ -102,7 +102,7 @@
    "cloud.invalid": "Oops! Sessione non valida, prova a uscire dal cloud e accedere nuovamente se hai un account valido",
    "cloud.invalidEnroll": "Oops! Email o invito non valido",
    "cloud.enrolled": "Sei connesso al cloud, grazie per supportare Mappite!",
-   "cloud.enrollGrace": "E' passato più di un anno dalla registrazione! L'accesso al cloud sarà rimosso a breve.",
+   "cloud.enrollGrace": "E' passato più di un anno dalla registrazione! L'accesso al cloud sarà rimosso.",
    "cloud.enrollExpired": "Il tuo accesso al cloud è scaduto. L'ultimo rinnovo è di oltre 15 mesi fa.",
    "cloud.unenrollConfirm": "Vuoi che questo dispositivo esca dal cloud?",
    "cloud.unenrollClearRoutes": "Questo dispositivo è uscito dal cloud. Rimuovo tutti i percorsi salvati in questo dispositivo?",

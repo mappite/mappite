@@ -69,7 +69,7 @@ $conn  = null;
 
 function enroll($conn) { 
 	$email = filter_var(strtolower($_REQUEST['email']), FILTER_SANITIZE_EMAIL); // return false if invalid
-	$stmt = $conn->prepare("SELECT TOKEN, DATE_FORMAT(TOKEN_DATE, '%Y/%m/%d') 'TOKEN_DATE' FROM USERS WHERE PWD = MD5(:pwd) AND EMAIL=:email");
+	$stmt = $conn->prepare("SELECT TOKEN, DATE_FORMAT(TOKEN_DATE, '%Y/%m/%d') 'TOKEN_DATE', TYPE FROM USERS WHERE PWD = MD5(:pwd) AND EMAIL=:email");
 	$pwd = $_REQUEST['pwd'];
 	$stmt->bindParam(':pwd', $pwd);
 	$stmt->bindParam(':email', $email );
@@ -77,10 +77,11 @@ function enroll($conn) {
 	
         if ($result = $stmt->fetch(PDO::FETCH_ASSOC)) { // user exists
 		$stmt->closeCursor();
+		$userType = $result["TYPE"];
 	        $token = $result["TOKEN"];
 		global $tokenDate;
 		$tokenDate = $result["TOKEN_DATE"]; // it's a string
-		if ($tokenDate > date("Y/m/d", strtotime("-15 months"))) {
+		if ($tokenDate > date("Y/m/d", strtotime("-15 months")) || $userType == 'L' || $userType == 'A') {
 			setcookie('_mappite_token',$token,time()+86400*365,null,null,false, true); // token has been set in http_only cookie for 1 yr
 			$_SESSION['token'] = 'valid'; 
 			return true; 
@@ -133,19 +134,20 @@ function resetPassword($conn) {
 function validateToken($conn) {
 	if ($_SESSION['token'] != 'valid') { // we need to start session session_start(); this is always != for now !!!!! FIXME and consider what happen when one unenrolls
 		$token = $_COOKIE['_mappite_token'];
-		$stmt = $conn->prepare("SELECT DATE_FORMAT(TOKEN_DATE, '%Y/%m/%d') FROM USERS WHERE TOKEN = :token"); // AND TOKEN_DATE > (one year + 3 months grace time?)
+		$stmt = $conn->prepare("SELECT DATE_FORMAT(TOKEN_DATE, '%Y/%m/%d') 'TOKEN_DATE', TYPE FROM USERS WHERE TOKEN = :token");
 		$stmt->bindParam(':token', $token);
 		$stmt->execute();
-		$result = $stmt->fetchColumn();
-		global $tokenDate;
-		$tokenDate = $result;
-		$stmt->closeCursor();
-		if ($result == false || $tokenDate < date("Y/m/d", strtotime("-15 months")) ) { // if no token or oldrer than 15 months
-			return false; 
-		} else { 
-			$_SESSION['token'] = 'valid'; 
-			return true; 
-		}
+		if ($result = $stmt->fetch(PDO::FETCH_ASSOC)) { // user exists
+			$stmt->closeCursor();
+			$userType = $result["TYPE"];
+			global $tokenDate;
+			$tokenDate = $result["TOKEN_DATE"]; // it's a string
+			if ($tokenDate > date("Y/m/d", strtotime("-15 months")) || $userType == 'L' || $userType == 'A') { // Lifetime or Admins
+			   $_SESSION['token'] = 'valid'; 
+			   return true;	
+			}
+		} 
+		return false;	
 	} else {
 		return true;
 	}
