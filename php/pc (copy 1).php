@@ -46,18 +46,14 @@ function fetchJsonUrl($url) {
 
 	// Strip the last &
 	$fields = substr($fields, 0, strlen($fields) - 1);
-		
+	
+	//echo $url . '?' . $fields;
+	//return;
+	
 	// Initiate cURL
-	
-	//$ch = curl_init($url . '?' . $fields); // Fails with mapquest since it leaves an extra "?" after key in url
-	
-	if ( $fields != '') {
-	 $ch = curl_init($url . '?' . $fields);
-	 //header("curl_init:(".$url . '?' . $fields.");");
-	} else {
-	 $ch = curl_init($url);
-   	 //header("curl_init:(".$url.");");
-	}
+	$ch = curl_init($url . '?' . $fields); // GET params are passed in case of POST as well
+	//header("my_url: ".$url);
+	//header("my_fields: ".$fields);
 	
 	// Handle POST (ORS v2 etc)
 	if (strtoupper($method) == 'POST') {

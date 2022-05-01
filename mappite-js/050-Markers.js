@@ -2,7 +2,7 @@
 
 /* Add a marker in the map for a route viapoint */
 function addMarkerToMap(vp) { // shall this be renamed add marker to route ????
-	marker = L.marker(vp.latLng, {draggable:'true'}); 
+	marker = isPoiMode()?L.marker(vp.latLng, {icon: L.icon({ iconUrl: iconPoiEdit, iconSize: [30, 30], iconAnchor: [20,30]}), draggable:'true' }):L.marker(vp.latLng, {draggable:'true'});
 	
 	markers[vp.id] = marker;
 	removeText = "Double-click or long tap to remove";
@@ -10,13 +10,21 @@ function addMarkerToMap(vp) { // shall this be renamed add marker to route ????
 		removeText = doubleClickText+"/"+rightClickText+" " + translations["popup.remove"]; 
 	}
 	popupText =  	"<div class='gmid'>"+escapeHTML(vp.name)+"</div>" +
-			"<div class='gsmall'>Lat,Lng ("+ vp.latLng.lat.toFixed(6) + ","+ vp.latLng.lng.toFixed(6)+  ")<br>"+ removeText +"</div>"+
-			"<span style='float: left; cursor: pointer;'>"+
-			"<img src='./icons/startArrow.svg' onclick='javascript:rollFirst(\""+vp.id+"\");'  title='Make First' width='15' height='8' /></span>" +
-			"<span style='float: right; cursor: pointer;'>"+
-			"<img src='./icons/leftBarredArrow.svg'  onclick='javascript:cutRouteBefore(\""+vp.id+"\");' title='Cut Before' width='15' height='8' />&nbsp;&nbsp;"+
-			"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' /></span>";
+			"<div class='gsmall'>Lat,Lng ("+ vp.latLng.lat.toFixed(6) + ","+ vp.latLng.lng.toFixed(6)+  ")</div>";
 	
+	if (isPoiMode()) {
+	  popupText = popupText + "<a onclick='javascript:removeMarker(\""+vp.id+"\");'>   <img src='./scripts/images/trash.svg'   title='Delete' width='18' height='15' />    </a>&nbsp;";
+	} else {
+	  popupText = popupText + "<div style='cursor: pointer; display: flex; align-items: center; justify-content: space-between;'>" + // <span style='float: left; cursor: pointer;'>"+
+				"<a class='gaddWayPoint' title='Add Point Before' onclick='javascript:addPointHereCss(this);' href='javascript:insertPointBeforeId(\""+vp.id+"\");'>+</a>&nbsp;" +
+				"<a onclick='javascript:cutRouteBefore(\""+vp.id+"\");'> <img src='./icons/leftBarredArrow.svg'  title='Cut Before' width='18' height='10' /></a>&nbsp;"+
+				"<a onclick='javascript:rollFirst(\""+vp.id+"\");'>      <img src='./icons/startArrow.svg'       title='Make First' width='18' height='10' /></a>&nbsp;" +
+				"<a onclick='javascript:removeMarker(\""+vp.id+"\");'>   <img src='./scripts/images/trash.svg'   title='Delete' width='18' height='15' />    </a>&nbsp;" +
+				"<a onclick='javascript:cutRouteAfter(\""+vp.id+"\");'>  <img src='./icons/rightBarredArrow.svg' title='Cut After' width='18' height='10' /> </a>&nbsp;" +
+				"<a class='gaddWayPoint' title='Add Point After' onclick='javascript:addPointHereCss(this);' href='javascript:insertPointAfterId(\""+vp.id+"\");'>+</a>"+
+			"</div>";
+	}
+		
 	marker.bindPopup(popupText); //.addTo(map);// rfcuster
 	markersCluster.addLayer(marker);
 	// remove on long tap/rigth click or doubleclick
@@ -25,14 +33,14 @@ function addMarkerToMap(vp) { // shall this be renamed add marker to route ????
 		consoleLog("contextmenu or dblclick");
 		dragRemoveHide(); // on touch device a long press mat trigger touch move that shows the red banner, hide it
 		
-		if (activeRoute.viaPoints[0].id === vp.id  && activeRoute.closedLoop) { // EEEEEEEEEEEEEEEEEEEEEEEEEEEEEE if potential the code is not in!!! + add in DRAG MOVE
+		if (activeRoute.viaPoints[0].id === vp.id  && activeRoute.closedLoop) { // FIXME:  if this was a potential marker the code is not in!!! + add in DRAG MOVE
 			consoleLog("Attempt to delete First point of loop route, toggling to no loop");
 			activeRoute.toggleLoop(); // this removes last point (instead of first)
 		} else {
-			markersCluster.removeLayer(e.target);
-			delete markers[vp.id] ;
-			activeRoute.removeViaPoint(vp.id);
-			activeRoute.redraw();
+			removeMarker(vp.id);
+			//markersCluster.removeLayer(e.target);
+			//delete markers[vp.id] ;
+			//activeRoute.removeViaPoint(vp.id, true);
 		}
 	});
 	
@@ -40,87 +48,20 @@ function addMarkerToMap(vp) { // shall this be renamed add marker to route ????
 
 }
 
+function removeMarker(id) {
+	markersCluster.removeLayer(markers[id]);
+	delete markers[id] ;
+	activeRoute.removeViaPoint(id, true); // true = redraw route
+}
 
-/* Add a (semi-transparent) marker in the map for a potential route waypoint.
-   PotentialMarkers are the one created by  by Search */
-function addPotentialMarkerToMap(vp, info, icon) {
-	// default for info since IE does not support  ES2015 default parameters
-	info= (typeof info !== 'undefined') ?  info : null;
-	
-	var ll = vp.latLng;
-	var id = vp.id;
-	var label = vp.name;
-	var popupText = 
-		"<div id='"+"a_"+id +"' class='gsmall'>"+rightClickText+ " " + translations["popup.add"] + "</div>" +
-		"<div class='gmid'>"+escapeHTML(label)+"</div>" +
-		(info != null?info:'') +
-		"&nbsp;-&nbsp;<a href='javascript:onDeletePotentialMarker(\""+id+"\")'><img src='./scripts/images/trash.svg' alt='Remove' width='10' height='10'></a>";
-	if (icon) {
-		potentialMarker = new L.Marker(ll, {icon: L.icon({ iconUrl: icon, iconSize: [20, 20] })});
-	} else {
-		potentialMarker = new L.Marker(ll).setOpacity(0.5);
-	}
-	//potentialMarker.bindPopup(popupText)
-	//		.addTo(map)
-	//		.openPopup();
-	
-	markersCluster.addLayer(potentialMarker);
-	potentialMarker.bindPopup(popupText).openPopup(); //  rfcuster addedd to bind and open popup to marker in cluster
-		
-	markers[id] = potentialMarker;
-	potentialMarker.on('contextmenu',function(e) { // make it a real way Marker
-			//consoleLog("in PotentialMarker contextmenu event: " +"a_"+id);
-			e.target.setOpacity(1);
-			e.target.dragging.enable();
-			/*e.target.on('dragend', function(e) {
-				consoleLog("Drag ends at:" + e.target.getLatLng());
-				var idx = getPointLegIdx(vp.latLng); /// original marker latLng
-				activeRoute.insertPointAt(idx);
-				//remove marker
-				markersCluster.removeLayer(e.target);
-				delete markers[vp.id] ;
-				activeRoute.removeViaPoint(vp.id);
-				// fake event...
-				e.latlng = e.target.getLatLng();
-				onMapClick(e); 
-			});*/
-			draggerize(e.target,vp);
-			
-			popupText =  
-				"<div id='"+"a_"+id +"' class='gsmall'>"+rightClickText+ " " + translations["popup.remove"] + "</div>" +
-				"<div class='gmid'>"+escapeHTML(label)+"</div>" +
-				"<div class='gsmall'>Lat,Lng  ("+ ll.lat.toFixed(6)+","+ll.lng.toFixed(6)+  ")</div>" +
-				(info != null?info:'') +
-				"<span style='float: right; cursor: pointer;'>"+
-				"<img src='./icons/leftBarredArrow.svg'  onclick='javascript:cutRouteBefore(\""+vp.id+"\");' title='Cut Before' width='15' height='8' />&nbsp;&nbsp;"+
-				"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' ></span>";
+function insertPointAfterId(id) {
+	activeRoute.insertPointAfterId(id);
+	alertOnce("route.addAfter");
+}
 
-			geoResultsNames[id]= info ;
-			e.target.setPopupContent(popupText);  
-			addNewViaPoint(ll.lat,ll.lng, label,id);  
-			activeRoute.redraw();
-			e.target.off('dblclick'); // remove event listener to remove on douibleckicl
-			e.target.off('contextmenu'); // remove event listener to add this wp on right click / long tap
-			// add new event listener to remove this wp on right click / long tap
-			e.target.on('contextmenu',function(e) {
-					//map.removeLayer(e.target);  // rfcuster
-					markersCluster.removeLayer(e.target);
-					delete markers[id] ;
-					delete geoResultsNames[id];
-					if (activeRoute!=null) activeRoute.removeViaPoint(id); // 
-					activeRoute.redraw();
-			});
-	});
-	potentialMarker.on('dblclick',function(e) {
-			//map.removeLayer(e.target);  // rfcuster
-			markersCluster.removeLayer(e.target);
-			delete markers[id] ;
-			delete geoResultsNames[id];
-			if (activeRoute!=null) activeRoute.removeViaPoint(id);
-			activeRoute.redraw();
-	});
-	
-
+function insertPointBeforeId(id) {
+	activeRoute.insertPointBeforeId(id);
+	alertOnce("route.addBefore");
 }
 
 /* Apply drag events to objects
@@ -148,7 +89,7 @@ function draggerize(marker, vp) {
 		//remove marker
 		markersCluster.removeLayer(e.target);
 		delete markers[vp.id] ;
-		activeRoute.removeViaPoint(vp.id);
+		activeRoute.removeViaPoint(vp.id, false);
 		
 		//var orig =map.getPixelOrigin();
 		//var pos = map.latLngToLayerPoint(e.target.getLatLng());
@@ -171,22 +112,26 @@ function dragRemoveShow() {
 	// display red banner
 	document.getElementById("gMarkerRemove").style.zIndex =1000; 
 	document.getElementById("gMarkerRemove").style.background = "rgba(255, 0, 0, 0.2)";
+	document.getElementById("gMarkerRemove").innerHTML = translations["route.deleteAreaMsg"];
 } 
 
 /* Hide red banner */
 function dragRemoveHide() {
 	// remove red banner
 	document.getElementById("gMarkerRemove").style.zIndex =0; 
-	document.getElementById("gMarkerRemove").style.background = "rgba(0, 0, 0, 0)";	// just to avoid showing red banner if maps does not load fast
+	// just to avoid showing red banner with text if maps does not load fast
+	document.getElementById("gMarkerRemove").style.background = "rgba(0, 0, 0, 0)";	
+	document.getElementById("gMarkerRemove").innerHTML = "";
 } 
 
 /* Delete a Potential Marker in the map for a potential route waypoint. 
    Called by Potential Marker popup,  addPotentialMarkerToMap */
-function onDeletePotentialMarker(id) {
+/*function onDeletePotentialMarker(id) {
 	//map.removeLayer(markers[id]); // rfcuster
 	markersCluster.removeLayer(markers[id]);
 	delete markers[id] ;
 }
+*/
 
 function openViaPointMarker(id) {
 	// open popup

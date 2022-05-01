@@ -11,58 +11,70 @@ include("db.php");
 $tokenDate = "false";
 
 if (isset($_REQUEST['action'])) {
- try {
-	db_connect();
-	$action = $_REQUEST['action'];
-	
-	if ( $action == "enroll") {
-		if (enroll($conn) ) {
-			echo '{"status": "ok"}'; // _mappite_token is set
+ $action = $_REQUEST['action'];
+ 
+ if ($action == "restore") {
+ 
+  if ( isset($_COOKIE['_mappite_token']) && $_COOKIE['_mappite_token'] != 'bye')  {
+	echo '{"status": "ok"}'; 
+	// _mappite_token exists as an https cookie, check if not 'bye' to make sure this works also if the browser did not delete it yet after unenroll
+  } else { 
+	echo '{"status": "invalid"}'; 
+  }
+  
+ } else { // need to connect to db for the remaining actions
+	 
+	 try {
+		db_connect();
+		
+		if ( $action == "enroll") {
+			if (enroll($conn) ) {
+				echo '{"status": "ok"}'; // _mappite_token is set
+			} else {
+				echo '{"status": "invalid", "email": "'.$_REQUEST['email'].'", "tokenDate": "'.$tokenDate.'"}';
+			}
+		} else if ( $action == "resetPwd") {
+			$res = resetPassword($conn);
+			echo '{"status": "ok"}'; // always answer ok, don't let to spoof email addresses
+		} else if ( validateToken($conn) ){
+			$json = '"status": "ok"';
+			$json = $json. ', "tokenDate" : "'.$tokenDate.'"';
+			switch ($action) {
+
+				case "saveRoute":
+					if (saveRoute($conn)) {
+						$json = $json. ', "result": "routeUpdated"';
+						//$json = $json. ', "url": "'.$_REQUEST['url'].'"';
+					} else {
+						$json = $json. ', "result": "routeInserted"';
+					}
+				break;
+				case "deleteRoute":
+					if (deleteRoute($conn)) {
+						$json = $json. ', "result": "routeDeleted"';
+					} else {
+						$json = $json. ', "result": "routeDoesNotExist"';
+					}				
+				break;
+				case "unenroll":
+					setcookie('_mappite_token','bye',time()-3600,null,null,false, true); // HTTP ONLY, note this will differe in https and http...
+				break;
+				case "getRoutes":
+					$json = $json. ', '. getRoutes($conn);
+				break;
+				default:
+					$json = $json. ', "result": "unknownAction"';
+			}
+			echo '{'.$json.'}';
 		} else {
-			echo '{"status": "invalid", "email": "'.$_REQUEST['email'].'", "tokenDate": "'.$tokenDate.'"}';
+			echo '{"status": "invalidToken", "tokenDate": "'.$tokenDate.'"}';
 		}
-	} else if ( $action == "resetPwd") {
-		$res = resetPassword($conn);
-		echo '{"status": "ok"}'; // always answer ok, don't let to spoof email addresses
-	} else if ( validateToken($conn) ){
-		$json = '"status": "ok"';
-		$json = $json. ', "tokenDate" : "'.$tokenDate.'"';
-		switch ($action) {
+		
 
-			case "saveRoute":
-				if (saveRoute($conn)) {
-					$json = $json. ', "result": "routeUpdated"';
-					//$json = $json. ', "url": "'.$_REQUEST['url'].'"';
-				} else {
-					$json = $json. ', "result": "routeInserted"';
-				}
-			break;
-			case "deleteRoute":
-				if (deleteRoute($conn)) {
-					$json = $json. ', "result": "routeDeleted"';
-				} else {
-					$json = $json. ', "result": "routeDoesNotExist"';
-				}				
-			break;
-			case "unenroll":
-				setcookie('_mappite_token','bye',time()+86400*1,null,null,false, true); // HTTP ONLY, note this will differe in https and http...
-			break;
-			case "getRoutes":
-				$json = $json. ', '. getRoutes($conn);
-			break;
-			default:
-				$json = $json. ', "result": "unknownAction"';
-		}
-		echo '{'.$json.'}';
-	} else {
-		echo '{"status": "invalidToken", "tokenDate": "'.$tokenDate.'"}';
-	}
-	
-
- } catch(PDOException $e) {
-   echo '{"status": "Exception", "exception": "' . $e->getMessage() . '"}';
+	 } catch(PDOException $e) {
+	   echo '{"status": "Exception", "exception": "' . $e->getMessage() . '"}';
+	 }
  }
-
 }
 
 $conn  = null;
@@ -134,6 +146,9 @@ function resetPassword($conn) {
 function validateToken($conn) {
 	if ($_SESSION['token'] != 'valid') { // we need to start session session_start(); this is always != for now !!!!! FIXME and consider what happen when one unenrolls
 		$token = $_COOKIE['_mappite_token'];
+		
+		if (!isset($token) ) return false; // avoid a db query
+		
 		$stmt = $conn->prepare("SELECT DATE_FORMAT(TOKEN_DATE, '%Y/%m/%d') 'TOKEN_DATE', TYPE FROM USERS WHERE TOKEN = :token");
 		$stmt->bindParam(':token', $token);
 		$stmt->execute();
@@ -152,6 +167,7 @@ function validateToken($conn) {
 		return true;
 	}
 }
+
 
 // Returns true if route is updated, false if inserted
 function saveRoute($conn) {

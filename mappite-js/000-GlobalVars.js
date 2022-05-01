@@ -26,13 +26,16 @@ var curA; // Current Attribution
 var headerCls, iconCtrl; // Header (top left) and Icon (top right) classes 
 var selection; // FIXME: check if used by geocoder.js (?)
 
+var currentMode  = 'gMode.car'; // see .gMode
+var previousMode =  currentMode; // see .gMode
+
 var scale; // scale gadget shown in map
 
 var circleLocate; // circle used by geolocation to show  position with approx error
 var markerLocate; // marker used by geolocation to show  position
 var isLocate = false; // state if geolocateion is acive or not
 
-var mapIcons ={ fuel: [], mountainPasses: [], viewPoint: [], supermarket: [], wikipedia: [], camping: []};
+var mapIcons ={ fuel: [], mountainPasses: [], viewPoint: [], supermarket: [], wikipedia: [], camping: [], bar: [], picnic: []};
 
 var legsIsCumulative = false; // states if to show cumulative leg time/distance or just leg time/distance
 
@@ -49,19 +52,28 @@ var markersCluster = L.markerClusterGroup({
 
 var markers = {}; // contains all route markers or potential route markers with their id as key
 
+// Custom POI
+var iconPoi="./icons/poi.svg";
+var iconPoiEdit="./icons/poi-red.svg";
+var iconPoiSearch="./icons/poi-search.svg";
+var poiMap = new Map(); // mantains map of visible POI lists
+
+
+// Route
+var activeRoute; // The active Route object containing viapoints
+var routesTrackMap = new Map(); // mantains map of visible route tracks
+
 var routeMilestonesGroup = new L.LayerGroup(); // circles that appears on route at each given segment
 
 var geoResultsNames = {};  // contains all markers geoResults names  with their id as key
 
 
-// Route
-var activeRoute; // The active Route object containing viapoints
-var routesTrackMap = new Map(); // mantain map of visible route tracks
-	
 var viaPointId = 0; // unique index of each viaPoint showed on screen 
 	
 var insertPointAt = -1; // by default insert new via point at the end of the current route
 var MAX_ROUTE_POINTS = 50; // max numbers of points in a route
+
+var MAX_POI_POINTS = 100; // max number of poi in a poi list
 
 // Internal Routing - set when internal routing is used, this requires
 // to setup a graphhopper routing server.
@@ -84,5 +96,10 @@ var trackCircleMarker; // cirleMarker that apperas on track when mouseover canva
 var activeTrack; // the one selected (red)
 var tracksList = [];
 
-// ajax event
+/* Array containing all keys for localstore items.
+   This prevents issues with "The order of keys is user-agent defined, so you should not rely on it."
+   if multiple mappite tabs are opened and user deletes/save items. */
+var localStoragesKeys = [];
+
+// ajax event that stores the route computation
 var xAjax = null;

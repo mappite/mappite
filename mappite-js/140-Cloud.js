@@ -37,7 +37,7 @@ function  resetPassword() {
  */
 function  cloudEnroll() {
 	
-	if (getCookie("enrolled") === "yes") { // unenroll
+	if ( isEnrolled() ) { // unenroll
 		
 		consoleLog("cloudEnroll() - unenroll" );
 		if (window.confirm(translations["cloud.unenrollConfirm"])) {
@@ -85,6 +85,7 @@ function  cloudEnroll() {
 				consoleLog("cloudEnroll() - OK! refreshing routes");
 				var elem = document.getElementById("gHeaderEnroll"); // this element disappears when one clicks on info icon
 				if (elem != null) elem.innerHTML=  translations["cloud.enrolled"];
+				document.getElementById("gEnroll").innerHTML=  translations["cloud.enrolled"];
 				document.getElementById("JgEnrollButton").innerHTML=  translations["cloud.unenroll"];
 				refreshSavedRoutes();
 			} else if (json.tokenDate == "false") {
@@ -121,7 +122,7 @@ function refreshCloudRoutes() {
 			
 			var routes = json.routes;
 			for (i=0;i<routes.length; i++){ // add to local storage
-				consoleLog("Cloud Route found: " + routes[i].name); 
+				consoleLog("cloud item found: " + routes[i].name); 
 				localStorage.setItem("gRoute|"+routes[i].name , "C_"+routes[i].url); // "C_ means from cloud
 			}
 			
@@ -154,7 +155,7 @@ function refreshCloudRoutes() {
 			enrollFile = enrollExpiredFile;
 		}
 		
-		refreshSavedRoutesHtml(); // display in any case all route in local storage
+		refreshSavedRoutesHtml(); // display also all routes in local storage (i.e. that have not been saved in cloud yet)
 		  
 	  },
 	  error: function(jqXHR, textStatus, errorThrown) {
@@ -216,4 +217,35 @@ function  deleteRouteCloud(name) {
 		consoleLog( "cloudEnroll Failure: " + textStatus + " - " + errorThrown);
 	  }
 	});	
+}
+
+/* 
+ * If enrolled cookie is not there, check on server side to validate http_only cookies
+ * this to overcome javascrip cookie deletion after just 7 days
+ */
+function restoreEnrolled() {
+	// check on server side, javascript cookies may be deleted often in some browsers
+	var jurl="./cloud.php?action=restore"; 
+	// not using getJSON to set a timeout
+	$.ajax({
+	  dataType: "json",
+	  url: jurl,
+	  timeout: 1500,
+	  success: function( json ) {
+		if (json.status === "ok" ) { // password changed
+			setCookie("enrolled","yes",1825); // 5 yrs
+			consoleLog( "restoreEnrolled: cookie recovered");
+			updateEnrolledInfo() ;
+			// refresh routes from cloud
+			refreshSavedRoutes() 
+		} else {
+			consoleLog( "restoreEnrolled: no cookie");
+			
+		}
+	  },
+	  error: function(jqXHR, textStatus, errorThrown) {
+		consoleLog( "restoreEnrolled Failure: " + textStatus + " - " + errorThrown);
+	  }
+	});
+
 }

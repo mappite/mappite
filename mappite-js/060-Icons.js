@@ -9,8 +9,7 @@ function addJsonNode(node,e) {
 	//consoleLog("Adding  node"+node.name+" to route");
 	var label =  node.name;
 	if (node.elevation) label = label + " ("+node.elevation+"mt)"; 
-	var id = "vp_"+viaPointId++;	
-	var vpjs = new ViaPoint(node.lat, node.lon, label, id);
+	var vpjs = new ViaPoint(node.lat, node.lon, label);
 	addViaPoint(vpjs);
 	activeRoute.redraw();
 	addMarkerToMap(vpjs); 
@@ -124,6 +123,7 @@ function getOverpassNodes(id, query) {
 				if (elem.tags!== undefined) {
 					elem.name = (elem.tags.name||elem.tags["name:it"]||elem.tags.brand||elem.tags.operator);
 					//consoleLog( "Namify node: " + elem.id +"=>"+ name);
+					if ( elem.name === undefined) elem.name = id;
 					var label =  "<b>" + elem.name + "</b>";
 					if (elem.tags.ele) {
 						elem.elevation = elem.tags.ele; // convert to std elem
@@ -175,8 +175,8 @@ function getSwne() {
  */
 function showMountainPasses() {
 	swne = getSwne();
-	// allow passes on Track if gOptions.paved = n
-	highways = "primary|secondary|tertiary|trunk|service|unclassified" + ((document.getElementById("gOptions.paved").value === "n")?"|track":"");
+	// allow passes on Track if .clickOnRoad = n
+	highways = "primary|secondary|tertiary|trunk|service|unclassified" + ((document.getElementById("gOptions.clickOnRoad").value === "n")?"|track":"");
 	query = 'node[mountain_pass=yes]('+swne+');' + 
 		'way(bn)["highway"~"'+highways+'"];' + 
 		'node(w)[mountain_pass=yes]('+swne+');';
@@ -194,8 +194,8 @@ out;
 */
 function showViewPoints() {
 	swne = getSwne();
-	// allow passes on Track if gOptions.paved = n
-	highways = "primary|secondary|tertiary|trunk|service|unclassified" + ((document.getElementById("gOptions.paved").value === "n")?"|track":"");
+	// allow passes on Track if gOptions.clickOnRoad = n
+	highways = "primary|secondary|tertiary|trunk|service|unclassified" + ((document.getElementById("gOptions.clickOnRoad").value === "n")?"|track":"");
 	rangeMt = 50; // meters
 	query = 'way["highway"~"'+highways+'"]('+swne+')->.i;' + 
 		'node["tourism"="viewpoint"](around.i:'+rangeMt+');';
@@ -227,6 +227,23 @@ function showSupermarkets() {
 	// query = '(way[shop=supermarket]('+getSwne()+');node[shop=supermarket]('+getSwne()+'));';
 	query = 'node[shop=supermarket]('+getSwne()+');';
 	getOverpassNodes('supermarket',query);
+}
+
+/* FUNCTION: showPicnic
+ * get Picnic places
+ */
+function showPicnic() {
+	// query = 'node[tourism=picnic_site]('+getSwne()+');'; // node[leisure=picnic_table]('+getSwne()+');';
+	query = '(node[tourism=picnic_site]('+getSwne()+');node[leisure=picnic_table]('+getSwne()+'););';
+	getOverpassNodes('picnic',query);
+}
+
+/* FUNCTION: showBars
+ * get Bars
+ */
+function showBars() {
+	query = '(way[amenity=cafe]('+getSwne()+');node[amenity=bar]('+getSwne()+');node[amenity=cafe]('+getSwne()+'););';
+	getOverpassNodes('bar',query);
 }
 
 /** Overpass... END **/

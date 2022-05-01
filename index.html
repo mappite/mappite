@@ -19,14 +19,13 @@
         <meta content="mappite.org" property="og:site_name"> 
 	<meta property='og:image' content='https://www.mappite.org/mappite.jpeg'/>
 	<meta property='og:type' content='website'/>
-
-
+	
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin="" />
+        <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
 	<!--
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
-	<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
-	-->
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
 	<script src="./scripts/lf151/leaflet-151w6855.js"></script>
+	-->
 	
 	<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
 	<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
@@ -124,7 +123,7 @@
 
 	.gmid {
 		color: #838383;
-		font:  bold 12px/14px 'Open Sans',sans-serif;
+		font:  bold 14px/14px 'Open Sans',sans-serif;
 	}
 
 	.gsmall {
@@ -205,6 +204,8 @@
 		background: rgba(255,255,255,0.8);
 		border-radius: 0px 0px 0px 8px;
 		text-align: center;
+		width: 30px;
+		min-height: 26px;
 		/* box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.65); */
 	}
 			
@@ -340,13 +341,17 @@
 	
 	.buttons {
 	    text-align: center;
-	    height: 26px;
+	    min-height: 26px;
 	    border: 3px solid #EBE6E2;
 	    border-radius: 5px;
 	    transition: all 0.3s ease-out;
 	    background-color:rgba(0, 0, 0, 0);
 	    font:  bold 14px 'Open Sans',sans-serif;
 	    color: #838383; /* #1B76C8; */
+	}
+	
+	.button.selected {
+	    background-color: rgb(57, 142, 231, 80); // #398ee7
 	}
 	
 	.buttons:hover {
@@ -448,6 +453,8 @@
 		height: 70px; 
 		top: 0px; 
 		left:0px; 
+		display: flex;
+		justify-content: center;
 	}
 
 	</style>
@@ -456,15 +463,15 @@
 
 </head>
 <body id="allBody" onresize="onResize()">
-	<div id="map"></div>
+	<div id="map" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"></div>
 	<div id="geocode-selector"></div>
 	<div id="gMarkerDrag" class="leaflet-bottom gdrag" draggable="true"><img id="gDraggableMarkerIcon" style="opacity: 0.7;" src="./icons/marker-icon-gray.png" alt="Drag Marker"></div>
-	<div id="gMarkerRemove" class="gdragRemove" ></div>
+	<div id="gMarkerRemove" class="gdragRemove gactions" ></div>
 	<div id="gCanvas" class="gheader leaflet-top expanded" >
 	 <canvas id="mCanvas" width="400" height="50"></canvas>
 	</div>
 	<div id="gHeader" class="gheader leaflet-top expanded">
-		<div class="gtopright"><a class="bigfont gactions" href="javascript:headerCls.toggle();">&#215;&nbsp;</a></div>
+		<div class="gtopright"><a class="bigfont gactions gray" href="javascript:headerCls.toggle();">&#215;&nbsp;</a></div>
 		<div id="gHeaderContent"><span class="gmission" tkey="info.mission"></span><br><img src="./mappiteLabel.png" width="250px">
 			<div id="gMouseInfo">
 				<span tkey="info.addViaPointMouse"></span> 
@@ -487,14 +494,19 @@
 	</div>
 	<div id="sPanel" class="spanel">
 		<div id="sContent" class="collapsed" style="line-height: 300%;">
-			<span class="gsmall">&nbsp;</span>
-			<img class="sIcon" id="mountainPasses"  title="Mountain Passes" alt="Mountain Passes"/><br/> 
-			<img class="sIcon" id="viewPoint"  title="Panorama" alt="View Points"/><br/> 
-			<img class="sIcon" id="wikipedia"  title="Wikipedia" alt="Wikipedia" /><br/> 
-			<img class="sIcon" id="fuel"  title="Fuel" alt="Fuel" width="24" /><br/> 
-			<img class="sIcon" id="supermarket"  title="Supermarket" alt="Supermarket" />
-			<img class="sIcon" id="camping"  title="Camping" alt="Camping" width="24" /><br/> 
-			<img class="sIcon" id="locate"  title="Locate" alt="Center"/><br/> 
+			<br/>
+			<img class="sIcon" id="mountainPasses"  title="Mountain Passes" alt="Mountain Passes" width="24"/>
+			<img class="sIcon" id="viewPoint"  title="Panorama" alt="View Points" width="24"/> 
+			<img class="sIcon" id="wikipedia"  title="Wikipedia" alt="Wikipedia" width="24"/>
+			<img class="sIcon" id="fuel"  title="Fuel" alt="Fuel" width="24" /> 
+			<img id="iconPlus"  title="Other POIs" alt="Other POIs" src="./icons/plus.svg" width="24"/>
+			<div id="otherPOIsDiv" class="collapsed">
+				<img class="sIcon" id="supermarket"  title="Supermarket" alt="Supermarket" width="24" />
+				<img class="sIcon" id="camping"  title="Camping" alt="Camping" width="24" />
+				<img class="sIcon" id="picnic"  title="Picnic" alt="Picnic" width="24" />
+				<img class="sIcon" id="bar"  title="Bar" alt="Bar" width="24" />
+			</div>
+			<img class="sIcon" id="locate"  title="Locate" alt="Center" width="24"/>
 		</div>
 		<div id="sStar" class="gactions gray">&nbsp;&laquo;&nbsp;</div>
 	</div>
@@ -507,34 +519,33 @@
 		<div id="gRoute" class="groute"></div>
 		<div id="gOptions" class="goptions collapsed">
 		 <form id="gOptionsForm">
-
-			<table class="gtable">
-				<tr>
-					<td><input class="JgRouteOptions" id="gOptions.fastest" type="radio" name="gOptions.type" value="f"  checked><span tkey="options.fastest"></span></td>
-					<td><input class="JgRouteOptions" id="gOptions.shortest" type="radio" name="gOptions.type" value="s"><span tkey="options.shortest"></span></td>
-				</tr>
-				<tr>
-					<td><input class="JgRouteOptions" id="gOptions.pedestrian" type="radio" name="gOptions.type" value="p"><span tkey="options.walk"></span></td>
-					<td><input class="JgRouteOptions" id="gOptions.bicycle" type="radio" name="gOptions.type" value="b"><span tkey="options.bicycle"></span></td>
-				</tr>
-				<tr>
-					<td style="vertical-align: bottom;"><span tkey="options.avoid"  style="float:right"></span></td>
-					<td><input class="JgRouteOptions" id="gOptions.highways" type="checkbox" value="highways"><span tkey="options.highways"></span></td>
-				</tr>
-				<tr>
-					<td><input class="JgRouteOptions" id="gOptions.tolls" type="checkbox" value="tolls" ><span tkey="options.tolls"></span></td>
-					<td><input class="JgRouteOptions" id="gOptions.ferries" type="checkbox" value="ferries"><span tkey="options.ferries"></span></td>
-				</tr>
-			</table>
-			  
-			  <div>
+			<div>
+				<button class="gMode buttons" id="gMode.car" type="button"><img  id="gCarBike"  title="Car or Motorike" alt="Car or Motorike" width="42" height="30" src="./icons/carBike.svg"/></button>
+				<button class="gMode buttons" id="gMode.bicycle" type="button"><img  id="gBicycle"  title="Bicycle" alt="Bicycle" width="32" height="30" src="./icons/bicycle.svg"/></button>
+				<button class="gMode buttons" id="gMode.walk" type="button"><img  id="gWalk"  title="Walk" alt="Walk" width="32" height="30" src="./icons/walk.svg"/></button>
+				<button class="gMode buttons" id="gMode.poiEditor" type="button"><img  id="gPoi"  title="POI Editor" alt="POI Editor" width="32" height="30"src="./icons/poi-black.svg"/></button>
+			</div>
+			<div id="gOptions.car">
+				<div style="margin: 4px; line-height: 180%;">
+					<input class="JgRouteOptions" id="gOptions.fastest" type="radio" name="gOptions.type" value="f"  checked><span tkey="options.fastest"></span>
+					<input class="JgRouteOptions" id="gOptions.shortest" type="radio" name="gOptions.type" value="s"><span tkey="options.shortest"></span>
+					<br/><span class="collapsed"><input class="JgRouteOptions" id="gOptions.offroad" type="radio" name="gOptions.type" value="x"><span tkey="options.offroad"></span></span>
+				</div>
+				<div style="line-height: 180%;">
+					<input class="JgRouteOptions" id="gOptions.tolls" type="checkbox" value="tolls" checked><span tkey="options.tolls"></span>
+					<input class="JgRouteOptions" id="gOptions.highways" type="checkbox" value="highways" checked><span tkey="options.highways"></span>
+					<input class="JgRouteOptions" id="gOptions.ferries" type="checkbox" value="ferries" checked><span tkey="options.ferries"></span>
+				</div>
+			</div>
+			<div style="line-height: 180%;">
 			  &nbsp;<select class="JgRouteOptions buttons" id="gOptions.uom" name="measure"><option value="k" selected>Km</option><option value="m">Miles</option></select>
-			  &nbsp;<select class="JgRouteOptions buttons" id="gOptions.paved" name="paved">
-				<option tkey="options.paved" value="y" selected>-</option>
-				<option tkey="options.unpaved" value="n">~ -</option>
+			  &nbsp;<select class="JgRouteOptions buttons" id="gOptions.clickOnRoad">
+				<option tkey="options.onroad" value="y" selected>-</option>
+				<option tkey="options.everywhere" value="n">~ -</option>
 				<!-- option value="e">Experimental</option -->
 				</select>
-			  </div>
+			</div>
+			
 			<hr>
 			  &nbsp;<span tkey="options.map"></span> 
 				<select class="JgMapLayers buttons" id="gOptions.mapLayer" name="mapLayer">
@@ -551,24 +562,35 @@
 		  </form>
 		 </div>
 		<div id="gExport" class="gexport collapsed">
-			<table class="gtable">
-				<tr>
-					<td>
-						<select name="exp" class="buttons" id="exportSelect">
-							<option value="routeGpx" selected>Route (gpx)</option>
-							<option value="trackGpx">Track (gpx)</option>
-							<option value="wpGpx">Way Points (gpx)</option>
-							<option value="routeWpGpx">Route + WP (gpx)</option>
-							<option value="routeShpGpx">Route Shapingpoint</option>
-							<option value="routeGpxOld">Route (gpx 1.0)</option>
-							<option value="routeItn">Route (itn)</option>
-							<option value="spreadsheetCsv">Spreadsheet (csv)</option>
-						</select>
-					
-					</td>
-					<td><button id="JgExportButton" class="buttons" type="button" tkey="export.export"></button></td>
-				</tr>
-			</table>
+			<button id="JgExportMenuButton" class="buttons" type="button" tkey="export.exportDefault"></button>
+			<span style="float: right"><button id="JgExportButton" class="buttons" type="button" tkey="export.export"></button></span>
+			</td>
+			<div id="gExportMenu" style="display: none;">
+				<table class="gtable">
+					<tr>
+						<td><input id="gExportMenu.format.gpx" type="radio" name="gExportMenu.format" value="gpx" checked>GPX</td>
+						<td>
+						    <input id="gExportMenu.route"    type="checkbox" checked>Route
+						    <span style="float: right"><input id="gExportMenu.routeShp" onclick="document.getElementById('gExportMenu.oldGpx').checked = false"  type="checkbox"><small>with ShapingPoints</small></span><br/>
+						    <input id="gExportMenu.track"    type="checkbox">Track
+						    <span style="float: right"><input id="gExportMenu.oldGpx" onclick="document.getElementById('gExportMenu.routeShp').checked = false" type="checkbox"><small>Legacy 1.0 gpx</small></span><br/>
+						    <input id="gExportMenu.wp"       type="checkbox">Waypoints<br/>
+						</td>
+					</tr>
+					<tr>
+						<td><input id="gExportMenu.format.itn" type="radio" name="gExportMenu.format" value="itn">ITN</td>
+						<td>
+						    TomTom Itinerary
+						</td>
+					</tr>
+					<tr>
+						<td><input id="gExportMenu.format.itn" type="radio" name="gExportMenu.format" value="csv">Csv</td>
+						<td>
+						    Spreadsheet
+						</td>
+					</tr>
+				</table>
+			</div>
 			<hr>
 			<table class="gtable">
 				<tr>
@@ -586,14 +608,15 @@
 				</tr>
 				<tr>
 					<td>
-					<button class="buttons" id="gPanelPrintLink"  tkey="export.showPoints" onclick="javascript:showPoints();">Points</button>
+					<!-- button class="buttons" id="gPanelPrintLink"  tkey="export.showPoints" onclick="javascript:showPoints();">Points</button -->
+					<a href="javascript:showPoints();" ><img src="./icons/screenshot.svg" id="gScreenshot" alt="Screen Shot" width="48" height="32"/> </a>
 					</td>
 					<td>
 					<button class="buttons" id="gForumLinkHref" style="float: left" tkey="export.forum" onclick="javascript:toggleDiv('gExportForum');">Forum</button>
 					</td>
 				</tr>			
 			</table>
-				
+
 			<div id="gExportForum" style="display: none;">
 			  <input type="text" id="gShareLinkForum1" value=""/><br>
 			  <input type="text" id="gShareLinkForum2" value=""/><br>
@@ -656,23 +679,7 @@
 	// Todos as soon as page has been loaded
 	$( document ).ready(function() {
 		// Transate the page
-		var langs = ['en', 'it']; // supported languages
-		langCode = navigator.language.substr (0, 2);
-		console.log( "mappite lang " + langCode);
-		if ($.inArray(langCode , langs) !== -1) {
-			console.log( "mappite lang inArray");
-			$.getJSON('./lang/'+langCode+'.json', translate);
-			infoFile = "./lang/"+langCode+"-info.html"; 
-			saveFile = "./lang/"+langCode+"-save.html"; 
-			exportFile = "./lang/"+langCode+"-export.html";
-			enrollFile = "./lang/"+langCode+"-enroll.html";
-			enrollDoneFile = "./lang/"+langCode+"-enroll-done.html";
-			enrollExpiredFile = "./lang/"+langCode+"-enroll-expired.html"; 
-			enrolledFile = "./lang/"+langCode+"-enrolled.html";
-		} else {
-			console.log( "mappite lang DEFAULT");
-			$.getJSON('./lang/en.json', translate);
-		}
+		initTranslations();
 		// Calculate proper spacings
 		onResize();
 		// Get options string from cookie and set for current session (map layer, fastest, toll etc)
@@ -698,7 +705,7 @@
 		// Decode URL and detect if this is a direct call to a route
 		if (getParameterByName("viapoints") != '') { // it's a call to a route, display it
 			var options = getParameterByName("options"); 
-			setOptionsString(options); // set options as per called route, initiateMap loads the correct map
+			if ( options.charAt(1) != 'o' ) { setOptionsString(options); }// if this is not a POI list, set options, initiateMap will load the correct map
 			initiateMap([0,0], 2);
 			loadRoute(location.search);
 			if (isTouchDevice()) { 
@@ -712,7 +719,7 @@
 			}
 			//var locateUrl="https://freegeoip.net/json/"; 		
 			//var locateUrl="https://geoip.nekudo.com/api";	
-			var locateUrl="https://extreme-ip-lookup.com/json/";
+			var locateUrl="https://extreme-ip-lookup.com/json/?key=jbOEx34i5DOOSjkudVrt";
 			$.ajax({ 
 			  url: locateUrl, 
 			  dataType: 'json', 
@@ -730,7 +737,7 @@
 			}); 
 		}
 		// Load saved routes
-		refreshSavedRoutes();
+		// refreshSavedRoutes();
 	});
 	
 	/* Event Actions */
@@ -742,10 +749,12 @@
 	$( ".JgMapLayers" ).change(onMapLayersChange);
 	$( "#gRouteSAYT" ).keyup(onRouteSearchAsYouType);
 	$( ".JgRouteOptions" ).change(onRouteOptionsChange);
+	$( ".gMode" ).click(onRouteModeClick);
 	$("#gWhatsappLogo").click(whatsAppShare);
 	$("#gGoogleMapsLogo").click(googleMapsShare);
 	$("#JgShortenUrlButton").click(shortenUrl);
 	$("#JgExportButton").click(onExportClick);
+	$("#JgExportMenuButton").click(function() {toggleDiv("gExportMenu");});
 	$("#JgImportFile").change(onImportChange);
 	$("#JgSaveButton").click(saveRoute);
 	$("#gTags").change(refreshSavedRoutes);
@@ -806,13 +815,25 @@
 	$( "#camping" ).click(function() {
 		canGetOverpass()?showCampings():alert(translations["overpass.zoomInAlert"]);
 	});
+	
+	$( "#iconPlus" ).click(function() {
+		toggleDiv("otherPOIsDiv");
+		toggleIconPanelWidth();
+	});
+	$( "#supermarket" ).click(function() {
+		canGetOverpass()?showSupermarkets():alert(translations["overpass.zoomInAlert"]);
+	});
+	$( "#picnic" ).click(function() {
+		canGetOverpass()?showPicnic():alert(translations["overpass.zoomInAlert"]);
+	});
+	$( "#bar" ).click(function() {
+		canGetOverpass()?showBars():alert(translations["overpass.zoomInAlert"]);
+	});
+	
 	$( ".sIcon" ).bind("contextmenu", function(e) { 
 		e.preventDefault();
 		e.stopPropagation();
 		removeIcons(e.target.id); // fuel
-	});
-	$( "#supermarket" ).click(function() {
-		canGetOverpass()?showSupermarkets():alert(translations["overpass.zoomInAlert"]);
 	});
 	$( "#center" ).click(function() {
 		centerMap();
@@ -823,10 +844,11 @@
 		//alert("orientation change");
 		document.getElementById("gPanel").style.bottom = ( $(window).width()>$(window).height()  ?"42px":"22px");
 	}); 
-	// to manage "back" button?
+	// detect "back" button
 	window.onpopstate = function(event) {
-	  console.log("location: " + document.location );
-	  loadRoute(location.search); // should not look in cache (and cache)
+	  console.log("onpopstate document.location: " + document.location );
+	  // ref. https://github.com/Leaflet/Leaflet/issues/8203
+	  if ( ! document.location.endsWith("#close") ) { loadRoute(location.search); } 
 	}; 
 		 
 	</script>

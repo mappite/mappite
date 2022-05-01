@@ -35,17 +35,47 @@ var translate = function (jsdata) {
 		var strTr = jsdata [$(this).attr ('tkey')];
 	    $(this).html (strTr);
 	});
-	// Enrolled: update call to action and display change pwd input
+	
+	// FIXME: "translate" is not the proper place form a functional standpoint for this one
 	if (getCookie("enrolled") === "yes") {
-		// update enroll button in header
-		document.getElementById("gHeaderEnroll").innerHTML=  "<span style='color: #1B76C8'>" + translations["cloud.enrolled"] +"<span>";
-		// update text in cloud tab gEnroll pane (wipe everything)
-		document.getElementById("gEnroll").innerHTML=  translations["cloud.enrolled"];
-		// update JgEnrollButton label in cloud tab to show unenroll
-		document.getElementById("JgEnrollButton").innerHTML=  translations["cloud.unenroll"];
-		// set file to load on header when one clicks on .clsEnroll
-		enrollFile = enrolledFile;
+		updateEnrolledInfo();
+		refreshSavedRoutes();
+	} else {
+		// attempt to restore enrolled cookie from server 
+		// this will call asyncrouslin updateEnrolledInfo() and refreshSavedRoutes()
+		restoreEnrolled() ;
 	}
+}
+
+function initTranslations() {
+	var langs = ['en', 'it']; // supported languages
+	langCode = navigator.language.substr (0, 2);
+	console.log( "mappite lang " + langCode);
+	if ($.inArray(langCode , langs) !== -1) {
+		console.log( "mappite lang inArray");
+		$.getJSON('./lang/'+langCode+'.json?ver='+mversion, translate);
+		infoFile = "./lang/"+langCode+"-info.html"; 
+		saveFile = "./lang/"+langCode+"-save.html"; 
+		exportFile = "./lang/"+langCode+"-export.html";
+		enrollFile = "./lang/"+langCode+"-enroll.html";
+		enrollDoneFile = "./lang/"+langCode+"-enroll-done.html";
+		enrollExpiredFile = "./lang/"+langCode+"-enroll-expired.html"; 
+		enrolledFile = "./lang/"+langCode+"-enrolled.html";
+	} else {
+		console.log( "mappite lang DEFAULT");
+		$.getJSON('./lang/en.json?ver='+mversion, translate);
+	}
+}
+
+function updateEnrolledInfo() {
+	// update enroll button in header
+	document.getElementById("gHeaderEnroll").innerHTML=  "<span style='color: #1B76C8'>" + translations["cloud.enrolled"] +"<span>";
+	// update text in cloud tab gEnroll pane (wipe everything)
+	document.getElementById("gEnroll").innerHTML=  translations["cloud.enrolled"];
+	// update JgEnrollButton label in cloud tab to show unenroll
+	document.getElementById("JgEnrollButton").innerHTML=  translations["cloud.unenroll"];
+	// set file to load on header when one clicks on .clsEnroll
+	enrollFile = enrolledFile;
 }
 
 

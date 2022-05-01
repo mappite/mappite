@@ -81,9 +81,9 @@ function googleMapsShare() {
 	*/
 	// highways/tools/ferries
 	gUrl =  gUrl + "&dirflg=d";
-	if (document.getElementById('gOptions.highways').checked ) gUrl =  gUrl + ",h";
-	if (document.getElementById('gOptions.tolls').checked ) gUrl =  gUrl + ",t";
-	if (document.getElementById('gOptions.ferries').checked ) gUrl =  gUrl + ",f";
+	if (!document.getElementById('gOptions.highways').checked ) gUrl =  gUrl + ",h";
+	if (!document.getElementById('gOptions.tolls').checked ) gUrl =  gUrl + ",t";
+	if (!document.getElementById('gOptions.ferries').checked ) gUrl =  gUrl + ",f";
 	consoleLog("Google Maps Url: " + gUrl);
 	var a = window.document.createElement('a');
 	a.href = gUrl;
@@ -128,6 +128,7 @@ function showPoints() { // check https://github.com/niklasvh/html2canvas
 	$( "#gPanelToggle" ).click(); // close panel
 	headerCls.show();
 	map.removeLayer(markersCluster);
+	alertOnce("export.showPoints");
 	
 }
 
@@ -138,6 +139,7 @@ function refreshExportPanel() {
 		var shortUrl = activeRoute.getUrl();
 		var fullShortUrl = window.location.protocol+"//"+window.location.hostname+shortUrl;
 		var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
+		// FIXME: "description" is not used, since "distance" is in URL, r.php just uses that
 		var fullShortUrlFB = fullShortUrl.replace("/?", "/r.php?description="+Number(activeRoute.routeDistance).toFixed(2)+ uom+"&");
 		var name = activeRoute.name;
 		//Forum

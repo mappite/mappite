@@ -15,7 +15,7 @@ attrs['stamen.terrain']  	= '&copy; <a href="http://openstreetmap.org" target="_
 			' | Tiles  <a href="http://stamen.com/" target="_blank">Stamen</a>  <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>';
 	
 attrs['graph_dir']	= ' | Route <a href="https://www.graphhopper.com" target="_blank">Graphhopper</a>';
-attrs['mapquest_dir']	= ' | Route <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="https://developer.mapquest.com/content/osm/mq_logo.png">';
+attrs['mapquest_dir']	= ' | Route <a href="http://www.mapquest.com/" target="_blank">MapQuest</a>';
 attrs['ors_dir'] 	= ' | Route <a href="https://go.openrouteservice.org/" target="_blank">ORS</a>';
 attrs['osrm']  		= 'Reverse Geocoding by <a href="http://project-osrm.org/">OSRM</a>';
 attrs['mappite'] 	= ' | <b>mappite.org</b>';
@@ -73,4 +73,28 @@ function setMapLayer (ml){
 	} else {
 		getOptionsString(); // re-builds options string and sets the browser cookie
 	}
+}
+
+function dropHandler(e) {
+	console.log('File(s) dropped');
+
+	// Prevent default behavior (Prevent file from being opened)
+	e.preventDefault();
+
+	if (e.dataTransfer.items) {
+		// Use DataTransferItemList interface to access the file(s)
+		for (var i = 0; i < e.dataTransfer.items.length; i++) {
+			// If dropped items aren't files, reject them
+			if (e.dataTransfer.items[i].kind === 'file') {
+				var file = e.dataTransfer.items[i].getAsFile();
+				loadFile(file);
+			}
+		}
+	}
+}
+
+function dragOverHandler(e) {
+	console.log('File(s) in drop zone');
+	// Prevent default behavior (Prevent file from being opened)
+	e.preventDefault();
 }

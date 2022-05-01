@@ -11,14 +11,15 @@
 	?></title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-	<meta name="description" content="<?php echo $_GET["description"] ?>"/>
+	<meta name="description" content="<?php echo $_GET["distance"] ?>"/>
 	<meta name="keywords" content="mappite map route gpx garmin navigator openstreetmap osm motorbike"/>
 	<link rel="icon" href="./mappiteLogo.png">
 	<!-- meta property='og:title' content='mappite easily create&share routes'/ -->
 	<meta name="robots" content="noindex">	
-	<meta content="<?php echo $name ?>" itemprop="name" property="og:title"> 
-        <meta content="mappite - orig ogsite_name" property="og:site_name"> 
-	<meta property='og:image' content='http://www.mappite.org/mappite.jpeg'/>
+	<meta property="og:title" content="<?php echo $_GET['name'] ?>" itemprop="name"> 
+	<meta property="og:description" content="<?php echo $_GET["distance"] ?>"/>
+        <meta property="og:site_name" content="mappite.org"> 
+	<meta property='og:image' content='https://www.mappite.org/mappite.jpeg'/>
 	<meta property='og:type' content='website'/>
 	<?php
 		$url = (isset($_SERVER['HTTPS']) ? "https" : "http")."://".$_SERVER["HTTP_HOST"].((substr($_SERVER['REQUEST_URI'],0,6) == "/alpha")?"/alpha/?":"/?").$_SERVER['QUERY_STRING'];

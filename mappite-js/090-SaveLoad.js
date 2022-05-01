@@ -34,66 +34,51 @@ function saveRoute() {
 			}
 			
 		}
-	} else { // real route save
+	} else { // real route or POI save
 		if (activeRoute == null) { alert(translations["route.createBeforeSaving"] ); return; }
 		
 		routeNameAndTags = routeNameAndTags.map(function (e) { return e.trim(); }); // trim all elements
 		
-		var routeName = routeNameAndTags[0];
-		consoleLog("saveRoute(): tags array: " + routeNameAndTags);
+		var routeName = routeNameAndTags[0]; // add gPoi| to route name if it is a POI
+		//consoleLog("saveRoute(): tags array: " + routeNameAndTags);
 		activeRoute.setName(routeName);
+		
+		routeName = (isPoiMode()?"gPoi|":"")+routeName; // add gPoi| to route name if it is a POI
 		var key = "gRoute|"+routeName;
+
+		consoleLog("saveRoute(): key: " + key);
+
 		var routeUrl = activeRoute.getUrl();
 
 		if (localStorage.getItem(key)) { // route exists
 			if (!window.confirm(translations["saveLoad.sureOverwriteSavedRoute"])) { return; }
 		}
-		consoleLog("Saving route");
+		//consoleLog("Saving route");
 		var urlPrefix = "";
 		// Cloud Save
-		if (getCookie("enrolled") === "yes") {
+		if ( isEnrolled() ) {
 			saveRouteCloud(routeName,routeUrl); // spin the icon, save on cloud, reset icon
-			urlPrefix = "C_";
+			urlPrefix = "C_"; // FIXME: this should validate saveRouteCloud ended successfully
 		} 
 		
 		// Local Storage Save
-		localStorage.setItem("gRoute|"+routeName , urlPrefix+routeUrl);
+		// localStorage.setItem("gRoute|"+routeName , urlPrefix+routeUrl);
+		localStorage.setItem(key , urlPrefix+routeUrl);
 		
 		// Save/update Tags in Local storage
 		//if (routeNameAndTags.length > 1) // no!  if all tags are removed we need to make sure we clean up gTag|tagName
 		saveRouteTags(routeNameAndTags);
 		
-		/*
-		// save route gRoute| - local storage save includes saving tags
-		if (localStorage.getItem(key)) { // route exists
-			if (window.confirm(translations["saveLoad.sureOverwriteSavedRoute"])) {
-				// cloud save
-				if (isEnrolled) {
-					saveRouteCloud(routeName,routeUrl); // spin the icon, save on cloud, reset icon
-				} 
-				localStorage.setItem("gRoute|"+routeName , urlPrefix+routeUrl);
-				//if (routeNameAndTags.length > 1) // no!  if all tags are removed we need to make sure we clean up gTag|tagName
-				saveRouteTags(routeNameAndTags);
-			}
-		} else {
-			// cloud save
-			if (isEnrolled) saveRouteCloud(routeName,routeUrl); // spin the icon, save on cloud, reset icon
-			localStorage.setItem("gRoute|"+routeName , urlPrefix+routeUrl);
-			if (routeNameAndTags.length > 1 || ($("#gTags").val() !=="all" )) { // saveTags also if a tag is selected
-				saveRouteTags(routeNameAndTags);
-			}
-		}
-		*/
-		
 		// save track gRTrack|
-		var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
-		var length = formatDecimal(activeRoute.routeDistance,2);
-		var compressedTrack = activeRoute.getCompressedTrack();
-		localStorage.setItem("gRTrack|"+routeName , length+"|"+uom+"|"+compressedTrack); // lenght|uom|encoded
-
+		if (!isPoiMode()) { // if not RoutePoi
+			var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
+			var length = formatDecimal(activeRoute.routeDistance,2);
+			var compressedTrack = activeRoute.getCompressedTrack();
+			localStorage.setItem("gRTrack|"+routeName , length+"|"+uom+"|"+compressedTrack); // lenght|uom|encoded
+		}
 		
 		// Show warning every some days if not enrolled
-		if (getCookie("enrolled") != "yes") {
+		if ( !isEnrolled() ) {
 			consoleLog("saveRoute(): Checking for warning: ");
 			var lastWarningTime = getCookie("notEnrolledWarningTime");
 			if (lastWarningTime == null ) lastWarningTime = 0; // never set
@@ -205,12 +190,13 @@ function saveRouteTags(tags) {
  *  	 NO OTHER METHODS SHOULD REMOVE ITEMS FROM THE LOCAL STORAGE OTHERWISE WRONG STUFF COULD BE DELETED
  */
 function deleteRouteId(idx) {
-	if (window.confirm(translations["saveLoad.sureDeleteSavedRoute"] )) {
+	var key = localStoragesKeys[idx]; //localStorage.key(idx);
+	var routeName = key.substring(7);
 
-		var key = localStorage.key(idx);
-		var routeName = key.substring(7);
+	if (window.confirm(translations["saveLoad.sureDeleteSavedRoute"] +" \"" + routeName +"\"" )) {
 
-		if (getCookie("enrolled") === "yes") {
+
+		if ( isEnrolled() ) {
 			deleteRouteCloud(routeName);
 		}
 
@@ -219,7 +205,7 @@ function deleteRouteId(idx) {
 		
 		localStorage.removeItem("gRTrack|"+routeName); // remove associated Route Track (if any)
 		
-		refreshSavedRoutes(false); // do not resync with cloud since we may still be deleting...
+		refreshSavedRoutes(false); // do not resync now with cloud since we may still be deleting...
 	}
 }
 
@@ -241,15 +227,14 @@ function getTags() {
  * 
  */
 function showHideRouteTrackId(idx) {
-	var key = localStorage.key(idx);
+	var key = localStoragesKeys[idx]; // localStorage.key(idx);
 	var routeName = key.substring(7);
 	
 	if (routesTrackMap.has(routeName)) { // if route track is shown on screen, turn off
 		consoleLog("Removing Track for: " + routeName);
 		map.removeLayer(routesTrackMap.get(routeName));
 		routesTrackMap.delete(routeName);
-		$("#geye_"+idx).attr("src", "./icons/eye-red.svg");
-		consoleLog("**** RED");		
+		$("#geye_"+idx).attr("src", "./icons/eye-gray.svg");
 	} else {	
 		var rTrack  = localStorage.getItem("gRTrack|"+routeName);
 		if (rTrack != null) { // route track exists
@@ -281,8 +266,6 @@ function showHideRouteTrackId(idx) {
 			
 			map.fitBounds(trackPoly.getBounds());
 			$("#geye_"+idx).attr("src", "./icons/eye-green.svg");		
-			consoleLog("**** GREEN");		
-
 			
 			consoleLog("Removing Track for: " + routeName);
 			routesTrackMap.set(routeName,trackPoly);
@@ -299,7 +282,11 @@ function showHideRouteTrackId(idx) {
  * NOTE: Current active route is lost without any warning
  */
 function loadRouteId(idx) {
-	var key = localStorage.key(idx);
+	if (isPoiMode() ) { // can't open new stuff in POI editor mode
+		alert(translations["poi.cannotLoadNew"]);
+		return;
+	}
+	var key = localStoragesKeys[idx]; // localStorage.key(idx);
 	var url = localStorage.getItem(key);
 	if (url.substring(0,2) === "C_") { // it's saved in cloud as well
 	    url = url.substring(2);
@@ -314,51 +301,77 @@ function loadRouteId(idx) {
 function loadRoute(url) {
 	consoleLog("Loading route url:" + url);
 	var curMapLayer = document.getElementById("gOptions.mapLayer").value;
-	if (activeRoute != null) activeRoute.forceClean();
 	
 	var names = getParameterByName("names",url).split("|"); // array with viapoints names
 	var name = getParameterByName("name",url); // route name
 	var sps = trackDecompress(getParameterByName("viapoints",url),5);
 	var options = getParameterByName("options",url); 
-	setOptionsString(options);
 	
 	var newMapLayer = document.getElementById("gOptions.mapLayer").value;
 	if (newMapLayer !== curMapLayer) {
 		// consoleLog("Changing Map Layer");
 		onMapLayersChange();
 	}
+
+	if (options.charAt(1) != 'o') { // if not a POI list
+		if (activeRoute != null) activeRoute.forceClean(); // FIXME: shoudl prompt a confirm box
+		setOptionsString(options); // set options to drive calculation
 		
-	var i=0;
-	var firstPoint = "";
-	while(i < sps.length/2) {
-		var id = "vp_"+i;
-		vp = new ViaPoint(sps[i*2].toFixed(6),sps[i*2+1].toFixed(6),names[i+1], "vp_"+ (i)); // note there is an extra | in names so it starts from 1...
+		var i=0;
+		var firstPoint = "";
+		while(i < sps.length/2) {
 
-		if (i==0)  { firstPoint = vp.getLatLngStr() ;}
+			vp = new ViaPoint(sps[i*2].toFixed(6),sps[i*2+1].toFixed(6),names[i+1]); // note there is an extra | in names so it starts from 1...
 
-		if (i==0 && activeRoute != null) { // initialize a new active route
-			activeRoute = new Route(vp,routeDefaultName);  
-		} else {
-			addViaPoint(vp);
-			
-			if ( sps.length/2>1 && i == (sps.length/2-1) && firstPoint  == vp.getLatLngStr() )  { // more than one point && last point && matches first: it is  a loop!
-				consoleLog("loadRoute: is a LOOP");
-				activeRoute.closedLoop = true; 
-			} 
+			if (i==0)  { firstPoint = vp.getLatLngStr() ;}
+
+			if (i==0 && activeRoute != null) { // initialize a new active route
+				activeRoute = new Route(vp,routeDefaultName);  
+			} else {
+				addViaPoint(vp);
+				
+				if ( sps.length/2>1 && i == (sps.length/2-1) && firstPoint  == vp.getLatLngStr() )  { // more than one point && last point && matches first: it is  a loop!
+					consoleLog("loadRoute: is a LOOP");
+					activeRoute.closedLoop = true; 
+				} 
+			}
+			if ( !activeRoute.closedLoop )  { addMarkerToMap(vp);} // add unless this is last point of a closed loop
+			i++;
 		}
-		if ( !activeRoute.closedLoop )  { addMarkerToMap(vp);} // add unless this is last point of a closed loop
-		i++;
-	}
-	viaPointId = i;
 
-	activeRoute.setName(name); // redoundant
-	document.getElementById("sRouteName").value = activeRoute.name;
-	activeRoute.redrawAndFocus(); // look in cache also
+		activeRoute.setName(name); // redoundant
+		document.getElementById("sRouteName").value = activeRoute.name;
+		activeRoute.redrawAndFocus(); // look in cache also
+	} else { // it's a poi, build poiCluster and add to poiMap, don't setOptionsString		
+		var poiCluster = L.markerClusterGroup({
+			maxClusterRadius: 10, // default was 40
+			showCoverageOnHover: true,
+			iconCreateFunction: function (cluster) {
+				return L.icon({ iconUrl: "./icons/poiPlus.svg", iconSize: [20, 20] });
+			}
+		});
+
+		var i=0;
+		var firstPoint = "";
+		while(i < sps.length/2) {
+			poiCluster.addLayer(createPoiMarker(sps[i*2].toFixed(6), sps[i*2+1].toFixed(6), names[i+1], iconPoi));
+			i++;
+		}
+		
+		poiMap.set(name,poiCluster);
+		map.addLayer(poiCluster);
+		// focus		
+		map.fitBounds(poiCluster.getBounds());
+	
+	}
 	
 }
 
+
+
 /* FUNCTION: refreshSavedRoutes()
  * Create list of saved routes in #gSaved div, with links to load/delete, and refresh tags in #gTags select element.
+ * If enrolled, load routes from cloud
  * NOTE: see note in deleteRouteId() comment
  */
 function refreshSavedRoutes(cloudSync) {
@@ -368,7 +381,7 @@ function refreshSavedRoutes(cloudSync) {
 	
 	// FIXME: refreshSavedRoutesHtml() shoudl be removed from within refreshCloudRoutes()
 	// and this IF ELSE  reworked
-	if ( cloudSync && getCookie("enrolled") === "yes") {
+	if ( cloudSync && isEnrolled() ) {
 		// get routes from cloud
 		// save in local storage // this overwrites current routes
 		consoleLog("Enrolled!!!");
@@ -421,30 +434,52 @@ function refreshSavedRoutesHtml() {
 	}
 	var routeNamesAndHTML = []; //new array containing {name: "route_name", html: "<html code with link>"}, this is to then sort by route name...
 	for (i=0;i<localStorage.length;i++) {
-		if (localStorage.key(i).indexOf("gRoute") == 0 ) { // it's a route
+		if (localStorage.key(i).indexOf("gRoute") == 0 ) { // it's a route or a poi
 			var key = localStorage.key(i);
-			routeName = key.substring(7); // gRoute|routeName
+
+			// keep reference to key in an array, localStorage key index is user-agend defined (i.e. do not rely on it)
+			localStoragesKeys[i] = key;
+			
+			routeName = key.substring(7); // gRoute|routeName or gRoute|gPoi|routeName
 			//consoleLog("route name to check: " + key.replace("gRoute|","") );
 			// if (ALL Targs or Route name has the Tag) AND (sayt is empty or sayt matche teh route name) add
 			if ( (allTags || routeNamesInTag.indexOf(key.replace("gRoute|",""))>-1 )
 				&& (sayt == "" || routeName.toLowerCase().indexOf(sayt)>-1 ) ) {
 				var val= localStorage.getItem(key); // url
-				consoleLog( "route found: " + routeName);//key, localStorage.getItem(key)); 
+				consoleLog( "local item found: ("+i+") " + routeName);//key, localStorage.getItem(key)); 
 				
 					var cloudImg= "";
 				if (val.substring(0,2) === "C_") { 
 					//val = val.substring(2);
 					cloudImg= "<img src='./scripts/images/cloud-gray.svg' width='18' height='18'>";
 				}
-				// if it is displayed green, if is available red, otherwise gray
-				var eyeColor = (routesTrackMap.has(routeName)?"green":(!localStorage.getItem("gRTrack|"+routeName)?"gray":"red"));
-				var eyeImg =  "<img id='geye_"+i+"' src='./icons/eye-"+eyeColor+".svg' width='17' height='17'>";
-				
-
-				routeNamesAndHTML.push({name: routeName, html: "<a class='gactions' href='javascript:deleteRouteId(\""+i+"\")'>&#215;</a>&nbsp;"+
-						       "<a class='gactions' href='javascript:showHideRouteTrackId(\""+i+"\")'>"+eyeImg+"</a>&nbsp;" +
-					               "<a class='glinks' href='javascript:loadRouteId(\""+i+"\")'>"+routeName+"</a>&nbsp;"+
-							cloudImg+"<br/>"});
+								
+				if (routeName.indexOf("gPoi|") == 0) { // it's a POI
+					routeName = routeName.substring(5); // gPoi|routeName
+					var poiColor = (poiMap.has(routeName)?"green":"gray"); // green if shown on map
+					var poiImg = "<img id='gpoi_"+i+"' src='./icons/poi-"+poiColor +".svg' width='17' height='17'>";
+					/*routeNamesAndHTML.push({name: routeName, html: "<a class='gactions' href='javascript:deleteRouteId(\""+i+"\")'>&#215;</a>&nbsp;"+
+							       "<a class='gactions' href='javascript:showHidePoiId(\""+i+"\")'>"+poiImg+"</a>&nbsp;" +
+							       "<a class='glinks' href='javascript:editPoiId(\""+i+"\")'>"+routeName+"</a>&nbsp;"+
+								cloudImg+"<br/>"}); */
+								
+					routeNamesAndHTML.push({name: routeName, html: "<a class='gactions' href='javascript:deleteRouteId(\""+i+"\")'>&#215;</a>&nbsp;"+
+							       "<a class='glinks' href='javascript:editPoiId(\""+i+"\")'><img src='./icons/wrench-gray.svg' alt='Edit' width='17' height='17'></a>&nbsp;"+
+							       "<a class='glinks' href='javascript:showHidePoiId(\""+i+"\")'>"+poiImg+"&nbsp;"+routeName +"</a>&nbsp;" + 
+								cloudImg+"<br/>"});
+								
+								
+					
+				} else { // it's a Route
+					// if it is displayed green, if is available gray. If not available,red
+					var eyeColor = (routesTrackMap.has(routeName)?"green":(!localStorage.getItem("gRTrack|"+routeName)?"grayno":"gray"));
+					var eyeImg =  "<img id='geye_"+i+"' src='./icons/eye-"+eyeColor+".svg' width='17' height='17'>";
+					
+					routeNamesAndHTML.push({name: routeName, html: "<a class='gactions' href='javascript:deleteRouteId(\""+i+"\")'>&#215;</a>&nbsp;"+
+							       "<a class='gactions' href='javascript:showHideRouteTrackId(\""+i+"\")'>"+eyeImg+"</a>&nbsp;" +
+							       "<a class='glinks' href='javascript:loadRouteId(\""+i+"\")'>"+routeName+"</a>&nbsp;"+
+								cloudImg+"<br/>"});
+				}
 				
 			}
 		}

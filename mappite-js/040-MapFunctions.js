@@ -29,11 +29,15 @@ function initiateMap(ll, z) {
 				var label = e.geocode.name;//.split(",")[0]; // ll.lat+","+ll.lng;.split(",")[0];
 				var pos = label.lastIndexOf(','); // country
 				if (pos > 1) { label = label.substring(0,pos); } // remove country
-				var vp = new ViaPoint(ll.lat, ll.lng, label, "vp_"+viaPointId++);
-				// Trasform label in html 
 				
-				if (pos > 1) { label = e.geocode.name.substring(0,pos) + "<br><small>" + e.geocode.name.substring(pos+1) + "</small>"; }
-				addPotentialMarkerToMap(vp, label);
+				
+				// by cic var vp = new ViaPoint(ll.lat, ll.lng, label);
+				// Trasform label in html and add country
+				// if (pos > 1) { label = e.geocode.name.substring(0,pos) + "<br><small>" + e.geocode.name.substring(pos+1) + "</small>"; }
+				// by cic addPotentialMarkerToMap(vp, label);
+				
+				map.addLayer(createPoiMarker(ll.lat, ll.lng, label, iconPoiSearch)); // fixme, this can't be removed!
+				
 				map.fitBounds(e.geocode.bbox); // map.panTo(ll);//setView(ll);
 			}).addTo(map);
 	
@@ -126,7 +130,7 @@ function initiateMap(ll, z) {
 
 
 /* FUNCTION: onMapClick
- * Add a new point to the route where user clicked
+ * Add a new point to the route or a new POI 
  */
 function onMapClick(e) {
 	console.log("Click onMapClick: " + e.latlng);
@@ -140,10 +144,10 @@ function onMapClick(e) {
  */
 function addPoint(ll) {
 	var id = "vp_"+viaPointId++;
-	if ( document.getElementById("gOptions.paved").value === "y") {
-		addRoutePointOnStreet(ll, id); // add nearest street point
+	if ( document.getElementById("gOptions.clickOnRoad").value === "y") {
+		addRoutePointOnStreet(ll); // add nearest street point
 	} else {
-		addRoutePoint(ll, id); // add nearest object (street, track, path etc) point
+		addRoutePoint(ll); // add nearest object (street, track, path etc) point
 	}
 	if (!map.hasLayer(markersCluster)) { // re-add markers cluster if it was removed (showPoints)
 		map.addLayer(markersCluster);
@@ -156,7 +160,7 @@ function addPoint(ll) {
  * do a reverse geocode to get the nearest LatLng point on street, with name, and adds to the route that nearest point
  * ref. https://nominatim.org/release-docs/develop/api/Reverse/
  */
-function addRoutePointOnStreet(ll, id) {
+function addRoutePointOnStreet(ll) {
 	consoleLog( "addRoutePointOnStreet Nominatim" );
 	processingStart();
 	var url="https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&lat="+ll.lat+"&lon="+ll.lng;
@@ -171,17 +175,30 @@ function addRoutePointOnStreet(ll, id) {
 		   name = (json.address.road?json.address.road:"- ") + ", " + (json.address.village?json.address.village:(json.address.town?json.address.town:json.address.city));
 		}
 		consoleLog("get Nominatim result: " + name);
-		var vpjs = new ViaPoint(json.lat,json.lon,name, id); 
+		var vpjs = new ViaPoint(json.lat,json.lon,name); 
 		addViaPoint(vpjs);
 		activeRoute.redraw();
 		addMarkerToMap(vpjs);
+		
+		if (getDistance([ll.lat,ll.lng], [json.lat,json.lon],0,0) > 1) { // if > 1 km
+			// consoleLog("**** DISTANCE ***");
+			alertOnce("options.onroadWarning");
+		}
 		consoleLog("get Nominatim result from vpjs: " + vpjs.name);
 	  },
 	  error: function(jqXHR, textStatus, errorThrown) {
 		processingError();  
-		consoleLog( "Nominatim Request Failure: " + textStatus + " - " + errorThrown);
-		consoleLog( "Revert to OSRM" );
-		addRoutePointOnStreetOSRM(ll, id);
+		consoleLog( "*** Nominatim Request Failure: " + textStatus + " - " + errorThrown);
+		addRoutePointOnStreetOSRM(ll);
+		/*
+		if (isInternalRoutingPoint(ll.lat, ll.lng)) {
+			consoleLog( "Revert to OSRM" );
+			addRoutePointOnStreetOSRM(ll, id);
+		} else {
+			consoleLog( "Revert to mapquest" );
+			addRoutePointMapQuest(ll, id);
+		}
+		*/
 	  }
 	});
 }
@@ -192,17 +209,17 @@ function addRoutePointOnStreet(ll, id) {
  * ref. https://github.com/Project-OSRM/osrm-backend/wiki/Server-api
  */
 
-function addRoutePointOnStreetOSRM(ll, id) {
+function addRoutePointOnStreetOSRM(ll) {
 	consoleLog( "addRoutePointOnStreet OSRM" );
 	processingStart();
-	var url="https://router.project-osrm.org/nearest/v1/driving/"+ll.lng+","+ll.lat+".json?number=1"; // was http
+	var url="https://router.project-osrm.org/nearest/v1/driving/"+ll.lng+","+ll.lat+"?number=1"; // was http // removed.json as per orsm backedn #6164
 	$.ajax({
 	  dataType: "json",
 	  url: url,
 	  timeout: 1500,
 	  success: function( json ) {
 		processingEnd();
-		var vpjs = new ViaPoint(json.waypoints[0].location[1], json.waypoints[0].location[0], json.waypoints[0].name, id); 
+		var vpjs = new ViaPoint(json.waypoints[0].location[1], json.waypoints[0].location[0], json.waypoints[0].name); 
 		addViaPoint(vpjs);
 		activeRoute.redraw();
 		addMarkerToMap(vpjs);
@@ -210,9 +227,9 @@ function addRoutePointOnStreetOSRM(ll, id) {
 	  },
 	  error: function(jqXHR, textStatus, errorThrown) {
 		processingError();  
-		consoleLog( "OSRM Request Failure: " + textStatus + " - " + errorThrown);
+		consoleLog( "*** OSRM Request Failure: " + textStatus + " - " + errorThrown);
 		consoleLog( "Revert to mapquest" );
-		addRoutePoint(ll, id);
+		addRoutePointMapQuest(ll);
 	  }
 	});
 }
@@ -222,8 +239,8 @@ function addRoutePointOnStreetOSRM(ll, id) {
  * do a reverse geocode to get the street/area name on LatLng point, adds the point on route exactly at LatLng
  * Note: fallback function called by addRoutePointOnStreet in case of errors
  */
-function addRoutePoint(ll, id) {
-	consoleLog( "addRoutePoint" );
+function addRoutePointMapQuest(ll) {
+	consoleLog( "addRoutePoint MapQuest" );
 	processingStart();
 	var url="https://open.mapquestapi.com/geocoding/v1/reverse?key="+mapquestKey+"&json={location:{latLng:{lat:"+ll.lat+",lng:"+ll.lng+"}}}"; // was http
 	$.getJSON(url) .done(function( json ) {
@@ -231,8 +248,8 @@ function addRoutePoint(ll, id) {
 			var location = json.results[0].locations[0]
 			var lat = ll.lat; 
 			var lng= ll.lng; 
-			var label = "~ "+location.street + ", " + location.adminArea5;
-			var vpjs = new ViaPoint(lat, lng, label, id);
+			var label = location.street + ", " + location.adminArea5;
+			var vpjs = new ViaPoint(lat, lng, label);
 			addViaPoint(vpjs);
 			activeRoute.redraw();
 			addMarkerToMap(vpjs);
@@ -242,11 +259,15 @@ function addRoutePoint(ll, id) {
 			processingError();
 			consoleLog( "Mapquest Reverse Geo Failure: " + textStatus + " - " + error);
 			// add the point raw...
-			var vpjs = new ViaPoint(ll.lat, ll.lng, "n/a", id);
+			var vpjs = new ViaPoint(ll.lat, ll.lng, "n/a");
 			addViaPoint(vpjs); 
 			activeRoute.redraw();
 			addMarkerToMap(vpjs);
 		});  		
+}
+
+function addRoutePoint(ll) {
+	addRoutePointMapQuest(ll);
 }
 
 

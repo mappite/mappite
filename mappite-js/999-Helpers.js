@@ -40,6 +40,15 @@ function setCookie(cname, cvalue, expireDays) {
     document.cookie = cname + "=" + cvalue + "; " + expires;
 }
 
+/* display alert (translated) only if not displayed before */
+function alertOnce(code) {
+    var c = getCookie(code);
+    if (c == null) {  
+	alert(translations[code] );
+	setCookie(code, 1, 360);
+    }
+}
+
 /* FUNCTION: formatTime
  * Input: time in seconds
  * Returns string with format"xd hh:mi:ss" where xd is optional and x is number of days
@@ -148,6 +157,14 @@ function getParameterByName(name, src) {
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
         results = regex.exec(src);
     return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function isPoiMode() {
+	return (currentMode === 'gMode.poiEditor');
+}
+
+function isEnrolled() {
+	return (getCookie("enrolled") === "yes");
 }
 
 

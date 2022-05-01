@@ -11,6 +11,15 @@ function onImportChange(e) {
 		return; // limit to 100MB
 	}
 	
+	loadFile(file);
+}
+
+/* Wrapper to load anyfile
+ * used by onImportChange(e) and dropHandler(e)
+ */
+
+function loadFile(file) {
+	
 	var reader = new FileReader();
 	reader.onload = function(e) {
 		
@@ -52,11 +61,14 @@ function onImportChange(e) {
 			// tracks
 			var trk = xmlDoc.getElementsByTagName("trk");
 			for (var i = 0; i < trk.length; i++) {
-				var trkname = trk[i].getElementsByTagName("name")[0].textContent;
-				consoleLog("*** trkname: " +trkname)
+				var trkname = "No Name";
+				if (typeof trk[i].getElementsByTagName("name")[0]  !== 'undefined' ) { 
+					trkname = trk[i].getElementsByTagName("name")[0].textContent;
+				}
+				//consoleLog("*** trkname: " +trkname)
 				var trksegs = trk[i].getElementsByTagName("trkseg");
 				for (var j = 0; j < trksegs.length; j++) {
-					consoleLog("*** segment " + j)
+					//consoleLog("*** segment " + j)
 					isLoadSuccess = true;
 					points = trksegs[j].getElementsByTagName("trkpt");
 					if (points.length>0) {loadGpxTrack(points, trkname);}
@@ -80,10 +92,9 @@ function onImportChange(e) {
 			for (i = 0; i < fileLines.length; i++) {
 				lineItems = fileLines[i].split("|"); // [0] = lon, [1] = lat, [2] = name, [3] = type
 				// recreate route
-				var id = "vp_"+i;
 				vp = new ViaPoint(Number(lineItems[1]) /100000,
 						  Number(lineItems[0]) /100000,
-						  lineItems[2], id); 
+						  lineItems[2]); 
 				addViaPoint(vp);
 				addMarkerToMap(vp);
 				if (lineItems[3] == 2) break; // last point 
@@ -153,12 +164,7 @@ function loadGpxRoute(points, fileName) {
 			pointName = "Point " + (i+1);	
 		}
 		
-		// var id = "vp_"+i;
-		var id = "vp_"+viaPointId++; // viaPointId stores current route next point id!
-		vp = new ViaPoint(points[i].getAttribute("lat"),
-				  points[i].getAttribute("lon"),
-				  pointName, 
-				  id); 
+		vp = new ViaPoint(points[i].getAttribute("lat"),points[i].getAttribute("lon"),pointName); 
 		addViaPoint(vp);
 		addMarkerToMap(vp);		
 		
@@ -181,50 +187,78 @@ function loadGpxRoute(points, fileName) {
 }
 
 function loadGpxWaypoints(points, fileName) {
-	var iconDefault="./icons/wayPoints.svg";
-	var iconPlusDefault="./icons/wayPointsPlus.svg";
-	var wayPointsCG = L.markerClusterGroup({
-		maxClusterRadius: 10, // default was 40
-		showCoverageOnHover: true,
-		iconCreateFunction: function (cluster) {
-			return L.icon({ iconUrl: iconPlusDefault, iconSize: [20, 20] });
-		}
-	});
-	for (i = 0; i < points.length; i++) {
-		var elem = new Object();
-		if ( typeof points[i].getElementsByTagName("name")[0] !== 'undefined') {
-			elem.name = points[i].getElementsByTagName("name")[0].textContent;
-		} else {
-			elem.name = "Point " + (i+1);	
-		}
-		elem.lat = points[i].getAttribute("lat");
-		elem.lon = points[i].getAttribute("lon");
-		
-		var icon = iconDefault;
-		// detect symbol
-		if (  typeof  points[i].getElementsByTagName("sym")[0] !== 'undefined') {
-		   // <sym>Triangle, Blue</sym>
-		   //var sym = points[i].getElementsByTagName("sym")[0].textContent.split(",");
-		   //if (sym[0] == "MountainPasses") { icon="./icons/mountainPasses.svg"; }
-		   var sym = points[i].getElementsByTagName("sym")[0].textContent;
-		   if (sym == "Triangle, Red") { icon="./icons/mountainPasses.svg"; }
-		} 
-		if (  typeof  points[i].getElementsByTagName("cmt")[0] !== 'undefined') {
-		   // natural=saddle
-		   var cmt  = points[i].getElementsByTagName("cmt")[0].textContent;
-		   if (cmt.indexOf("natural=saddle") !== -1) { icon="./icons/mountainPasses.svg"; }
-		} 
-		
-		cm = L.marker(L.latLng(elem.lat,elem.lon), {icon: L.icon({ iconUrl: icon, iconSize: [20, 20] })});
-		cm.bindPopup(elem.name+"<br/><div class='gsmall'>"+rightClickText+ " " + translations["popup.add"] +"</div>", {offset: L.point(0,-13)}); // also doubleclick
+	if (!isPoiMode()) {
+		var iconDefault="./icons/wayPoints.svg";
+		var iconPlusDefault="./icons/wayPointsPlus.svg";
+		var wayPointsCG = L.markerClusterGroup({
+			maxClusterRadius: 10, // default was 40
+			showCoverageOnHover: true,
+			iconCreateFunction: function (cluster) {
+				return L.icon({ iconUrl: iconPlusDefault, iconSize: [20, 20] });
+			}
+		});
+		for (i = 0; i < points.length; i++) {
+			var elem = new Object();
+			if ( typeof points[i].getElementsByTagName("name")[0] !== 'undefined') {
+				elem.name = points[i].getElementsByTagName("name")[0].textContent;
+			} else {
+				elem.name = "Point " + (i+1);	
+			}
+			elem.lat = points[i].getAttribute("lat");
+			elem.lon = points[i].getAttribute("lon");
+			
+			var icon = iconDefault;
+			// detect symbol
+			if (  typeof  points[i].getElementsByTagName("sym")[0] !== 'undefined') {
+			   // <sym>Triangle, Blue</sym>
+			   //var sym = points[i].getElementsByTagName("sym")[0].textContent.split(",");
+			   //if (sym[0] == "MountainPasses") { icon="./icons/mountainPasses.svg"; }
+			   var sym = points[i].getElementsByTagName("sym")[0].textContent;
+			   if (sym == "Triangle, Red") { icon="./icons/mountainPasses.svg"; }
+			} 
+			if (  typeof  points[i].getElementsByTagName("cmt")[0] !== 'undefined') {
+			   // natural=saddle
+			   var cmt  = points[i].getElementsByTagName("cmt")[0].textContent;
+			   if (cmt.indexOf("natural=saddle") !== -1) { icon="./icons/mountainPasses.svg"; }
+			} 
+			
+			cm = L.marker(L.latLng(elem.lat,elem.lon), {icon: L.icon({ iconUrl: icon, iconSize: [20, 20] })});
+			cm.bindPopup(elem.name+"<br/><div class='gsmall'>"+rightClickText+ " " + translations["popup.add"] +"</div>", {offset: L.point(0,-13)}); // also doubleclick
 
-		cm.on('contextmenu dblclick', L.bind(addJsonNode, this, elem) ); // dblclick does not work since 1st click is consumed by popup...
-		wayPointsCG.addLayer(cm); 
-	
+			cm.on('contextmenu dblclick', L.bind(addJsonNode, this, elem) ); // dblclick does not work since 1st click is consumed by popup...
+			wayPointsCG.addLayer(cm); 
+		
+		}
+		map.addLayer(wayPointsCG);
+	} else { // In poi Editor mode, load as Editable POI
+		
+		if (points.length> MAX_POI_POINTS ) {
+			alert(translations["poi.maxPointsReachedOnLoad"] + MAX_POI_POINTS);
+		}
+		for (i = 0; (i < points.length && i < MAX_POI_POINTS ); i++) {
+			var elem = new Object();
+			if ( typeof points[i].getElementsByTagName("name")[0] !== 'undefined') {
+				elem.name = points[i].getElementsByTagName("name")[0].textContent;
+			} else {
+				elem.name = "Point " + (i+1);	
+			}
+			elem.lat = points[i].getAttribute("lat");
+			elem.lon = points[i].getAttribute("lon");
+			
+			var vp = new ViaPoint(elem.lat, elem.lon, elem.name);
+
+			if (i==0) {
+				activeRoute = new Route(vp, elem.name);
+			} else { 
+				addViaPoint(vp);
+			}
+			addMarkerToMap(vp);
+		}
+		
+		document.getElementById("sRouteName").value = elem.name;
+		activeRoute.redrawAndFocus();
+		
 	}
-	map.addLayer(wayPointsCG);
-	//mapIcons[id].push(wayPointsCG); // FIXME: shoudl implement this to allow waypoint removal...
-
 	return true;	
 }
 
@@ -239,33 +273,31 @@ function onExportClick(e) {
 		alert(translations["export.noPoints"]);
 		return;
 	}
+
 	var fileStream;
-	var dataType = "application/gpx+xml"; // default 
-	var ext = "gpx"; // default file extension
-	var type = "rte";
+	var dataType = "application/gpx+xml"; // default dataType
+	var ext  =  "gpx"; // default file extension
+	var type = "";     // gpx r route [s shapingpoint], t track, w waypoints
 	
-	var sel = $( "#exportSelect" ).val();
-	if (sel === "wpGpx") {  // gpx waypoints
-		fileStream = exportGpx("waypoints");
-		type ="wpt";
-	} else if ( activeRoute.viaPoints.length > 1)  { // check if more than one waypoint is defined 
-		if (sel === "routeGpx") { // gpx route
-			fileStream = exportGpx("route","1.1");
-		} else if (sel === "routeShpGpx") { // gpx route
-			fileStream = exportGpx("routeShp","1.1");
-		} else if (sel === "routeGpxOld") { // gpx route
-			fileStream = exportGpx("route");
-		} else if (sel === "routeItn") { // // itn route
+	var sel = $('input[name="gExportMenu.format"]:checked').val();
+	
+	if (activeRoute.viaPoints.length == 1 && document.getElementById("gExportMenu.wp").checked) {
+		fileStream = exportGpx();
+		type = "w"; // waypoint only
+	} else if ( activeRoute.viaPoints.length > 1)  {
+
+		if (sel === "gpx") {
+			fileStream = exportGpx();
+			type = "-" + 
+			       (document.getElementById("gExportMenu.route").checked?"r":"")+
+			       (document.getElementById("gExportMenu.routeShp").checked?"s":"")+
+			       (document.getElementById("gExportMenu.track").checked?"t":"")+
+			       (document.getElementById("gExportMenu.wp").checked?"w":"");
+		} else if (sel === "itn") { // itn route
 			fileStream = exportItn();
 			dataType ="application/itn";
 			ext = "itn";
-		} else if (sel === "trackGpx") { // gpx track
-			fileStream = exportGpx("track");
-			type ="trk";
-		} else if (sel === "routeWpGpx") { // gpx route with waypoints
-			fileStream = exportGpx("routeWp");
-			type ="rtewp";
-		} else if (sel === "spreadsheetCsv") { // csv route
+		} else if (sel === "csv") { // csv route
 			fileStream = exportCsv();
 			dataType ="text/csv";
 			ext = "csv";
@@ -281,41 +313,41 @@ function onExportClick(e) {
 	headerCls.show();
 	
 	try {
-		consoleLog("trying to export...");
 		var a = window.document.createElement('a');
 		// safari does not like Blobs
 		//a.href = window.URL.createObjectURL(new Blob([gpxXml], {type: 'application/gpx+xml'}));
 		a.href = 'data:'+dataType+';charset=utf-8,' + encodeURIComponent(fileStream);
-		a.download = activeRoute.name+'-'+type+'.'+ext;
+		a.download = activeRoute.name+type+'.'+ext;
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
-		consoleLog("trying to ... done");
+		consoleLog("File Generated ok");
 	} catch(e) {
-		consoleLog("trying to ... error");
+		consoleLog("File Generated error");
 		alert("Error: " + e);
 	}
 }
 
-function exportGpx(type, ver) { // FIXME: this code needs refactory with a dedicated UI dialog
+function exportGpx() { 
 	var gpxXml = "";
 	var time = new Date().toISOString(); 	
 	consoleLog(time);
 	var link = window.location.protocol+"/"+window.location.hostname+activeRoute.getUrl();
-	link ="http://www.mappite.org";
+	link ="http://www.mappite.org"; // FIXME: remove this
+
 	// Header and metadata
-	if (ver == "1.1") {
+	if (!document.getElementById("gExportMenu.oldGpx").checked ) { // GPX Ver 1.1
 		gpxXml += '<?xml version="1.0" encoding="UTF-8"?>';
-		if ( type === "routeShp") { gpxXml += '\n<gpx version="1.1" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v2" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" xmlns:trp="http://www.garmin.com/xmlschemas/TripExtensions/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v2 http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd http://www.garmin.com/xmlschemas/TripExtensions/v1 http://www.garmin.com/xmlschemas/TripExtensionsv1.xsd">'; }
+		// add garmin extension for shaping points
+		if ( document.getElementById("gExportMenu.routeShp").checked) { gpxXml += '\n<gpx version="1.1" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v2" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" xmlns:trp="http://www.garmin.com/xmlschemas/TripExtensions/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v2 http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd http://www.garmin.com/xmlschemas/TripExtensions/v1 http://www.garmin.com/xmlschemas/TripExtensionsv1.xsd">'; }
 		else {gpxXml += '\n<gpx version="1.1" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">';}
 		gpxXml += '\n<metadata>';
 		gpxXml += '\n<name>'+activeRoute.name+'</name>';
 		gpxXml += '\n<author><name>mappite.org</name><link href="https://www.mappite.org"><text>mappite routes made easy thanks to openstreetmap and others</text></link></author>';
-		// gpxXml += '\n<copyright author="OpenStreetMap contributors"/>';
 		gpxXml += '\n<link href="'+link+'"><text>'+activeRoute.name+'</text></link>';
 		gpxXml += '\n<time>'+time+'</time>';
 		gpxXml += '\n</metadata>';
-	} else { // assume 1.0 // FIXME: this will be the default for trxk as well
+	} else { // GPX Ver 1.0 - FIXME: I guess shapingpoint will fail miserably ...
 		gpxXml += '<?xml version="1.0" encoding="UTF-8"?>';
 		gpxXml += '\n<gpx version="1.0" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd">';
 		gpxXml += '\n<name>'+activeRoute.name+'</name>';
@@ -323,16 +355,17 @@ function exportGpx(type, ver) { // FIXME: this code needs refactory with a dedic
 		gpxXml += '\n<url>https://mappite.org</url>';
 		gpxXml += '\n<time>'+time+'</time>';
 	}
-
-	if (type === "waypoints" || type === "routeWp") {
-		// WayPoints
+	
+	// WayPoints
+	if (document.getElementById("gExportMenu.wp").checked) {    
 		var vps =  activeRoute.viaPoints;
 		for (i = 0; i < vps.length; i++) {
 			gpxXml += '\n<wpt lat="'+vps[i].lat+'" lon="'+vps[i].lng+'"><name>'+vps[i].name+'</name></wpt>';
 		}
 	}	
-	if (type === "route" || type === "routeWp") {
-		// Route
+	
+	// Route (no Shaping Points)
+	if (document.getElementById("gExportMenu.route").checked && !document.getElementById("gExportMenu.routeShp").checked) { 
 		var vps =  activeRoute.viaPoints;
 		gpxXml += '\n<rte><name>'+activeRoute.name+'</name>';
 		for (i = 0; i < vps.length; i++) {
@@ -340,18 +373,9 @@ function exportGpx(type, ver) { // FIXME: this code needs refactory with a dedic
 		}
 		gpxXml += '\n</rte>';
 	}
-	if (type === "track") {
-		// Track
-		// scroll 	activeRoute.routePoly.getLatLngs() tbd
-		var lls=  activeRoute.routePoly.getLatLngs();
-		gpxXml += '\n<trk><name>'+activeRoute.name+'</name><trkseg>';
-		for (i = 0; i < lls.length; i++) {
-			gpxXml += '\n<trkpt lat="'+lls[i].lat.toFixed(6)+'" lon="'+lls[i].lng.toFixed(6)+'"></trkpt>';
-		}
-		gpxXml += '\n</trkseg></trk>';
-	}
 	
-	if (type === "routeShp") { // Experimental: Garmin extension, Route with shapepoints
+	// Route with Shaping Points
+	if (document.getElementById("gExportMenu.routeShp").checked) { 
 		var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
 		var shpDistance = window.prompt(translations["export.gpxShapingPoint"]+" ("+uom+"): ","10");
 		
@@ -390,6 +414,17 @@ function exportGpx(type, ver) { // FIXME: this code needs refactory with a dedic
 		}
 		gpxXml += '\n</rte>';
 	}
+	
+	// Track
+	if (document.getElementById("gExportMenu.track").checked) { 
+		var lls=  activeRoute.routePoly.getLatLngs();
+		gpxXml += '\n<trk><name>'+activeRoute.name+'</name><trkseg>';
+		for (i = 0; i < lls.length; i++) {
+			gpxXml += '\n<trkpt lat="'+lls[i].lat.toFixed(6)+'" lon="'+lls[i].lng.toFixed(6)+'"></trkpt>';
+		}
+		gpxXml += '\n</trkseg></trk>';
+	}
+
 
 	gpxXml += '\n</gpx>';
 	return gpxXml;

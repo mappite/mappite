@@ -7,16 +7,22 @@
 <b>Check on <a href='https://www.youtube.com/channel/UCKJxebv2y3DJsLm2yudi9Wg' target='_blank'>youtube channel <img src='./icons/youtube.png' target="_blank"></a> for a video features overview.</b>
 </p>
 <p>Please send suggestions via
-<a href="https://groups.google.com/forum/#!forum/mappite" target="_blank">mappite</a> or <a href="http://advrider.com/index.php?threads/mappite-org-create-routes-easily-feedback-wanted.1055040/">advrider</a> forums (english), <a href="http://www.quellidellelica.com/vbforums/showthread.php?t=433039" target="_blank">qde fourm</a> (italian) or <a href="mailto:info@mappite.org">info@mappite.org</a>. 
+ <a href="http://advrider.com/index.php?threads/mappite-org-create-routes-easily-feedback-wanted.1055040/">advrider</a> forums (english), <a href="http://www.quellidellelica.com/vbforums/showthread.php?t=433039" target="_blank">qde fourm</a> (italian) or <a href="mailto:info@mappite.org">info@mappite.org</a>. 
 </p><p>  Contribute to translations for your language, see <a href="https://groups.google.com/forum/#!topic/mappite/xQ3kNgsL4Y8" target="_blank">here</a>!</p>
 
 <h3>Route Creation - How to...</h3>
 
+<div class="howto"><a class="glinks" style="color: #DC614F;" onclick='javascript:$(this).next().toggle( { direction: "down" });'>save routes in cloud and have them available from any device (PC, Smartphone, Tablet etc)?</a>
+<div class="howtoItem" style="display: none">
+Features below are provided for free but we have to sustain costs for the servers and services used by mappite, time and dedication is a pleasure: if you like mappite please consider to support it, in turn we'll provide you credentials to enroll and thus the ability to save routes in cloud. If you're not entrolled, routes are saved only in your browser local storage area (i.e. your PC/Phone).
+<div class="clsEnroll" onClick='javascript:$( "#gHeaderContent" ).load( enrollFile);'>Enroll to support mappite and access your routes from any device you own!</div>
+</div></div>
+
 <div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>create a route?</a>
-<div class="howtoItem" style="display: none">Click, or drag the bottom-right marker on touchscreens, to add a via point. 
-Right Click, or drag to top banner, to remove it. 
+<div class="howtoItem" style="display: none">To add a via point just click on map or drag the bottom-right gray marker on touchscreens. 
+Right Click, or drag the point marker to top reddish banner, to remove it. 
 That's all!<br><br>
-The default behavior when clicking on the map is to find the closest road, to change that see <a onclick='javascript:$("#unpaved").toggle( { direction: "down" });'> below</a>.<br>
+The default behavior when clicking on the map is to find the closest (paved) road, to change that see <a onclick='javascript:$("#unpaved").toggle( { direction: "down" });'> below</a>.<br>
 If you want to locate an address click on lens icon on top-right, type address/city/POI name and press enter. 
 </div></div>
 
@@ -57,6 +63,14 @@ To remove all icons form the map Right-Click/Long-Tap on top-right bar icon.
 From bottom-left panel, <img src="https://www.mappite.org/scripts/images/wrench.svg" width="20px" height="20px"> , select <b>Click Anywhere</b>. This will enable to select points outside of paved roads. The default <b>Snap On Road</b> tries to snap to the closest paved road. <br>Unpaved roads are usually slower/longer than paved so you may need to add extra points to force the route to pass on them. <br>When you export a route to GPX format for a GPS Navigator, make sure your navigator maps contains unpaved roads as well. For best result use OSM maps.
 </div></div>
 
+<div class="howto"><a class="glinks" style="color: #DC614F;" onclick='javascript:$(this).next().toggle( { direction: "down" });'>edit Points Of Interests?</a>
+<div id="poi" class="howtoItem" style="display: none" >
+If you are a registered user you can create and save POIs. From bottom-left panel, <img src="https://www.mappite.org/scripts/images/wrench.svg" width="20px" height="20px"> and click on the POI button <img src="https://www.mappite.org/icons/poi-black.svg" width="20px" height="20px"> to enter in <b>POI Editor</b> mode, panel background color will change.
+<br><img src="./lang/shots/poi-editorMode.png">
+<br> You can add points on map (red markers) and save as a POI list exactly as you do for routes. In POI Editor mode, you can import GPX routes or waypoints to display them as editable POIs and save in mappite cloud. Also, you can export POI as GPX files.<br>
+From the sharing panel, you can create a short link (see next section) to share with friends (note: just viewing POIs does not require registration). Saved POI Lists will appear in the Save/Load panel  <img src="https://www.mappite.org/scripts/images/data-transfer-download.svg" width="20px" height="20px"> - click on a POI List to hover on map  or click on the little wrench icon to edit a saved list:
+<br><img src="./lang/shots/poi-saved.png">
+</div></div>
 
 <h3>Sharing - How to...</h3>
 
@@ -85,18 +99,14 @@ From bottom-left panel, <img src="https://www.mappite.org/scripts/images/wrench.
 
 <div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>save a route?</a>
 <div class="howtoItem" style="display: none">
-From bottom-left panel, <img src="https://www.mappite.org/scripts/images/data-transfer-download.svg" width="20px" height="20px"> type a name and click the save button.<br> Routes are saved in your browser local storage, do not delete your browser local storage <b>unless you register to mappite</b>
+From bottom-left panel, <img src="https://www.mappite.org/scripts/images/data-transfer-download.svg" width="20px" height="20px"> type a name and click the save button.<br> Routes are saved in your browser local storage, do not delete it, and consider to <b>register to mappite</b> to support the project and save routes on cloud.
 </div></div>
 
 <!--<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>use tags to save&filter available routes?</a>
 <div class="howtoItem" style="display: none">Try it out.
 </div></div>-->
 
-<div class="howto"><a class="glinks" style="color: #DC614F;" onclick='javascript:$(this).next().toggle( { direction: "down" });'>save routes in cloud and have them available from any device (PC, Smartphone, Tablet etc)?</a>
-<div class="howtoItem" style="display: none">
-All features above are provided for free but we have to sustain costs for the servers and services used by mappite, time and dedication is a pleasure: if you like mappite please consider to support it, in turn we'll provide you credentials to enroll and thus the ability to save routes in cloud.
-<div class="clsEnroll" onClick='javascript:$( "#gHeaderContent" ).load( enrollFile);'>Enroll to support mappite and access your routes from any device you own!</div>
-</div></div>
+
 
 <!-- <h3>FAQ</h3>
 

@@ -1,0 +1,45 @@
+﻿Informativa cookie - italian
+
+Questa informativa sull’utilizzo dei cookie è resa all’utente in attuazione del provvedimento del Garante per la protezione dei dati personali dell’8 maggio 2014 “Individuazione delle modalità semplificate per l’informativa e l’acquisizione del consenso per l’uso dei cookie” e nel rispetto dell’art. 13 del Codice privacy (D.Lgs. n. 196/2003).
+I cookie sono brevi frammenti di testo (lettere e/o numeri) che permettono al server web di memorizzare sul client (il browser) informazioni da riutilizzare nel corso della medesima visita al sito (cookie di sessione) o in seguito, anche a distanza di giorni (cookie persistenti). I cookie vengono memorizzati, in base alle preferenze dell’utente, dal singolo browser sullo specifico dispositivo utilizzato (computer, tablet, smartphone).
+Nel corso della navigazione l’utente potrebbe ricevere sul suo terminale anche cookie di siti diversi (c.d. cookies di “terze parti”), impostati direttamente da gestori di detti siti web e utilizzati per le finalità e secondo le modalità da questi definiti.
+
+Cookie sito web mappite.org/com
+
+Il presente sito web utilizza cookie tecnici per garantire il corretto funzionamento  e migliorare l’esperienza di uso delle applicazioni online. Per l’installazione di tali cookie non è richiesto il preventivo consenso degli utenti.
+
+Cookie di terze parti
+
+Visitando un sito web si possono ricevere cookie sia dal sito visitato (“proprietari”), sia da siti gestiti da altre organizzazioni (“terze parti”). Un esempio è rappresentato dalla presenza dei “social plugin” per Facebook e Twitter. Si tratta di parti della pagina visitata generate direttamente dai suddetti siti ed integrati nella pagina del sito ospitante. L’utilizzo più comune dei social plugin è finalizzato alla condivisione dei contenuti sui social network.
+La presenza di questi plugin comporta la trasmissione di cookie da e verso tutti i siti gestiti da terze parti. Per la gestione delle informazioni raccolte da “terze parti” occorre fare riferimento alle rispettive informative che la disciplinano, reperibili ai seguenti link:
+
+    Facebook informativa: https://www.facebook.com/help/cookies/
+    Twitter informativa: https://support.twitter.com/articles/20170514
+    YOUTUBE informativa : https://developers.google.com/youtube/terms
+
+Il sito include anche componenti trasmesse da Google Analytics, un servizio di analisi del traffico web fornito da Google, Inc. (“Google”). Tali cookie sono usati al solo fine di monitorare e migliorare le prestazioni del sito.
+Attraverso i cookie lo strumento Google Analytics raccoglie le informazioni in modo anonimo e registra le tendenze dei siti web senza identificare i singoli visitatori. I browser non condividono i cookie proprietari dello strumento Google Analytics tra vari domini. Google Analytics non segnala informazioni relative agli effettivi indirizzi IP dei visitatori. In ragione dell’utilizzo di un metodo noto come masking IP, Google Analytics comunica informazioni in modo che venga utilizzata solo una parte dell’indirizzo IP per la geolocalizzazione, anziché l’indirizzo intero.
+È possibile scaricare il componente aggiuntivo del browser per la disattivazione di Google Analytics. Il componente aggiuntivo comunica al codice JavaScript di Google Analytics (ga.js) di indicare che le informazioni sulla visita al sito web non devono essere inviate a Google Analytics. Il componente aggiuntivo del browser per la disattivazione di Google Analytics non impedisce che le informazioni vengano inviate al sito web stesso. L’utente può disabilitare in modo selettivo l’azione di Google Analytics installando sul proprio browser la componente di opt-out fornito da Google.
+
+Per ulteriori informazioni, si rinvia ai link di seguito indicati:
+
+    https://www.google.it/policies/privacy/partners/
+
+I Dati generati da Google Analytics sono conservati da Google così come indicato nella Informativa reperibile al seguente link:
+
+    https://developers.google.com/analytics/devguides/collection/analyticsjs/cookie-usage
+
+Per consultare l’informativa privacy della società Google Inc., titolare autonomo del trattamento dei dati relativi al servizio Google Analytics, si rinvia al sito Internet
+
+    http://www.google.com/intl/en/analytics/privacyoverview.html
+
+
+Come disabilitare i Cookies
+È possibile negare il consenso all’utilizzo dei cookie selezionando l’impostazione appropriata sul proprio browser: la navigazione non autenticata sul portale sarà comunque disponibile in tutte le sue funzionalità. Di seguito forniamo i link che spiegano come disabilitare i cookie per i browser più diffusi (per altri browser eventualmente utilizzati suggeriamo di cercare questa opzione nell’help del software normalmente disponibile attraverso il tasto F1):
+
+    Internet Explorer: http://windows.microsoft.com/it-IT/windows7/Block-enable-or-allow-cookies
+    Google Chrome: https://support.google.com/chrome/bin/answer.py?hl=it-IT&answer=95647&p=cpn_cookies
+    Mozilla Firefox: http://support.mozilla.org/it/kb/Bloccare%20i%20cookie?redirectlocale=en-US&redirectslug=Blocking+cookies
+    Apple Safari: http://www.apple.com/it/privacy/use-of-cookies/
+
+E’ possibile disabilitare soltanto i cookie di Google Analytics, utilizzando il componente aggiuntivo di opt-out fornito da Google per i browser principali.

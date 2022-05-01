@@ -4,40 +4,67 @@
  * Input: ViaPoint
  * Add the ViaPoint to the route, a new route is created if not existent
  */
-function addViaPoint(vp){
+/*function addViaPoint(vp){
 	if (activeRoute==null)  { 
 		activeRoute = new Route(vp,routeDefaultName);
-	} else if (activeRoute.viaPoints.length<MAX_ROUTE_POINTS) {
+	} else if (activeRoute.viaPoints.length<MAX_ROUTE_POINTS || isPoiMode()) { // FIXME: no limit on POI, need to extimate on
 		activeRoute.addViaPoint(vp);		
 	} else {
 		alert(translations["route.maxViaPointsReached"] ); 
 	}
+}*/
+
+function addViaPoint(vp){
+	if (activeRoute==null)  { 
+		activeRoute = new Route(vp,routeDefaultName);
+		return true;
+	} else if (activeRoute.viaPoints.length<MAX_ROUTE_POINTS ||
+		   ( isPoiMode() && activeRoute.viaPoints.length<MAX_POI_POINTS ) ) { // FIXME: no limit on POI, need to extimate on
+		activeRoute.addViaPoint(vp);		
+		return true;
+	} else {
+		alert(isPoiMode()?translations["poi.maxPointsReached"]:translations["route.maxViaPointsReached"] ); 
+		return false;
+	}
 }
+
 
 /* FUNCTION: addNewViaPoint
  * Input: number, number, string, string
  * Create a new ViaPoint at lat/lng and calls addViaPoint() to add it
  */
-function addNewViaPoint(lat,lng,name, id){ 
-	var vp = new ViaPoint(lat,lng,name,id);
+/*function addNewViaPoint(lat,lng,name){ 
+	var vp = new ViaPoint(lat,lng,name);
 	addViaPoint(vp);
-}
+}*/
 
 /* FUNCTION: updateViaPoint
  * Input: number, number, string, string
- * update a given viapoint if it exists, otherwise add a new via point 
+ * update a given viapoint (id) if it exists, otherwise add a new via point FIXME: does it ever need to add a new viapoint?
  * Note: it does not update the route, if lat/lng are changed  call activeRoute.redraw() to re-compute the route
  *	note: this is called from Control.Geocoder.js also, 
  *		it refreshes the route gPanel and updates Marker popup text 
  */
 function updateViaPoint(lat,lng,name, id){
-	var vp = new ViaPoint(lat,lng,name,id);
-	if (activeRoute==null) {
+	var vp = new ViaPoint(lat,lng,name);
+	/*if (activeRoute==null) {
 		addViaPoint(vp);
 	} else {
 		if ( !activeRoute.updateViaPoint(vp,id) ) { addViaPoint(vp); }// update via point id, if fails (i.e. id does not exists), add it
-	}
+	} */
 	
+	if ( !activeRoute.updateViaPoint(vp,id) ) { addViaPoint(vp); }// update via point id, if it fails (i.e. id does not exists), add it
+	
+	// remove old marker
+	if ( markers[id] != null ) {
+		markersCluster.removeLayer(markers[id]);
+		delete markers[markers[id]] ;
+	}		
+	addMarkerToMap(vp);
+	
+	// need to refresh since there is a new ID now
+	activeRoute.refreshHtml();
+	/*
 	popupText = "<div class='gmid'>"+escapeHTML(name)+"</div>" +
 			"<div class='gsmall'>Lat,Lng  ("+ formatDecimal(lat,6) +","+ formatDecimal(lng,6) + ")<br>"+rightClickText+" on this viapoint to remove</div>"+
 			"<span style='float: left; cursor: pointer;'>"+
@@ -45,8 +72,9 @@ function updateViaPoint(lat,lng,name, id){
 			"<span style='float: right; cursor: pointer;'>"+
 			"<img src='./icons/leftBarredArrow.svg'  onclick='javascript:cutRouteBefore(\""+vp.id+"\");' title='Cut Before' width='15' height='8' />&nbsp;&nbsp;"+
 			"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' /></span>";
-	if ( geoResultsNames[id] != null) popupText = popupText + geoResultsNames[id] ;  
-	markers[id].setPopupContent(popupText); // unbindPopup().bindPopup(popupText).openPopup();
+	if ( geoResultsNames[vp.id] != null) popupText = popupText + geoResultsNames[vp.id] ;  
+	markers[vp.id].setPopupContent(popupText); // unbindPopup().bindPopup(popupText).openPopup();
+	*/
 }
 
 /* FUNCTION: updateViaPoint
@@ -64,8 +92,8 @@ function updateViaPointName(name,id) {
  * CLASS: ViaPoint
  **/
 var ViaPoint = L.Class.extend({
-    initialize: function (lat,lng,name, id) {
-	this.id = id; // unique id
+    initialize: function (lat,lng,name) {
+	this.id = "vp_"+viaPointId++; // unique id
 	if (name == "" ||  name == null) name = "no name";
 	this.name = name.replace(/\|/g," ");
 	this.latLng = L.latLng(lat,lng);
@@ -168,17 +196,27 @@ var Route = L.Class.extend({
 	}
     },
 	
-    insertPointAt: function(idx) { // set where the next new vp will be added (-1=at the end)
+    insertPointAt: function(idx) { // set the index where the next new vp will be added (-1=at the end)
 	 insertPointAt = idx;   
     },
     
-    removeViaPoint: function (id) {
-	//for (i = 0; i < this.viaPoints.length; i++) {
-	//    if (this.viaPoints[i].id == id) { break; }
-	//}
+    insertPointAfterId: function(id) { // from a givedn viapoint id, set the index where the next new vp will be added (-1=at the end)
+	// find index of viapoint
 	var i = getViaPointIndex(id);
+	this.insertPointAt(i+1);   
+    },
+    
+    insertPointBeforeId: function(id) { // from a givedn viapoint id, set the index where the next new vp will be added (-1=at the end)
+	var i = getViaPointIndex(id);
+	this.insertPointAt(i);   
+    },
+
+    removeViaPoint: function (id, redraw) {
+	var i = getViaPointIndex(id);
+	consoleLog("Removing via point: " + i);
 	this.linePoly.getLatLngs().splice(i, 1); // remove element at pos i
 	this.viaPoints.splice(i, 1); // remove element at pos i
+	if (redraw) this.redraw();
 
     },
     
@@ -287,7 +325,7 @@ var Route = L.Class.extend({
 		// add a new last ViaPoint Matching the first, with no marker
 		var firstVp = this.viaPoints[0];
 		consoleLog("Adding Last ViaPoint Matching the first: " + firstVp.getLatLng().lng);
-		addViaPoint(new ViaPoint(firstVp.getLatLng().lat, firstVp.getLatLng().lng, firstVp.getName(), "vp_"+viaPointId++));
+		addViaPoint(new ViaPoint(firstVp.getLatLng().lat, firstVp.getLatLng().lng, firstVp.getName()));
 		consoleLog("Setting Closed Loop TRUE");
 		this.closedLoop = true;
 		
@@ -320,8 +358,12 @@ var Route = L.Class.extend({
     redraw: function () { // redraw the viaPoints connection polyline (red) and recompute the route, draw it (green) plus refresh the html divs
 	this.linePoly.redraw(); // red line (connects via Points)
 	this.refreshHtml(); // promptly re-draw gRoute panel
-	if ( this.viaPoints.length>1) { computeRoute(this.viaPoints, false); }// green line (route), this redraws again the gRoute panel to update time/distance
-	else if ( this.viaPoints.length==1 & activeRoute.routePoly!=null) {	// if last point has been removed, remove green route and circles
+
+	if ( isPoiMode() ) return; // poi mode, nothing to calculate
+
+	if ( this.viaPoints.length>1) { 
+		computeRoute(this.viaPoints, false); // green line (route), this redraws again the gRoute panel to update time/distance
+	} else if ( this.viaPoints.length==1 & activeRoute.routePoly!=null) {	// if last point has been removed, remove green route and circles
 		map.removeLayer(activeRoute.routePoly); 
 		routeMilestonesGroup.clearLayers();
 	} 
@@ -330,6 +372,9 @@ var Route = L.Class.extend({
     redrawAndFocus: function () { // as redraw() but focus on route once computed
 	this.linePoly.redraw(); // red line (connects via Points)
 	this.refreshHtml(); // promptly re-draw gRoute panel
+
+	if (isPoiMode() ) return; // poi mode, nothing to calculate
+
 	if ( this.viaPoints.length>1) { 
 		computeRoute(this.viaPoints, true); // green line (route), this redraws again the gRoute panel to update time/distance
 	} else if ( this.viaPoints.length == 1) {
@@ -343,7 +388,7 @@ var Route = L.Class.extend({
 	if ( this.viaPoints.length>1) map.fitBounds(this.linePoly.getBounds());  // map.fitBounds(this.linePoly.getBounds()); 
     },
     
-    // Note: this is called twice every time a new poit is added (to provide a prompt feedback and then to update with new leg info)
+    // Note: this is called twice every time a new point is added (to provide a prompt feedback and then to update with new leg info)
     refreshHtml: function () { // refreshes gRouteInfo & gRoute divs... FIXME: THIS SHOULD BE MOVED OUTSIDE ROUTE CLASS!!!
 	
 	var arrayLength = this.viaPoints.length;
@@ -373,7 +418,8 @@ var Route = L.Class.extend({
 			//Number(this.routeDistance).toFixed(2)+ uom +" ("+ this.routeFormattedTime+")" +
 			formatDecimal(this.routeDistance,2)+ uom +" ("+ this.routeFormattedTime+")" +
 			'&nbsp;<a id="gClosedRoute" class="gactions" href="javascript:activeRoute.toggleLoop();" title="'+translations["route.closedLoop"]+'" '+closedRouteStyle+'>&#8634;</a> ' +
-			'&nbsp;<a class="gactions" href="javascript:activeRoute.reverse();" title="'+translations["route.invert"]+'">&#8644;</a> ';
+			'&nbsp;<a class="gactions" href="javascript:activeRoute.reverse();" title="'+translations["route.invert"]+'"><img src="./icons/reverse.svg" width="20" height="20"/></a> ';
+			// '&nbsp;<a class="gactions" href="javascript:activeRoute.reverse();" title="'+translations["route.invert"]+'">&#8644;</a> ';
 	}
 	document.getElementById("gRouteInfo").innerHTML  = routeInfo;
 	var s = "";
@@ -453,8 +499,8 @@ var Route = L.Class.extend({
 			// to cut the route
 			s = s + "<div class='legsInfo' onclick='javascript:legsCumulativeToggle()'>"+ 
 			        "<span style='width: 20px; display: inline-block;'></span> &#8870; "+
-			        //(this.legs[i].hasUnpaved?'~':'')+Number(distance).toFixed(2)+ uom +
-			        (this.legs[i].hasUnpaved?'~':'')+formatDecimal(distance,2)+ uom +
+			        // (this.legs[i].hasUnpaved?'~':'')+formatDecimal(distance,2)+ uom +
+			        formatDecimal(distance,2)+ uom +
 				" ("+ formatTime(time) + ") </div>&nbsp;<a class='gaddWayPoint' title='Add Point Here' onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>";
 			//consoleLog("* leg("+ i +"): dist/time" + time  + "/" + distance);
 			
@@ -462,12 +508,13 @@ var Route = L.Class.extend({
 		
 		// add index below marker
 		var indexIcon = L.divIcon({className: 'gIndexMarker '+indexIconClass, html: (i+1)}); //, iconSize: 16});
-		var markerPos = L.marker(this.viaPoints[i], {icon: indexIcon})
+		var markerPos = L.marker(this.viaPoints[i], {icon: indexIcon});
+		
 		markerPos.on("click",  function(e) {
 			//L.DomEvent.stopPropagation(e); 
 			//L.DomEvent.preventDefault(e);
 			map.zoomIn();
-			} ); 
+			} ).setZIndexOffset(1000); 
 		this.markersIdx["idx_"+(i+1)] = markerPos;
 		markerPos.addTo(map);
 	}
@@ -506,13 +553,18 @@ var Route = L.Class.extend({
 			markersCluster.removeLayer(markers[id]);
 			delete markers[id] ;
 		}
-		map.removeLayer(activeRoute.routePoly); // hide route
-		map.removeLayer(activeRoute.linePoly);  // hide red poly
+		if (map.hasLayer(activeRoute.routePoly))  map.removeLayer(activeRoute.routePoly); // hide route
+		if (map.hasLayer(activeRoute.linePoly))  map.removeLayer(activeRoute.linePoly);  // hide red poly
 		routeMilestonesGroup.clearLayers(); // remove milestones
 		// note this function does not clean all...
 	}
+	// 
+	this.routePoly = null;
+	this.cleanLegs();
 	// reset
 	this.closedLoop = false;
+
+	// viaPointId = 0; // FIXME: not sure we need to reset the counter, it does not matter
 
 	this.refreshHtml();
     },    

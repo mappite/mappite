@@ -22,6 +22,14 @@ function isInternalRoutingArea(rvps) {
 	return true;
 }
 
+function isInternalRoutingPoint(lat, lng) {
+	var lats = INTERNAL_ROUTING_LATS;
+	for(var j=0; j<lats.length;j++) { 
+		if  ( (lat < lats[j][0] && lat > lats[j][1]) && ( lng > lats[j][2] && lng < lats[j][3] ) ) return true;
+	} 
+	return false;
+}
+	
 /* Wrapper to select which provider to use */
 function computeRoute(rvps, cacheAndfocus){
 	//cacheAndfocus=false // DEV
@@ -33,31 +41,43 @@ function computeRoute(rvps, cacheAndfocus){
 	}
 
 	var attrDir ;
-	var routeType = $('input[name="gOptions.type"]:checked').val();  // s f b p
-	if (isInternalRoutingArea(rvps)) {
-		//if  ( (routeType === "f"||routeType === "s") && !document.getElementById('gOptions.ferries').checked && !document.getElementById('gOptions.highways').checked) {
-		if  ( routeType === "f" && !document.getElementById('gOptions.ferries').checked && !document.getElementById('gOptions.highways').checked) {
-			consoleLog("Using GH Speed Routing Engine");
-			//computeRouteGFlex(rvps, cacheAndfocus);
-			computeRouteGSpeed(rvps, cacheAndfocus);
-			attrDir = attrs['graph_dir'];
+	
+	if ( currentMode === 'gMode.walk' || currentMode === 'gMode.bicycle') {
+		consoleLog("Using ORS");
+		computeRouteORS(rvps, cacheAndfocus);
+		attrDir = attrs['ors_dir'];
+	} else if ( currentMode === 'gMode.car') {
+		routeType = $('input[name="gOptions.type"]:checked').val();  // s f x
+		if (isInternalRoutingArea(rvps)) {
+			if (routeType === "x" ) {
+				consoleLog("Using GH Experimental Offroad Routing Engine");
+				computeRouteGSpeed(rvps, cacheAndfocus, 'routing.mappite.com');
+				attrDir = attrs['graph_dir'];		
+			} else if  ( routeType === "f" && document.getElementById('gOptions.ferries').checked && document.getElementById('gOptions.highways').checked) {
+				consoleLog("Using GH Speed Routing Engine");
+				//computeRouteGFlex(rvps, cacheAndfocus);
+				computeRouteGSpeed(rvps, cacheAndfocus, MAPPITE_SERVER);
+				attrDir = attrs['graph_dir'];
+			} else {
+				// computeRouteMapQuest(rvps, cacheAndfocus);
+				// attrDir = attrs['mapquest_dir'];
+				computeRouteORS(rvps, cacheAndfocus);
+				attrDir = attrs['ors_dir'];
+			}
 		} else {
-			// computeRouteMapQuest(rvps, cacheAndfocus);
-			// attrDir = attrs['mapquest_dir'];
-			computeRouteORS(rvps, cacheAndfocus);
-			attrDir = attrs['ors_dir'];
-		}
-	} else {
-		if ((routeType === "f" || routeType === "s") && (document.getElementById("gOptions.paved").value === "n" || rvps.length > 30 )) { 
-			consoleLog("Using MapQuest");
-			computeRouteMapQuest(rvps, cacheAndfocus);
-			attrDir = attrs['mapquest_dir'];
-		} else {
-			consoleLog("Using ORS");
-			computeRouteORS(rvps, cacheAndfocus);
-			attrDir = attrs['ors_dir'];
+			if ((routeType === "f" || routeType === "s") && (document.getElementById("gOptions.clickOnRoad").value === "n" || rvps.length > 30 )) { 
+				consoleLog("Using MapQuest");
+				computeRouteMapQuest(rvps, cacheAndfocus);
+				attrDir = attrs['mapquest_dir'];
+			} else {
+				consoleLog("Using ORS");
+				computeRouteORS(rvps, cacheAndfocus);
+				attrDir = attrs['ors_dir'];
+			}
 		}
 	}
+	
+
 	
 	map.removeControl(curA);
 	map.removeControl(scale); // to re-add it on top of attr
@@ -86,20 +106,20 @@ function computeDone(){
 
 /* FUNCTION: computeRoute using Graphhopper SPEED MODE
  * Compute and display the route.
- * Input: ViaPoint[],boolean (true if map gets refocused on route)
+ * Input: ViaPoint[],boolean (true to check in cache and refocus mapon route)
  */
-function computeRouteGSpeed(rvps, focus){
+function computeRouteGSpeed(rvps, focus, server){
 	
 	var url="";
 
-	if ( focus) {
+	if (focus) {
 		consoleLog("Looking if Cached");
 		var cacheKey= getOptionsString() + "_" +  activeRoute.getCompressedPoints();
 		url="pc.php?cache="+cacheKey+"&method=GET" +
-		    "&url=https://"+MAPPITE_SERVER+"/route/&"; 
+		    "&url=https://"+server+"/route/&"; 
 	} else {
 		consoleLog("Direct");
-		url="https://"+MAPPITE_SERVER+"/route/?";
+		url="https://"+server+"/route/?";
 	}
 	
 	queryString= '';
@@ -107,41 +127,23 @@ function computeRouteGSpeed(rvps, focus){
 	    queryString = queryString + 'point='+rvps[i].lat+'%2C'+rvps[i].lng+'&';
 	}
 
-	// route options [k|m][f|s|p|b][h|x][t|x][f|x]   options = ksxxf
-	uom = document.getElementById("gOptions.uom").value; // k (km) or m (miles)
-	//queryString = queryString + 'elevation=false&locale=en-US&use_miles='+(uom=="m"?"true":"false")+'&';	
 	queryString = queryString + 'elevation=false&locale=en-US&';	
-	
+
+
+	uom = document.getElementById("gOptions.uom").value; // k (km) or m (miles)
 	var uomFactor = 1;
 	if (uom=="m") uomFactor = 1.609344; // convert to miles
 	
-	var routeType = $('input[name="gOptions.type"]');	
-	switch(routeType.filter(':checked').val() ) {
-	    case "s":
-		queryString = queryString + 'weighting=shortest&'; // shortest";
-		break;
-	    case "p":
-		alert("graphhopper - pedestrian unsupported now"); //"pedestrian"
-		break;
-	    case "b":
-		alert("graphhopper - bicicle unsupported now"); //"bicycle";
-		break;
-	    default:
-		queryString = queryString + 'weighting=fastest&'; // "fastest";
-		//queryString = queryString + 'weighting=custom1&'; // "fastest";
+	// profile	
+	var routeType = $('input[name="gOptions.type"]:checked').val();
+	var profile = "car"; // default car (fastest)
+	if (routeType.value == 'x') {
+		profile = "offroad";
+	} else if (!document.getElementById('gOptions.tolls').checked) {
+		profile = "notollcar";
 	} 
+	queryString = queryString + 'profile='+profile+'&'; 
 	
-	// avoidances is by veichle type
-	if (document.getElementById('gOptions.highways').checked && document.getElementById('gOptions.tolls').checked) {
-		queryString = queryString + 'vehicle=nomotorwaytollcar&'; 
-	} else if (document.getElementById('gOptions.highways').checked) {
-		queryString = queryString + 'vehicle=nomotorwaycar&';
-	} else if (document.getElementById('gOptions.tolls').checked) {
-		queryString = queryString + 'vehicle=notollcar&'; 
-	} else {
-		queryString = queryString + 'vehicle=car&'; // CH
-		//queryString = queryString + 'vehicle=custom1&ch.disable=true'; // FLEX
-	}
 
 	consoleLog("queryString : " + queryString );
 	
@@ -259,9 +261,9 @@ function computeRouteGFlex(rvps, focus){
 	uom = document.getElementById("gOptions.uom").value; // k (km) or m (miles) // TO BE IMPLEMENTED IN GH
 
 	postJSON = postJSON + '"model": { "base":"custom1", "max_speed":120 ' ;
-	
-	var routeType = $('input[name="gOptions.type"]');	
-	switch(routeType.filter(':checked').val() ) {
+		
+	var  routeType = $('input[name="gOptions.type"]:checked').val(); 
+	switch(routeType.value ) {
 	    case "s":
 		postJSON = postJSON +  ', "distance_factor":90 '; // shortest";
 		break;
@@ -417,26 +419,23 @@ function computeRouteMapQuest(rvps, focus){
 	// route options	
 	// [k|m][f|s|p|b][h|x][t|x][f|x]   options = ksxxf
 	uom = document.getElementById("gOptions.uom").value; // k (km) or m (miles)
-	var routeType = $('input[name="gOptions.type"]');	
-	switch(routeType.filter(':checked').val() ) {
-	    case "s":
-		routeType = "shortest";
-		break;
-	    case "p":
-		routeType = "pedestrian";
-		break;
-	    case "b":
-		routeType = "bicycle";
-		break;
-	    default:
-		routeType = "fastest";
-	} 
-	consoleLog("routeType: " + routeType);
-	//routeType = (document.getElementById("gOptions.fastest").checked?"fastest":"shortest"); // also pedestrian, bycicle
+
+	// in mapQuest routeType can be shortest,fastest,pedestrian, bicycle
 	
-	avoidances = (document.getElementById('gOptions.highways').checked?'"Limited Access"' : null);
-	avoidances = (document.getElementById('gOptions.tolls').checked?((avoidances==null?'':avoidances+', ') +'"Toll Road"'):avoidances);
-	avoidances = (document.getElementById('gOptions.ferries').checked?((avoidances==null?'':avoidances+', ') +'"Ferry"'):avoidances);
+	if (currentMode === 'gMode.bicycle') {
+		routeType = "bicycle";
+	} else if (currentMode === 'gMode.walk') {
+		routeType = "pedestrian";
+	} else if (currentMode === 'gMode.car') {
+		var t = $('input[name="gOptions.type"]:checked').val();
+		routeType = (t==='s'?"shortest":"fastest");
+	} 
+		
+	consoleLog("routeType: " + routeType);
+	
+	avoidances = (!document.getElementById('gOptions.highways').checked?'"Limited Access"' : null);
+	avoidances = (!document.getElementById('gOptions.tolls').checked?((avoidances==null?'':avoidances+', ') +'"Toll Road"'):avoidances);
+	avoidances = (!document.getElementById('gOptions.ferries').checked?((avoidances==null?'':avoidances+', ') +'"Ferry"'):avoidances);
 	//avoidances = avoidances + ", Approximate Seasonal Closure",
 	consoleLog("avoidances: " + avoidances);
 	optionsJSON = '"options": { "outShapeFormat": "cmp", "generalize":10,"routeType": "'+routeType+'", "doReverseGeocode": "false", "narrativeType": "none", "unit": "'+uom+'", "avoids": ['+ (avoidances!=null?avoidances:'') +'] }';
@@ -532,27 +531,20 @@ function computeRouteORS(rvps, focus){
 	var profile="";	
 	var preference="";	
 	var bikeOrFoot = false;
-	
-	var costing = $('input[name="gOptions.type"]');	//  
-	switch(costing.filter(':checked').val() ) {
-	    case "s":
-		profile = "driving-car";
-		preference = "shortest";
-		break;
-	    case "p":
-		profile = "foot-walking";
-		preference = "fastest";
-		bikeOrFoot = true;
-		break;
-	    case "b":
+
+	if (currentMode === 'gMode.bicycle') {
 		profile = "cycling-regular";
 		preference = "fastest";
 		bikeOrFoot = true;
-		break;
-	    default:
-		profile = "driving-car";
+	} else if (currentMode === 'gMode.walk') {
+		profile = "foot-walking";
 		preference = "fastest";
-	} 
+		bikeOrFoot = true;
+	} else if (currentMode === 'gMode.car') {
+		profile = "driving-car";
+		var t = $('input[name="gOptions.type"]:checked').val();
+		preference = (t==='s'?"shortest":"fastest");
+	}
 
 	var url="https://api.openrouteservice.org/v2/directions/"+profile +"/json";
 	
@@ -579,13 +571,13 @@ function computeRouteORS(rvps, focus){
 
 	var avoidances  = '';
 	var avoidancesArray = new Array();
-	if (document.getElementById('gOptions.highways').checked && !bikeOrFoot) {
+	if (!document.getElementById('gOptions.highways').checked && !bikeOrFoot) {
 		avoidancesArray.push('highways');
 	}
-	if (document.getElementById('gOptions.tolls').checked && !bikeOrFoot) {
+	if (!document.getElementById('gOptions.tolls').checked && !bikeOrFoot) {
 		avoidancesArray.push('tollways');
 	}
-	if (document.getElementById('gOptions.ferries').checked) {
+	if (!document.getElementById('gOptions.ferries').checked) {
 		avoidancesArray.push('ferries');
 	}
 	if (avoidancesArray.length>0) {

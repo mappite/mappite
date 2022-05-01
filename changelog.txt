@@ -1,3 +1,38 @@
+20220501
+. Added + icons on viapoint popup to delete or add next point before/after
+. Fixes on POI when switching on/off poi mode
+. Added text on delete area
+. Translations should be loaded fresh at each new version also in iOS.
+. alertOnce via cookie
+. alertOnce when click on map snaps aboce 1km
+
+20220404
+. fixes:
+	delete/save route overwrites with multiple tabs
+	mapquest routes not caching correctly
+	restored server crontab to clean cache
+
+20220202
+. restore cookies from cloud if enroll cookie expired
+  (fixes issue with safari/ios asking to login after 7 days)
+
+20220124
+. Minor fixes
+	max editable POI list set to 100, stop when importing longher waypoints list
+	track without name can be imported
+
+20221224
+. POI Editor
+. New Graphhopper 4.x
+
+20220101
+. Prevent thesame potential markers to appear twice
+
+20210920
+. added picnic and cafe icons
+. export form layout, with checkboxes for GPX
+. updgraded VPS (30GB ram)
+
 20210411
 . Export GPX routes with ShapingPoints. 
 
@@ -186,7 +221,11 @@ XXXXXXXX
 20150629
  . It is now possible to add a new viapoint in the middle of a trip,
    tap or click on the "+" sign next to each le
+   
 20150326 autocenter on country, viapoint index appears on map
-20150313 Scale, Bike and Walk, Select point on unpaved
-20150223 Second Beta - addedd track, fix on gpx 1.1 format, text autoselect for ipad
-20150215 First Beta - announced on qde
+
+20150313 Added Scale, Bike and Walk, Select point on unpaved
+
+20150223 Second Beta - added track export, fix on gpx 1.1 format, text autoselect for ipad
+
+20150215 First Beta, public - announced on qde
