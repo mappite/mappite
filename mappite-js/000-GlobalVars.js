@@ -35,7 +35,7 @@ var circleLocate; // circle used by geolocation to show  position with approx er
 var markerLocate; // marker used by geolocation to show  position
 var isLocate = false; // state if geolocateion is acive or not
 
-var mapIcons ={ fuel: [], mountainPasses: [], viewPoint: [], supermarket: [], wikipedia: [], camping: [], bar: [], picnic: []};
+var mapIcons ={ fuel: [], mountainPasses: [], viewPoint: [], supermarket: [], wikipedia: [], camping: [], bar: [], picnic: [], drinkingWater: [], hotel: []};
 
 var legsIsCumulative = false; // states if to show cumulative leg time/distance or just leg time/distance
 

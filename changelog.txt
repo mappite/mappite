@@ -1,10 +1,11 @@
-20220501
+20220502
 . Added + icons on viapoint popup to delete or add next point before/after
 . Fixes on POI when switching on/off poi mode
 . Added text on delete area
 . Translations should be loaded fresh at each new version also in iOS.
 . alertOnce via cookie
 . alertOnce when click on map snaps aboce 1km
+. Fix for iOS ref. #8044 leaflet
 
 20220404
 . fixes:

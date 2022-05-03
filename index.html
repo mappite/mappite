@@ -44,8 +44,18 @@
 	<style type="text/css">
 	
 	/* prevent #6865 w iOS13 */
-	.leaflet-marker-icon { -webkit-touch-callout: none; }
+	/* .leaflet-marker-icon { -webkit-touch-callout: none; } */
 	
+	/* #8068 prevent control to be below tilelayer on iOS */
+	.leaflet-control-container .leaflet-top,
+	.leaflet-control-container .leaflet-left,
+	.leaflet-control-container .leaflet-right,
+	.leaflet-control-container .leaflet-bottom,
+	#gMarkerDrag, 
+	#gPanel {
+	  will-change: transform;
+	}
+
 	body {
 		margin: 0;
 	}
@@ -504,7 +514,9 @@
 				<img class="sIcon" id="supermarket"  title="Supermarket" alt="Supermarket" width="24" />
 				<img class="sIcon" id="camping"  title="Camping" alt="Camping" width="24" />
 				<img class="sIcon" id="picnic"  title="Picnic" alt="Picnic" width="24" />
+				<img class="sIcon" id="drinkingWater"  title="Drinking Water" alt="Drinking Water" width="24" />
 				<img class="sIcon" id="bar"  title="Bar" alt="Bar" width="24" />
+				<img class="sIcon" id="hotel"  title="Hotel" alt="Hotel" width="22" />
 			</div>
 			<img class="sIcon" id="locate"  title="Locate" alt="Center" width="24"/>
 		</div>
@@ -609,7 +621,7 @@
 				<tr>
 					<td>
 					<!-- button class="buttons" id="gPanelPrintLink"  tkey="export.showPoints" onclick="javascript:showPoints();">Points</button -->
-					<a href="javascript:showPoints();" ><img src="./icons/screenshot.svg" id="gScreenshot" alt="Screen Shot" width="48" height="32"/> </a>
+					<a href="javascript:showPoints();" title="Screen Shot"><img src="./icons/screenshot.svg" id="gScreenshot" alt="Screen Shot" width="36" height="36"/> </a>
 					</td>
 					<td>
 					<button class="buttons" id="gForumLinkHref" style="float: left" tkey="export.forum" onclick="javascript:toggleDiv('gExportForum');">Forum</button>
@@ -828,6 +840,12 @@
 	});
 	$( "#bar" ).click(function() {
 		canGetOverpass()?showBars():alert(translations["overpass.zoomInAlert"]);
+	});
+	$( "#hotel" ).click(function() {
+		canGetOverpass()?showHotels():alert(translations["overpass.zoomInAlert"]);
+	});
+	$( "#drinkingWater" ).click(function() {
+		canGetOverpass()?showDrinkingWater():alert(translations["overpass.zoomInAlert"]);
 	});
 	
 	$( ".sIcon" ).bind("contextmenu", function(e) { 

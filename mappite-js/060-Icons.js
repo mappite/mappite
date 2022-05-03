@@ -1,5 +1,18 @@
 /*** Icons actions (when click on right bar) ***/
 
+/*
+How to add a new icon:
+prepare the icons svg files:
+	name.svg
+	name-gray.svg
+	namePlus.svg
+add imgs in index.html with id "name"
+add callback functions on click in index.html
+add proper function showName() in 060-Icons.js
+add array aitem in 000-GlobalVas.js
+add proper translation in en.json/it.json etc
+ */
+
 /* FUNCTION: addJsonNode
  * add a node to the route. Used by getGeonamesNodes and getOverpassNodes
  * Node must have: name, lat, lon
@@ -123,7 +136,7 @@ function getOverpassNodes(id, query) {
 				if (elem.tags!== undefined) {
 					elem.name = (elem.tags.name||elem.tags["name:it"]||elem.tags.brand||elem.tags.operator);
 					//consoleLog( "Namify node: " + elem.id +"=>"+ name);
-					if ( elem.name === undefined) elem.name = id;
+					if ( elem.name === undefined) elem.name = translations["icons."+id];
 					var label =  "<b>" + elem.name + "</b>";
 					if (elem.tags.ele) {
 						elem.elevation = elem.tags.ele; // convert to std elem
@@ -224,8 +237,8 @@ function showCampings() {
  * get Supermarkets
  */
 function showSupermarkets() {
-	// query = '(way[shop=supermarket]('+getSwne()+');node[shop=supermarket]('+getSwne()+'));';
-	query = 'node[shop=supermarket]('+getSwne()+');';
+	query = '(way[shop=supermarket]('+getSwne()+');node[shop=supermarket]('+getSwne()+'););';
+	// query = 'node[shop=supermarket]('+getSwne()+');';
 	getOverpassNodes('supermarket',query);
 }
 
@@ -242,8 +255,24 @@ function showPicnic() {
  * get Bars
  */
 function showBars() {
-	query = '(way[amenity=cafe]('+getSwne()+');node[amenity=bar]('+getSwne()+');node[amenity=cafe]('+getSwne()+'););';
+	query = '(way[tourism=cafe]('+getSwne()+');node[tourism=cafe]('+getSwne()+'););';
 	getOverpassNodes('bar',query);
+}
+
+/* FUNCTION: show Hotels
+ */
+
+function showHotels() {
+	query = '(way[tourism=hotel]('+getSwne()+');node[tourism=hotel]('+getSwne()+'););';
+	getOverpassNodes('hotel',query);
+}
+
+/* FUNCTION: showDrinkingwater
+ * get drinkingwater fountains
+ */
+function showDrinkingWater() {
+	query = 'node[amenity=drinking_water]('+getSwne()+');';
+	getOverpassNodes('drinkingWater',query);
 }
 
 /** Overpass... END **/
