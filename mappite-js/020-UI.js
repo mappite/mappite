@@ -3,6 +3,49 @@
 // Some functions to manipulate the UI, most are embedded in other objects.
 // FIXME: need a better MVC separation
 
+/* failed attempt
+function dragElement(elmnt) {
+  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  //  the handle is where to move the DIV from:
+  document.getElementById(elmnt.id + "Handler").onmousedown = dragMouseDown;
+  document.getElementById(elmnt.id + "Handler").ontouchstart = dragMouseDown;
+  
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // get the mouse cursor position at startup:
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    document.ontouchend = closeDragElement;
+    // call a function whenever the cursor moves:
+    document.onmousemove = elementDrag;
+    document.ontouchmove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // calculate the new cursor position:
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    // set the element's new position:
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+    // stop moving when mouse button is released:
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
+*/
+
+
 // called by index.html body onresize and on document ready events
 function onResize() { 
 	consoleLog("onResize()");
@@ -120,7 +163,7 @@ function addPointHereCss(el) {
 function legsCumulativeToggle() {
 	consoleLog("legsCumulativeToggle");
 	legsIsCumulative = !legsIsCumulative;
-	activeRoute.refreshHtml(); // refresh left panel current route info
+	refreshRouteInfo();
 }
 
 /* Triggered when Route Mode changes */

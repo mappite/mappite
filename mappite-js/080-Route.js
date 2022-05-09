@@ -63,7 +63,7 @@ function updateViaPoint(lat,lng,name, id){
 	addMarkerToMap(vp);
 	
 	// need to refresh since there is a new ID now
-	activeRoute.refreshHtml();
+	refreshRouteInfo();
 	/*
 	popupText = "<div class='gmid'>"+escapeHTML(name)+"</div>" +
 			"<div class='gsmall'>Lat,Lng  ("+ formatDecimal(lat,6) +","+ formatDecimal(lng,6) + ")<br>"+rightClickText+" on this viapoint to remove</div>"+
@@ -143,7 +143,6 @@ var Route = L.Class.extend({
 	this.closedLoop = false; 
 	this.markersIdx = {}; // contains  markers index to show marker index in route
 
-	/// this.refreshHtml(); // refresh gPanel
     },
     
     setName: function(name) {
@@ -155,7 +154,7 @@ var Route = L.Class.extend({
 	this.legs[position-1] = leg; // position index starts from 0
 	// if all legs are defined, (re-)draw the route	
 	if ( this.legs.every(el => (typeof el !== "undefined") )) { // SYNTAX ERROR ON IE11 AND SAFARI on IPAD!!!
-		this.refreshHtml(); // refresh html box
+		refreshRouteInfo(); // refresh html box
 		if (activeRoute.routePoly ) { map.removeLayer(activeRoute.routePoly);} // remove existing 
 		var rpLls = new Array();
 		for (var i = 0; i < this.legs.length; i++) { // append all legs
@@ -357,7 +356,7 @@ var Route = L.Class.extend({
     
     redraw: function () { // redraw the viaPoints connection polyline (red) and recompute the route, draw it (green) plus refresh the html divs
 	this.linePoly.redraw(); // red line (connects via Points)
-	this.refreshHtml(); // promptly re-draw gRoute panel
+	refreshRouteInfo(); // promptly re-draw gRoute panel
 
 	if ( isPoiMode() ) return; // poi mode, nothing to calculate
 
@@ -371,7 +370,7 @@ var Route = L.Class.extend({
     
     redrawAndFocus: function () { // as redraw() but focus on route once computed
 	this.linePoly.redraw(); // red line (connects via Points)
-	this.refreshHtml(); // promptly re-draw gRoute panel
+	refreshRouteInfo(); // promptly re-draw gRoute panel
 
 	if (isPoiMode() ) return; // poi mode, nothing to calculate
 
@@ -388,155 +387,11 @@ var Route = L.Class.extend({
 	if ( this.viaPoints.length>1) map.fitBounds(this.linePoly.getBounds());  // map.fitBounds(this.linePoly.getBounds()); 
     },
     
-    // Note: this is called twice every time a new point is added (to provide a prompt feedback and then to update with new leg info)
-    refreshHtml: function () { // refreshes gRouteInfo & gRoute divs... FIXME: THIS SHOULD BE MOVED OUTSIDE ROUTE CLASS!!!
-	
-	var arrayLength = this.viaPoints.length;
-
-	var indexIconStartClass = "gIMGreen";
-	var indexIconEndClass = "gIMRed";
-	/* if ( arrayLength > 1 && this.viaPoints[0].getLatLngStr() === this.viaPoints[arrayLength-1].getLatLngStr() ) {
-		indexIconStartClass = "gIMLoop";
-		indexIconEndClass = "collapsed";
-		this.closedLoop = true; // force in case user is following a link
-		consoleLog("Route is a LOOP!");
-	} */
-
-	if ( this.closedLoop ) {
-		consoleLog("Route is a LOOP! Setting Icon classes");
-		indexIconStartClass = "gIMLoop";
-		indexIconEndClass = "collapsed";
-	}
-
-	
-	var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
-	var routeInfo= "";
-	if (arrayLength> 1 && this.routeDistance != "n/a" ) { 
-		var closedRouteStyle="";
-		if (this.closedLoop) { closedRouteStyle='style="color: green;"'; }
-		routeInfo = '<a class="gactions" href="javascript:activeRoute.clean();" title="Clean Current Route">&#215;</a> ' +
-			//Number(this.routeDistance).toFixed(2)+ uom +" ("+ this.routeFormattedTime+")" +
-			formatDecimal(this.routeDistance,2)+ uom +" ("+ this.routeFormattedTime+")" +
-			'&nbsp;<a id="gClosedRoute" class="gactions" href="javascript:activeRoute.toggleLoop();" title="'+translations["route.closedLoop"]+'" '+closedRouteStyle+'>&#8634;</a> ' +
-			'&nbsp;<a class="gactions" href="javascript:activeRoute.reverse();" title="'+translations["route.invert"]+'"><img src="./icons/reverse.svg" width="20" height="20"/></a> ';
-			// '&nbsp;<a class="gactions" href="javascript:activeRoute.reverse();" title="'+translations["route.invert"]+'">&#8644;</a> ';
-	}
-	document.getElementById("gRouteInfo").innerHTML  = routeInfo;
-	var s = "";
-	
-	// clean Index markers so they can get refreshed according to position on route below
-	for (idx in this.markersIdx) {
-		//consoleLog("deleting idx:" + idx);
-		//consoleLog(this.markersIdx[idx]);
-		map.removeLayer(this.markersIdx[idx] );
-		delete this.markersIdx[idx] ;
-	} 
-
-	var legsTimeTotal = 0;
-	var legsDistanceTotal = 0;
-
-	for (var i = 0; i < arrayLength; i++) {
-		vp = this.viaPoints[i];
-
-		preS = "<span style='width: 24px; display: inline-block;'></span>";// just to reserve 24px (20+ 2x2padding)
-		postS = "<span style='width: 24px; display: inline-block;'></span>";
-		
-		indexIconClass = "gIMWhite";
-		
-		if (i==(arrayLength-1)) { // Last
-			indexIconClass = indexIconEndClass;
-			if (!this.closedLoop) { // omit in closed loop since we don't want to add points after the last one
-				postS= "&nbsp;<a class='gaddWayPoint' style='color: green;width: 20px; display: inline-block;' title='Add Point Here'  onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>"; 
-			}
-		} else {
-			if (!this.closedLoop || ( i!=(arrayLength-2) && i!=0 ) ) { // no down arrow if closed loop and first or one before last
-				postS = "<a class='gactions' title='Move After' href='javascript:activeRoute.moveDown(\""+vp.id+"\")'><img src='./icons/down.svg' width='20' height='20'></a>";
-			}
-		}
-
-		if (i==0) { // First
-			indexIconClass = indexIconStartClass ;
-			if (!this.closedLoop) { // omit in closed loop since we don't want to add points before the last one
-				preS= "<a class='gaddWayPoint' title='Add Point Here' style='width: 20px; display: inline-block;'  onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\"0\");'>+</a>&nbsp;";
-			}
-		} else {
-			if (!this.closedLoop || ( i!=(arrayLength-1) && i!=1 ) ) { // no up arrow if closed loop and last or second
-				preS = "<a class='gactions' title='Move Before' href='javascript:activeRoute.moveUp(\""+vp.id+"\")'><img src='./icons/up.svg' width='20' height='20'></a>"
-			}
-		}
-		
-		//displayName = escapeHTML((vp.name.length>15?(vp.name.substring(0,12)+"..."):vp.name));
-		//consoleLog("Street Name " + displayName);
-		s = s +"<span class='groute_vp'>"+
-		     preS +
-	             (i+1)+". <input type='text'  id='"+vp.id+"' onclick='javascript:openViaPointMarker(\""+vp.id+"\")'  class='inputsRoute' value='" +escapeHTML(vp.name)+"' size='20' maxlength='50'>" +
-	             postS+
-		     "</span>";
-		elid = "#"+vp.id;
-		//consoleLog( "Adding:" + elid + " to change event with delegation"); 
-		// Handler to update point name
-		// remove previous handler 
-		$(document.body).off("change", elid);
-		$(document.body).on("change", elid, (function(){ 
-				//consoleLog( "On Change for:" + this.id +  " New name will be:" + document.getElementById(this.id).value);
-				updateViaPointName(document.getElementById(this.id).value,this.id);
-				// update url
-				history.pushState(name, name, activeRoute.getUrl());
-			}));	
-
-		//consoleLog("* legs" + i);
-		if (arrayLength>1 && this.legs[i] != null && i< arrayLength-1)  {
-			legsTimeTotal = legsTimeTotal+this.legs[i].time;
-			legsDistanceTotal =  legsDistanceTotal+this.legs[i].distance;
-			var time = this.legs[i].time;
-			var distance = this.legs[i].distance;
-			if (legsIsCumulative) {
-			    time = legsTimeTotal;
-			    distance = legsDistanceTotal;
-			}
-			// The "+" sign can be clicked on to add next point after this one
-			// keyboard keys pressed when "+" sign is focused are passed to onCutKeyPress
-			// to cut the route
-			s = s + "<div class='legsInfo' onclick='javascript:legsCumulativeToggle()'>"+ 
-			        "<span style='width: 20px; display: inline-block;'></span> &#8870; "+
-			        // (this.legs[i].hasUnpaved?'~':'')+formatDecimal(distance,2)+ uom +
-			        formatDecimal(distance,2)+ uom +
-				" ("+ formatTime(time) + ") </div>&nbsp;<a class='gaddWayPoint' title='Add Point Here' onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>";
-			//consoleLog("* leg("+ i +"): dist/time" + time  + "/" + distance);
-			
-		}
-		
-		// add index below marker
-		var indexIcon = L.divIcon({className: 'gIndexMarker '+indexIconClass, html: (i+1)}); //, iconSize: 16});
-		var markerPos = L.marker(this.viaPoints[i], {icon: indexIcon});
-		
-		markerPos.on("click",  function(e) {
-			//L.DomEvent.stopPropagation(e); 
-			//L.DomEvent.preventDefault(e);
-			map.zoomIn();
-			} ).setZIndexOffset(1000); 
-		this.markersIdx["idx_"+(i+1)] = markerPos;
-		markerPos.addTo(map);
-	}
-	document.getElementById("gRoute").innerHTML = s;
-	// refreshExportPanel (includes browse url)
-	//var shortUrl = this.getUrl();
-	//var name = activeRoute.name;
-	//consoleLog("refreshHtml: pushing state // " + name + " // " + shortUrl);
-	//history.pushState(null , name, shortUrl);
-
-	// Refocus on gRoute panel if on Export(this is mainly to allow gexport to make sure to refresh)
-	//if (fcus is on gExport) refreshExportPanel(); // otherwise it will be refreshed when it gets focus
-	if (document.getElementById("gExport").style.display === "block") refreshExportPanel();
-	//refreshExportPanel(); // short Url is recalculated which i a waste...ss // just for FB link?
-	//togglegPanel("gRoute");
-    },
     
     clean: function () {
 	if (window.confirm(translations["route.sureDeleteCurrentRoute"])) {
 		this.forceClean();
 		history.pushState("clean", "clean", window.location.pathname);
-		//this.refreshHtml(); // shall we move from forceclean to here only ??????????????????????????????????????
 	} 
 
     },
@@ -553,11 +408,17 @@ var Route = L.Class.extend({
 			markersCluster.removeLayer(markers[id]);
 			delete markers[id] ;
 		}
-		if (map.hasLayer(activeRoute.routePoly))  map.removeLayer(activeRoute.routePoly); // hide route
+		// Fixme: this if is here since applies only if there are points
+		//        and so activeRoute.routePoly is not null
+		if (map.hasLayer(activeRoute.routePoly))  {
+			map.removeLayer(activeRoute.routePoly); // remove route
+		}
 		if (map.hasLayer(activeRoute.linePoly))  map.removeLayer(activeRoute.linePoly);  // hide red poly
-		routeMilestonesGroup.clearLayers(); // remove milestones
-		// note this function does not clean all...
 	}
+	// remove canvas
+	document.getElementById("gCanvas").style.display = "none";
+	
+	routeMilestonesGroup.clearLayers(); // remove milestones
 	// 
 	this.routePoly = null;
 	this.cleanLegs();
@@ -566,7 +427,7 @@ var Route = L.Class.extend({
 
 	// viaPointId = 0; // FIXME: not sure we need to reset the counter, it does not matter
 
-	this.refreshHtml();
+	refreshRouteInfo();
     },    
     getUrl: function () { // returns the encoded points route url
 
@@ -648,8 +509,9 @@ function getPointLegIdx (ll) {
 /* FUNCTION: createRoutePoly
  * create the "draggable" route polyline (green) in active route
  * Input: [lat,lng] couples array
- */
+ 
 function createRoutePoly(lls) {
+	return; // FIXME - remove
 	
 	if (activeRoute.routePoly ) { 
 		activeRoute.routePoly.off();
@@ -660,7 +522,6 @@ function createRoutePoly(lls) {
 	routeColor = mapRouteColor[document.getElementById("gOptions.mapLayer").value];
 	activeRoute.routePoly = L.polyline(lls, {color: routeColor, opacity: 0.8, weight: 4}).addTo(map);
 	
-	/* Add a circle milestone on route each d km/miles */
 	if ( !isTouchDevice()){ // no with touch devices since onmouseout would fail
 		var d= 100; // default in uom (km/mi) - FIXME: need to allow user to set this on UI and save as a cookie
 		var dist = []; // holds points total distance from start
@@ -684,8 +545,10 @@ function createRoutePoly(lls) {
 		routeMilestonesGroup.addTo(map);
 	}
 	
-	var tmpMarker=new L.marker();
+	var tmpMarker=new L.marker(); // FIXME: shouldn't this be within 2nd if below???
 
+	//Touch/Click/Over on polyline
+	 
 	if (!isIE()) { 
 		activeRoute.routePoly.on('mouseover',function(e) { 
 			//consoleLog("mouseover");
@@ -742,6 +605,143 @@ function createRoutePoly(lls) {
 		}
 	}
 }
+*/
+
+
+/* 
+ * Refresh  gRoute/gRouteInfo panels (divs) to reflect current active route
+ * Note: this is called twice every time a new point is added (to provide a prompt feedback and then to update with new leg info)
+ */
+
+function refreshRouteInfo() {
+	
+	var arrayLength = activeRoute.viaPoints.length;
+
+	var indexIconStartClass = "gIMGreen";
+	var indexIconEndClass = "gIMRed";
+
+	if ( activeRoute.closedLoop ) {
+		consoleLog("Route is a LOOP! Setting Icon classes");
+		indexIconStartClass = "gIMLoop";
+		indexIconEndClass = "collapsed";
+	}
+
+	
+	var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
+	var routeInfo= "";
+	if (arrayLength> 1 && activeRoute.routeDistance != "n/a" ) { 
+		var closedRouteStyle="";
+		if (activeRoute.closedLoop) { closedRouteStyle='style="color: green;"'; }
+		routeInfo = '<a class="gactions" href="javascript:activeRoute.clean();" title="Clean Current Route">&#215;</a> ' +
+			formatDecimal(activeRoute.routeDistance,2)+ uom +" ("+ activeRoute.routeFormattedTime+")" +
+			'&nbsp;<a id="gClosedRoute" class="gactions" href="javascript:activeRoute.toggleLoop();" title="'+translations["route.closedLoop"]+'" '+closedRouteStyle+'>&#8634;</a> ' +
+			'&nbsp;<a class="gactions" href="javascript:activeRoute.reverse();" title="'+translations["route.invert"]+'"><img src="./icons/reverse.svg" width="20" height="20"/></a> ';
+			// '&nbsp;<a class="gactions" href="javascript:activeRoute.reverse();" title="'+translations["route.invert"]+'">&#8644;</a> ';
+	}
+	document.getElementById("gRouteInfo").innerHTML  = routeInfo;
+	var s = "";
+	
+	// clean Index markers so they can get refreshed according to position on route below
+	for (idx in activeRoute.markersIdx) {
+		//consoleLog("deleting idx:" + idx);
+		//consoleLog(activeRoute.markersIdx[idx]);
+		map.removeLayer(activeRoute.markersIdx[idx] );
+		delete activeRoute.markersIdx[idx] ;
+	} 
+
+	var legsTimeTotal = 0;
+	var legsDistanceTotal = 0;
+
+	for (var i = 0; i < arrayLength; i++) {
+		vp = activeRoute.viaPoints[i];
+
+		preS = "<span style='width: 24px; display: inline-block;'></span>";// just to reserve 24px (20+ 2x2padding)
+		postS = "<span style='width: 24px; display: inline-block;'></span>";
+		
+		indexIconClass = "gIMWhite";
+		
+		if (i==(arrayLength-1)) { // Last
+			indexIconClass = indexIconEndClass;
+			if (!activeRoute.closedLoop) { // omit in closed loop since we don't want to add points after the last one
+				postS= "&nbsp;<a class='gaddWayPoint' style='color: green;width: 20px; display: inline-block;' title='Add Point Here'  onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>"; 
+			}
+		} else {
+			if (!activeRoute.closedLoop || ( i!=(arrayLength-2) && i!=0 ) ) { // no down arrow if closed loop and first or one before last
+				postS = "<a class='gactions' title='Move After' href='javascript:activeRoute.moveDown(\""+vp.id+"\")'><img src='./icons/down.svg' width='20' height='20'></a>";
+			}
+		}
+
+		if (i==0) { // First
+			indexIconClass = indexIconStartClass ;
+			if (!activeRoute.closedLoop) { // omit in closed loop since we don't want to add points before the last one
+				preS= "<a class='gaddWayPoint' title='Add Point Here' style='width: 20px; display: inline-block;'  onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\"0\");'>+</a>&nbsp;";
+			}
+		} else {
+			if (!activeRoute.closedLoop || ( i!=(arrayLength-1) && i!=1 ) ) { // no up arrow if closed loop and last or second
+				preS = "<a class='gactions' title='Move Before' href='javascript:activeRoute.moveUp(\""+vp.id+"\")'><img src='./icons/up.svg' width='20' height='20'></a>"
+			}
+		}
+		
+		//displayName = escapeHTML((vp.name.length>15?(vp.name.substring(0,12)+"..."):vp.name));
+		//consoleLog("Street Name " + displayName);
+		s = s +"<span class='groute_vp'>"+
+		     preS +
+	             (i+1)+". <input type='text'  id='"+vp.id+"' onclick='javascript:openViaPointMarker(\""+vp.id+"\")'  class='inputsRoute' value='" +escapeHTML(vp.name)+"' size='20' maxlength='50'>" +
+	             postS+
+		     "</span>";
+		elid = "#"+vp.id;
+		//consoleLog( "Adding:" + elid + " to change event with delegation"); 
+		// Handler to update point name
+		// remove previous handler 
+		$(document.body).off("change", elid);
+		$(document.body).on("change", elid, (function(){ 
+				//consoleLog( "On Change for:" + this.id +  " New name will be:" + document.getElementById(this.id).value);
+				updateViaPointName(document.getElementById(this.id).value,this.id);
+				// update url
+				history.pushState(name, name, activeRoute.getUrl());
+			}));	
+
+		//consoleLog("* legs" + i);
+		if (arrayLength>1 && activeRoute.legs[i] != null && i< arrayLength-1)  {
+			legsTimeTotal = legsTimeTotal+activeRoute.legs[i].time;
+			legsDistanceTotal =  legsDistanceTotal+activeRoute.legs[i].distance;
+			var time = activeRoute.legs[i].time;
+			var distance = activeRoute.legs[i].distance;
+			if (legsIsCumulative) {
+			    time = legsTimeTotal;
+			    distance = legsDistanceTotal;
+			}
+			// The "+" sign can be clicked on to add next point after this one
+			// keyboard keys pressed when "+" sign is focused are passed to onCutKeyPress
+			// to cut the route
+			s = s + "<div class='legsInfo' onclick='javascript:legsCumulativeToggle()'>"+ 
+			        "<span style='width: 20px; display: inline-block;'></span> &#8870; "+
+			        // (activeRoute.legs[i].hasUnpaved?'~':'')+formatDecimal(distance,2)+ uom +
+			        formatDecimal(distance,2)+ uom +
+				" ("+ formatTime(time) + ") </div>&nbsp;<a class='gaddWayPoint' title='Add Point Here' onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>";
+			//consoleLog("* leg("+ i +"): dist/time" + time  + "/" + distance);
+			
+		}
+		
+		// add index below marker
+		var indexIcon = L.divIcon({className: 'gIndexMarker '+indexIconClass, html: (i+1)}); //, iconSize: 16});
+		var markerPos = L.marker(activeRoute.viaPoints[i], {icon: indexIcon});
+		
+		markerPos.on("click",  function(e) {
+			//L.DomEvent.stopPropagation(e); 
+			//L.DomEvent.preventDefault(e);
+			map.zoomIn();
+			} ).setZIndexOffset(1000); 
+		activeRoute.markersIdx["idx_"+(i+1)] = markerPos;
+		markerPos.addTo(map);
+	}
+	document.getElementById("gRoute").innerHTML = s;
+
+	if (document.getElementById("gExport").style.display === "block") refreshExportPanel();
+
+}
+
+
 
 /* Triggered when Route name has changed, update Route name */
 function onRouteNameChange (){

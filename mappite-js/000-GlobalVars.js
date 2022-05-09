@@ -103,3 +103,6 @@ var localStoragesKeys = [];
 
 // ajax event that stores the route computation
 var xAjax = null;
+
+// contains all labels translations in current language
+var translations = [];

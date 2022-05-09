@@ -1,3 +1,7 @@
+2022050x
+. Elevation
+. Fix: whenr oute fails, moving the failed point does not honor the index
+
 20220502
 . Added + icons on viapoint popup to delete or add next point before/after
 . Fixes on POI when switching on/off poi mode

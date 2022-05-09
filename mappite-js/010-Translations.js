@@ -1,6 +1,6 @@
 /*** Translations ***/
 
-var translations; 
+
 // Defaults
 var langCode="en";
 infoFile = "./lang/en-info.html"; 
@@ -37,12 +37,14 @@ var translate = function (jsdata) {
 	});
 	
 	// FIXME: "translate" is not the proper place form a functional standpoint for this one
+	//        however this guarantees translations are available
 	if (getCookie("enrolled") === "yes") {
 		updateEnrolledInfo();
 		refreshSavedRoutes();
 	} else {
-		// attempt to restore enrolled cookie from server 
-		// this will call asyncrouslin updateEnrolledInfo() and refreshSavedRoutes()
+		// attempt to restore enrolled cookie from server
+		// (ref. iOS https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/)
+		// this will invoke updateEnrolledInfo() and refreshSavedRoutes()
 		restoreEnrolled() ;
 	}
 }
@@ -67,15 +69,6 @@ function initTranslations() {
 	}
 }
 
-function updateEnrolledInfo() {
-	// update enroll button in header
-	document.getElementById("gHeaderEnroll").innerHTML=  "<span style='color: #1B76C8'>" + translations["cloud.enrolled"] +"<span>";
-	// update text in cloud tab gEnroll pane (wipe everything)
-	document.getElementById("gEnroll").innerHTML=  translations["cloud.enrolled"];
-	// update JgEnrollButton label in cloud tab to show unenroll
-	document.getElementById("JgEnrollButton").innerHTML=  translations["cloud.unenroll"];
-	// set file to load on header when one clicks on .clsEnroll
-	enrollFile = enrolledFile;
-}
+
 
 

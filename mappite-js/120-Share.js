@@ -126,6 +126,8 @@ function showPoints() { // check https://github.com/niklasvh/html2canvas
 	}
 	$( "#gHeaderContent" ).html(routePointsStr);
 	$( "#gPanelToggle" ).click(); // close panel
+	// document.getElementById("gHeaderHandler").style.display = "inline"; // show handle for drag
+	document.getElementById("gCanvas").style.display = "none";
 	headerCls.show();
 	map.removeLayer(markersCluster);
 	alertOnce("export.showPoints");

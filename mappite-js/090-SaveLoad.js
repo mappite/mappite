@@ -314,7 +314,10 @@ function loadRoute(url) {
 	}
 
 	if (options.charAt(1) != 'o') { // if not a POI list
-		if (activeRoute != null) activeRoute.forceClean(); // FIXME: shoudl prompt a confirm box
+		if (activeRoute != null) {
+			consoleLog("*** loadRoute forceClean");
+			activeRoute.forceClean(); // FIXME: shoudl prompt a confirm box
+		}
 		setOptionsString(options); // set options to drive calculation
 		
 		var i=0;
@@ -446,7 +449,7 @@ function refreshSavedRoutesHtml() {
 			if ( (allTags || routeNamesInTag.indexOf(key.replace("gRoute|",""))>-1 )
 				&& (sayt == "" || routeName.toLowerCase().indexOf(sayt)>-1 ) ) {
 				var val= localStorage.getItem(key); // url
-				consoleLog( "local item found: ("+i+") " + routeName);//key, localStorage.getItem(key)); 
+				// consoleLog( "local item found: ("+i+") " + routeName);//key, localStorage.getItem(key)); 
 				
 					var cloudImg= "";
 				if (val.substring(0,2) === "C_") { 

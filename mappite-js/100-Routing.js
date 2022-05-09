@@ -120,6 +120,7 @@ function computeRouteGSpeed(rvps, focus, server){
 	} else {
 		consoleLog("Direct");
 		url="https://"+server+"/route/?";
+		//url="http://localhost:8989/route/?";
 	}
 	
 	queryString= '';
@@ -127,7 +128,7 @@ function computeRouteGSpeed(rvps, focus, server){
 	    queryString = queryString + 'point='+rvps[i].lat+'%2C'+rvps[i].lng+'&';
 	}
 
-	queryString = queryString + 'elevation=false&locale=en-US&';	
+	queryString = queryString + 'elevation=true&locale=en-US&';	
 
 
 	uom = document.getElementById("gOptions.uom").value; // k (km) or m (miles)
@@ -167,11 +168,27 @@ function computeRouteGSpeed(rvps, focus, server){
 		consoleLog("Distance KM: " + ghpath.distance);
 		consoleLog("Time: " + ghpath.time);
 
-		sps =  trackDecompress(ghpath.points,5); // json.route.shape.shapePoints;
+		// Elevation
+		var ele = new Array(); // elevation for each point
+		var maxEle = 0;
+		var minEle = 50000; // it might fail for starships, note is minEle stays at 50000 it means no ele in track, see TrackCanvas.draw()
+		var dist = new Array(); // distance of each point from start
+		dist[0] = 0;
+
+		sps =  trackEleDecompress(ghpath.points,5); // json.route.shape.shapePoints;
 		var lls = new Array(); // stores shapePoints as [lat,lng] couples array
 		var i=0;
+		/*
 		while(i < sps.length/2) {
 		    lls[i] = [sps[i*2],sps[i*2+1]];
+		    i++;
+		}*/
+		while(i < sps.length/3) {
+		    lls[i] = [sps[i*3],sps[i*3+1]];
+		    ele[i] = Math.round(sps[i*3+2]/100);
+		    if (i>0) dist[i] = dist[i-1] + getDistance(lls[i-1], lls[i], ele[i-1], ele[i]);
+		    if (ele[i]>maxEle)  { maxEle = ele[i]; }
+		    if (ele[i]<minEle)  { minEle = ele[i]; }
 		    i++;
 		}
 		    
@@ -199,13 +216,21 @@ function computeRouteGSpeed(rvps, focus, server){
 		   }
 		}
 
-		activeRoute.setLegs(legs);
+		activeRoute.setLegs(legs); 
 		activeRoute.setLegsIdx(legsIdx);
 		activeRoute.routeFormattedTime = formatTime(Math.round(ghpath.time/1000));
 		activeRoute.routeDistance = ghpath.distance / uomFactor / 1000;	
-		createRoutePoly(lls);
+		
+		//createRoutePoly(lls);
+		// Elevation
+		var track = new Track("::activeRoute", lls);
+		track.setEle(ele);
+		track.setDist(dist);
+		track.setMaxEle(maxEle);
+		track.setMinEle(minEle);
+		track.draw();
 
-		activeRoute.refreshHtml(); // redraw Route div so it shows updated time&distance 
+		refreshRouteInfo(); // redraw Route Info Panel
 		computeDone();
 		
 		if (focus) activeRoute.focus(); 
@@ -367,7 +392,7 @@ function computeRouteGFlex(rvps, focus){
 		activeRoute.routeDistance = ghpath.distance / 1000;	
 		createRoutePoly(lls);
 
-		activeRoute.refreshHtml(); // redraw Route div so it shows updated time&distance 
+		refreshRouteInfo(); // redraw Route Info Panel
 		computeDone();
 		if (focus) activeRoute.focus(); 
 	    },
@@ -501,9 +526,17 @@ function computeRouteMapQuest(rvps, focus){
 		activeRoute.routeFormattedTime = formatTime(Math.round(json.route.time));
 		activeRoute.routeDistance = json.route.distance; // in uom
 
-		createRoutePoly(lls);
+		//createRoutePoly(lls);
+		var dist = new Array(); // distance of each point from start
+		dist[0] = 0;
+		for(i=0;i < lls.length;i++) {
+		    if (i>0) dist[i] = dist[i-1] + getDistance(lls[i-1], lls[i], 0, 0);
+		}
+		var track = new Track("::activeRoute", lls);
+		track.setDist(dist);
+		track.draw();
 		
-		activeRoute.refreshHtml(); // redraw Route div so it shows updated time&distance 
+		refreshRouteInfo(); // redraw Route Info Panel so it shows updated time&distance 
 		computeDone();
 
 		if (focus) activeRoute.focus(); 
@@ -588,7 +621,7 @@ function computeRouteORS(rvps, focus){
 	}
 	var options = '"options": {' + avoidances + '}';
 	
-	var postJson = '{'+coords+', '+options+', "preference": "'+preference+'", "units": "'+units+'", "instructions": "true", "elevation": "false" }';
+	var postJson = '{'+coords+', '+options+', "preference": "'+preference+'", "units": "'+units+'", "instructions": "true", "elevation": "true" }';
 
 	//consoleLog("ORS url:\n" + url);
 	//consoleLog("ORS postJson:\n" + postJson);
@@ -615,13 +648,32 @@ function computeRouteORS(rvps, focus){
 			consoleLog( 'total length in uom:'+json.routes[0].summary.distance);
 			
 			var lls = new Array(); // stores shapePoints as [lat,lng] couples array
-			var sps =  trackDecompress(json.routes[0].geometry,5); // json.route.shape.shapePoints;
-			var lls = new Array(); // stores shapePoints as [lat,lng] couples array
+			var sps =  trackEleDecompress(json.routes[0].geometry,5); // json.route.shape.shapePoints;
+			
+			// Elevation
+			var ele = new Array(); // elevation for each point
+			var maxEle = 0;
+			var minEle = 50000; // it might fail for starships, note is minEle stays at 50000 it means no ele in track, see TrackCanvas.draw()
+			var dist = new Array(); // distance of each point from start
+			dist[0] = 0;
+
 			var i=0;
-			while(i < sps.length/2) {
+			/*while(i < sps.length/2) {
 			    lls[i] = [sps[i*2],sps[i*2+1]];
 			    i++;
+			}*/
+			
+			while(i < sps.length/3) {
+			    lls[i] = [sps[i*3],sps[i*3+1]];
+			    ele[i] = Math.round(sps[i*3+2]/100);
+			    if (i>0) dist[i] = dist[i-1] + getDistance(lls[i-1], lls[i], ele[i-1], ele[i]);
+			    if (ele[i]>maxEle)  { maxEle = ele[i]; }
+			    if (ele[i]<minEle)  { minEle = ele[i]; }
+			    i++;
 			}
+			consoleLog("Min Ele: "+ minEle);
+			consoleLog("Total Distance: "+ dist[i-1]);
+
 			
 			var legs = new Array();
 			var legsIdx = new Array();
@@ -646,8 +698,18 @@ function computeRouteORS(rvps, focus){
 			activeRoute.routeFormattedTime = formatTime(Math.round(json.routes[0].summary.duration));
 			activeRoute.routeDistance = json.routes[0].summary.distance; // in UOM
 			
-			createRoutePoly(lls);
-			activeRoute.refreshHtml(); // redraw Route div so it shows updated time&distance 
+			//createRoutePoly(lls);
+			
+			var track = new Track("::activeRoute", lls);
+			track.setEle(ele);
+			track.setDist(dist);
+			track.setMaxEle(maxEle);
+			track.setMinEle(minEle);
+			track.draw();
+			
+			
+			
+			refreshRouteInfo(); // redraw Route Info Panelso it shows updated time&distance 
 			computeDone();
 
 			if (focus) activeRoute.focus(); 

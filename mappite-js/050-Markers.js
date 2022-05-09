@@ -65,7 +65,7 @@ function insertPointBeforeId(id) {
 }
 
 /* Apply drag events to objects
-    used by  addMarkerToMap and addPotentialMarkerToMap */
+    used by  addMarkerToMap */
 function draggerize(marker, vp) {
 	marker.on('drag', function(e) { 
 		//consoleLog("drag");
@@ -73,7 +73,8 @@ function draggerize(marker, vp) {
 	});
 
 	marker.on('dragend', function(e) { // note: not fired if long tap/rigth click remved the target.
-		//consoleLog("dragend"); 
+		consoleLog("dragend: " + vp.id);
+		consoleLog("insertPointAt: " + insertPointAt);		
 		dragRemoveHide();
 		
 		if (activeRoute.viaPoints[0].id === vp.id  && activeRoute.closedLoop) { // if first point of a closed loop
@@ -81,9 +82,11 @@ function draggerize(marker, vp) {
 			activeRoute.toggleLoop(false); // false = avoid recalculation since we (may) add a new point below 
 			activeRoute.insertPointAt(0); //  first point will be moved
 		} else if (activeRoute.viaPoints.length >1) {
-			var idx = getPointLegIdx(vp.latLng); /// original marker latLng // on closed loop this returns the last (that's why this if)
-			activeRoute.insertPointAt(idx);
-			//consoleLog("*  Moving point idx: " +idx);
+			//var idx = getPointLegIdx(vp.latLng); /// original marker latLng // on closed loop this returns the last (that's why this if)
+			//activeRoute.insertPointAt(idx);
+			//consoleLog("*  Moving insertPointAt: " +idx);
+			activeRoute.insertPointBeforeId(vp.id);
+			// consoleLog("*  Moving insertPointAt: " +idx);
 		}
 
 		//remove marker
@@ -109,8 +112,10 @@ function draggerize(marker, vp) {
 /* Show/Hide red banner 
     used by draggerize() and InitiateMap for gMarkerDrag */
 function dragRemoveShow() {
+	//document.getElementById("gMarkerRemove").style.display = "solid";
 	// display red banner
-	document.getElementById("gMarkerRemove").style.zIndex =1000; 
+	
+	document.getElementById("gMarkerRemove").style.zIndex =1005; 
 	document.getElementById("gMarkerRemove").style.background = "rgba(255, 0, 0, 0.2)";
 	document.getElementById("gMarkerRemove").innerHTML = translations["route.deleteAreaMsg"];
 } 
@@ -118,20 +123,14 @@ function dragRemoveShow() {
 /* Hide red banner */
 function dragRemoveHide() {
 	// remove red banner
+	//document.getElementById("gMarkerRemove").style.display = "none";
+	
 	document.getElementById("gMarkerRemove").style.zIndex =0; 
 	// just to avoid showing red banner with text if maps does not load fast
 	document.getElementById("gMarkerRemove").style.background = "rgba(0, 0, 0, 0)";	
 	document.getElementById("gMarkerRemove").innerHTML = "";
 } 
 
-/* Delete a Potential Marker in the map for a potential route waypoint. 
-   Called by Potential Marker popup,  addPotentialMarkerToMap */
-/*function onDeletePotentialMarker(id) {
-	//map.removeLayer(markers[id]); // rfcuster
-	markersCluster.removeLayer(markers[id]);
-	delete markers[id] ;
-}
-*/
 
 function openViaPointMarker(id) {
 	// open popup

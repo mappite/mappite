@@ -122,7 +122,7 @@ function refreshCloudRoutes() {
 			
 			var routes = json.routes;
 			for (i=0;i<routes.length; i++){ // add to local storage
-				consoleLog("cloud item found: " + routes[i].name); 
+				//consoleLog("cloud item found: " + routes[i].name); 
 				localStorage.setItem("gRoute|"+routes[i].name , "C_"+routes[i].url); // "C_ means from cloud
 			}
 			
@@ -236,16 +236,31 @@ function restoreEnrolled() {
 			setCookie("enrolled","yes",1825); // 5 yrs
 			consoleLog( "restoreEnrolled: cookie recovered");
 			updateEnrolledInfo() ;
-			// refresh routes from cloud
-			refreshSavedRoutes() 
 		} else {
 			consoleLog( "restoreEnrolled: no cookie");
 			
 		}
+		// refresh routes list
+		refreshSavedRoutes();
 	  },
 	  error: function(jqXHR, textStatus, errorThrown) {
 		consoleLog( "restoreEnrolled Failure: " + textStatus + " - " + errorThrown);
+		// refresh routes list
+		refreshSavedRoutes();
 	  }
 	});
 
+}
+
+/* Update panels content to display welcom e messages
+ */
+function updateEnrolledInfo() {
+	// update enroll button in header
+	document.getElementById("gHeaderEnroll").innerHTML=  "<span style='color: #1B76C8'>" + translations["cloud.enrolled"] +"<span>";
+	// update text in cloud tab gEnroll pane (wipe everything)
+	document.getElementById("gEnroll").innerHTML=  translations["cloud.enrolled"];
+	// update JgEnrollButton label in cloud tab to show unenroll
+	document.getElementById("JgEnrollButton").innerHTML=  translations["cloud.unenroll"];
+	// set file to load on header when one clicks on .clsEnroll
+	enrollFile = enrolledFile;
 }

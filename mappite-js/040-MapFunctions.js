@@ -30,12 +30,6 @@ function initiateMap(ll, z) {
 				var pos = label.lastIndexOf(','); // country
 				if (pos > 1) { label = label.substring(0,pos); } // remove country
 				
-				
-				// by cic var vp = new ViaPoint(ll.lat, ll.lng, label);
-				// Trasform label in html and add country
-				// if (pos > 1) { label = e.geocode.name.substring(0,pos) + "<br><small>" + e.geocode.name.substring(pos+1) + "</small>"; }
-				// by cic addPotentialMarkerToMap(vp, label);
-				
 				map.addLayer(createPoiMarker(ll.lat, ll.lng, label, iconPoiSearch)); // fixme, this can't be removed!
 				
 				map.fitBounds(e.geocode.bbox); // map.panTo(ll);//setView(ll);
