@@ -1,6 +1,52 @@
-2022050x
+20240316
+. unpaved road: all europe
+. protomaps Roads and Dark enable
+. allow paid map only for enrolled users
+
+20240304
+. Fix: Point Type is preserved when name changes
+. Minor style changes on list of point and number size on map
+
+20240218
+. exported track has elevation
+. unpaved road: maghreb
+
+202401xx
+. unpaved road / pbmtiles. Alps, USA, Australia
+
+20231210
+. click on imported track add route point really on track 
+. export waypoints honors type and sym tag
+
+20231125
+. viaPoints can be defined as break or stop points with different icons
+. option to export gpx route split at breaks/stops
+. gpx export honors shapingpoints by defaulted
+. right click on viaPoint pops up popup (vs deleting point)
+
+20230114
+. Shaping Points - add #s# on point name or click icon on marker menu
+. Fixed POI/Search markers & Route markers overlap (route markers now stays on top)
+. Markers icons refactoring for Route & POI
+. Bottom right gray marker shows for non-touc device to hide/show markers
+
+20221028 (never to prod)
+. Click on Elevation canvas to measure distances/timings
+
+20220528
+. Decommissioned Mapquest for routing (no elevation)
+. Improved routing error management
+. Lifetime User msg
+. Fix: (?) potential issue with option string showing "undefined"
+
+20220520
 . Elevation
-. Fix: whenr oute fails, moving the failed point does not honor the index
+. Fix: when routing fails, moving the failed point does not honor the index
+. Fix: saved routes seems to disappear for not enrolled users (refreshSavedRoutes not called)
+. Added Hotels & Drinking Water 
+. Fix: autocomplete off on saved rute search fayt
+. Fix: bar/cafe did not work
+. Regression fix: long tap on markes in iOS prompts to save icon
 
 20220502
 . Added + icons on viapoint popup to delete or add next point before/after
@@ -14,7 +60,7 @@
 20220404
 . fixes:
 	delete/save route overwrites with multiple tabs
-	mapquest routes not caching correctly
+	mapquest routes not cached correctly
 	restored server crontab to clean cache
 
 20220202

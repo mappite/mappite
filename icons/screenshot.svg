@@ -5,12 +5,36 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    id="svg4"
    version="1.1"
    height="16px"
    width="16px"
    viewBox="0 0 16 16"
-   fill="#000000">
+   fill="#000000"
+   sodipodi:docname="screenshot.svg"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1270"
+     inkscape:window-height="707"
+     id="namedview6"
+     showgrid="false"
+     inkscape:zoom="14.75"
+     inkscape:cx="-2.6779661"
+     inkscape:cy="8"
+     inkscape:window-x="0"
+     inkscape:window-y="31"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg4" />
   <metadata
      id="metadata10">
     <rdf:RDF>
@@ -19,14 +43,14 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <defs
      id="defs8" />
   <path
-     style="stroke-width:0.4;stroke-miterlimit:4;stroke-dasharray:none;stroke:#000000;stroke-opacity:1"
+     style="stroke-width:0.4;stroke-miterlimit:4;stroke-dasharray:none;stroke:#838383;stroke-opacity:1;fill:#838383;fill-opacity:1"
      id="path2"
      d="M 6.09375 2 C 5.324219 2 4.660156 2.605469 4.507813 3.445313 L 4.410156 4 L 3 4 C 1.894531 4 1 4.894531 1 6 L 1 12 C 1 13.105469 1.894531 14 3 14 L 13 14 C 14.105469 14 15 13.105469 15 12 L 15 6 C 15 4.894531 14.105469 4 13 4 L 11.589844 4 L 11.488281 3.445313 C 11.339844 2.605469 10.675781 2 9.90625 2 Z M 6.09375 3 L 9.90625 3 C 10.1875 3 10.441406 3.261719 10.503906 3.625 L 10.605469 4.179688 L 10.753906 5 L 13 5 C 13.550781 5 14 5.449219 14 6 L 14 12 C 14 12.550781 13.550781 13 13 13 L 3 13 C 2.449219 13 2 12.550781 2 12 L 2 6 C 2 5.449219 2.449219 5 3 5 L 5.246094 5 L 5.394531 4.179688 L 5.492188 3.625 C 5.558594 3.261719 5.8125 3 6.09375 3 Z M 8 6 C 6.34375 6 5 7.339844 5 8.988281 C 5 10.636719 6.34375 11.976563 8 11.976563 C 9.65625 11.976563 11 10.636719 11 8.988281 C 11 7.339844 9.65625 6 8 6 Z M 8 7 C 9.101563 7 10 7.890625 10 8.988281 C 10 10.085938 9.101563 10.976563 8 10.976563 C 6.898438 10.976563 6 10.085938 6 8.988281 C 6 7.890625 6.898438 7 8 7 Z" />
 </svg>

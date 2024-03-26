@@ -61,7 +61,22 @@ Per rimuovere tutte le icone dalla mappa, click-destro o long-tap nelle icone de
 <div class="howtoItem" style="display: none" >
 Dal pannello in basso a sinistra, <img src="https://www.mappite.org/scripts/images/wrench.svg" width="20px" height="20px"> , scegli <b>Click Ovunque</b> anzichè <b>Click Su Strade</b>. Questo permetterà di scegliere punti di passaggio anche in sentieri o strade non asfaltate, mentre l'impostazione di default aggancia il punto alla strada (di solito asfaltata) più vicina.
 <br>Le strade sterrate sono lente e spesso più lunghe di quelle principali quindi dovrai aggiungere più punti di via su di esse per forzare il percorso.
-<br>Quando esportate il percorso sul navigatore, assicuratevi che le vostre mappe contangano le strade sterrate. Usate le mappe OSM gratuite per i migliori risultati.
+<br>Quando esportate il percorso sul navigatore, assicuratevi che le vostre mappe contengano le strade sterrate oppore esportate come traccia (track). Usate le mappe OSM gratuite per i migliori risultati.
+</div></div>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>evidenziare strade sterrate - BETA</a>
+<div id="unpaved" class="howtoItem" style="display: none" >
+<b>Disponibili nelle Alpi, USA, Australia</b> - per mettere in evidenza le strade sterrate, incrementate lo zoom e l'icona  
+<img src="./icons/trackLayer.svg" width="24">
+apparirà nel menu in alto a destra.<br> Click sull'icona per dare evidenza alle strade sterrate, tap o tasto destro su una strada per conoscerne le caratteristiche - per più dettagli vedere il video <a href="https://www.youtube.com/watch?v=XKFe_fh_Ujc" target="_blank">Unpaved Roads with Mappite - Plan a Route</a>. <br>Legenda:<br><img src="/vector/legend.png"><br> <span style="color: #DC614F;"><b>DISCLAIMER:</b> le strade sterrate segnalate potrebbero non essere corrette, rispettate le leggi locali e l'ambiente.</span><br> I dati provengono da OpenStreetMap, per contribuire a sistemare gli errori, guardate il video <a href="https://www.youtube.com/watch?v=HOOyr_2PV-Y" target="_blank">Unpaved Roads with Mappite - Edit with OSM </a>.
+</div></div>
+
+<div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>utilizzare gli Shaping Points</a>
+<div id="unpaved" class="howtoItem" style="display: none" >
+Gli Shaping Points sono punti del percorso che differiscono dai normali Via Points in quanto non rappresentano punti di sosta durante il viaggio, sono necessari solo per dare forma (shape) al percorso. È possibile generare automaticamente shaping points a distanze specifiche esportando un percorso in formato GPX e selezionando l'opzione <i>"ShapingPoints"</i>, questo aiuta il navigatore a calcolare lo stesso percorso che vedi in mappite. <br>Puoi anche trasformare manualmente un Via Point in Shaping Point, click sul segnalino e poi click nell'iconcina rotonda.
+<br><img src="./lang/shots/shapingPoints.png"><br>
+Assicurati che l'opzione <i>"ShapingPoint"</i> sia attiva quando esporti un percorso con tali punti (altrimenti saranno esportati come punti normali), scegli il valore 0 per non generarne di automatici. Nota: non tutti i navigatori supportano gli Shaping Points, di solito i device <b>Garmin</b> li supportano.
+<br><img src="./lang/shots/shapingPointsExport.png">
 </div></div>
 
 <div class="howto"><a class="glinks" style="color: #DC614F;" onclick='javascript:$(this).next().toggle( { direction: "down" });'>editare POI (Points Of Interests)?</a>
@@ -76,17 +91,17 @@ Se sei un utente registrato puoi creare e salvare POI. Dal pannello in basso a s
 <h3>Condivisione - Come fare a...</h3>
 
 <div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>condividere un percorso?</a>
-<div class="howtoItem" style="display: none"> Dal pannello in basso a sinistra, <img src="https://www.mappite.org/scripts/images/share.svg" width="20px" height="20px"> , click su  <b>Link Breve</b> per ottenere un link semplice (tipo </i>https://mappite.org/abcd</i>), click sull'icona di <b>Facebook</b> o <b>Whatsapp</b> (se whatsapp è installato) oppure click su <b>Forum</b> per il codice BB del link al percorso.
+<div class="howtoItem" style="display: none"> Dal pannello in basso a sinistra, <img src="https://www.mappite.org/scripts/images/share.svg" width="20px" height="20px"> , click su  <b>Link Breve</b> per ottenere un link semplice (tipo </i>https://mappite.org/abcd</i>) da condividere, click sull'icona di <b>Facebook</b> o <b>Whatsapp</b> (se whatsapp è installato) oppure click su <b>Forum</b> per il codice BB del link al percorso. <br>Click sull'icona di Google Maps per aprire il percorso in Google Maps. <i>Nota: il primo punto è vuoto per impostare la posizione corrente e cominciare la navigazione, devi cancellarlo per vedere il percorso così come lo vedi in mappite. Considera inoltre che Google Maps ha un limite di 10 punti.</i>
 <br><img src="./lang/shots/share-Social.png">
 </div></div>
 
 <div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>esportare un percorso su file?</a>
-<div class="howtoItem" style="display: none">Dal pannello in basso a sinistra, <img src="https://www.mappite.org/scripts/images/share.svg" width="20px" height="20px"> , scegli il formato (gpx route/track/waypoints o itn) e click sul pulsante <b>Esporta</b>. <br><i>Utenti Apple Safari: il file potrebbe essere salvato con nome "Sconosciuto" o "Unknown", rinominatelo in  "qualcosa.gpx" per usarlo.</i>
+<div class="howtoItem" style="display: none">Dal pannello in basso a sinistra, <img src="https://www.mappite.org/scripts/images/share.svg" width="20px" height="20px"> ,  click sul pulsante <b>Esporta</b> per esportare un percorso (Route) in formato GPX standard. Click sull'iconcina <b>&laquo;</b> per aprire il menù delle opzioni. <br><i>Utenti Apple Safari: il file potrebbe essere salvato con nome "Sconosciuto" o "Unknown", rinominatelo in  "qualcosa.gpx" per usarlo.</i>
 <br><img src="./lang/shots/share-ExportGpx.png">
 </div></div>
 
 <div class="howto"><a class="glinks" onclick='javascript:$(this).next().toggle( { direction: "down" });'>trasferire un percorso sul navigatore?</a>
-<div class="howtoItem" style="display: none"> Esporta il percorso su un file, collega il navigatore via USB e copia il file come descritto nelle istruzioni del navigatore: su Garmin copia il file nel folder \GARMIN\GPX della memoria interna (o SD), scollega e accendi il navigatore, vai nel menù dei percorsi e se non trovi nulla di nuovo segui il menu "importa percorsi" o simili.
+<div class="howtoItem" style="display: none">   Alcuni navigatori supportano il trasferimento via Bluetooth, ad es. usa Garmin Drive: <a href="https://www.youtube.com/watch?v=uoSLowqKJv0" target="_blank">Using Garmin Drive with Mappite</a>. In generale puoi esportare il percorso su un file, collegare il navigatore via USB e copiare il file come descritto nelle istruzioni del navigatore: su Garmin copia il file nel folder \GARMIN\GPX della memoria interna (o SD), scollega e accendi il navigatore, vai nel menù dei percorsi e se non trovi nulla di nuovo segui il menu "importa percorsi" o simili.
 <br><b>Note:</b> su telefoni Android puoi collegare il navigatore tramite cavo USB OTG e trasferire i percorsi, utile in viaggio!
 </div></div>
 

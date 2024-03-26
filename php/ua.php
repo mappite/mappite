@@ -70,8 +70,8 @@ $conn  = null; // terminate connection
 
 function createUser($email, $pwd, $lang) {
 	global $conn;
-	$email = $email.trim();
-	$pwd = $pwd.trim();
+	$email = trim($email);
+	$pwd = trim($pwd);
 	$stmt = $conn->prepare('INSERT INTO `USERS` (`EMAIL`, `PWD`, `TOKEN`, `LANG`, `TOKEN_DATE`, `CREATION_DATE`) VALUES (:email, MD5(:pwd), :token, :lang, now(), now())');
 	$stmt->bindParam(':email', $email); 
 	$stmt->bindParam(':pwd' , $pwd);

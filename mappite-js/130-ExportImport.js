@@ -67,12 +67,15 @@ function loadFile(file) {
 				}
 				//consoleLog("*** trkname: " +trkname)
 				var trksegs = trk[i].getElementsByTagName("trkseg");
+				var allPoints = [];
 				for (var j = 0; j < trksegs.length; j++) {
 					//consoleLog("*** segment " + j)
 					isLoadSuccess = true;
 					points = trksegs[j].getElementsByTagName("trkpt");
-					if (points.length>0) {loadGpxTrack(points, trkname);}
+					
+					if (points.length>0) {allPoints.push(points)}
 				}
+				loadGpxTrack(allPoints, trkname);
 			}
 			
 			// wpt
@@ -113,38 +116,56 @@ function loadFile(file) {
 	reader.readAsText(file);  
 }
 
-function loadGpxTrack(points, trackName) {
-	// Create a new polyline
+function loadGpxTrack(allPoints, trackName) {
 	var lls = [];
 	var ele = [];
+	var time = [];
+	var startTime = 0;
 	var maxEle = 0;
 	var minEle = 50000; // it might fail for starships, note is minEle stays at 50000 it means no ele in track, see TrackCanvas.draw()
 	var dist = [];
 	dist[0] = 0;
-	var distance = 0; // in km
-	for (i = 0; i < points.length; i++) {
-		lls[i]=[points[i].getAttribute("lat"),points[i].getAttribute("lon")];
-		if (typeof points[i].getElementsByTagName("ele")[0] !== 'undefined') { // we have elevation
-			//consoleLog("ele content: " + points[i].getElementsByTagName("ele")[0].textContent);
-			ele[i] = Number(points[i].getElementsByTagName("ele")[0].textContent);
-			if (ele[i]>maxEle) { maxEle = ele[i]; }
-			if (ele[i]<minEle)  { minEle = ele[i]; }
-		} else {
-			ele[i] = 0;
-		}
-		if (i>0) {
-			dist[i] = dist[i-1] + getDistance(lls[i-1], lls[i], ele[i-1], ele[i]);
-			// we could compute dist at max elevation
+	var currIdx = -1;
+	for(k=0; k< allPoints.length; k++) {
+		var points  = allPoints[k];
+		// consoleLog("seg: " + k);
+		for (i = 0; i < points.length; i++) {
+			currIdx++;
+			lls[currIdx]=[points[i].getAttribute("lat"),points[i].getAttribute("lon")];
+			// elevation
+			if (typeof points[i].getElementsByTagName("ele")[0] !== 'undefined') { // we have elevation
+				//consoleLog("ele content: " + points[i].getElementsByTagName("ele")[0].textContent);
+				 
+				var currEle = Number(points[i].getElementsByTagName("ele")[0].textContent);
+				ele[currIdx] = currEle
+				if (currEle>maxEle)  { maxEle = currEle; }
+				if (currEle<minEle)  { minEle = currEle; }
+			} else {
+				ele[currIdx] = 0;
+			}
+			// timing
+			if (typeof points[i].getElementsByTagName("time")[0] !== 'undefined') { // we have time
+				 
+				var pointDate = new Date(points[i].getElementsByTagName("time")[0].textContent);
+				var pointDateSecs = (pointDate.getTime()/1000); 
+				if ( currIdx==0 ) {
+					time[currIdx] = 0;
+					startTime = pointDateSecs;
+				} else {
+					time[currIdx] = pointDateSecs-startTime;
+				}
+			} else {
+				time[currIdx] = 0;
+			}
+			if (currIdx>0) {
+				dist[currIdx] = dist[(currIdx-1)] + getDistance(lls[currIdx-1], lls[currIdx], ele[currIdx-1], ele[currIdx]);
+			}
 		}
 	}
-	/*
-	if (typeof xmlDoc.getElementsByTagName("trk")[0].getElementsByTagName("name")[0] !== 'undefined') { // has name?
-		trackName = xmlDoc.getElementsByTagName("trk")[0].getElementsByTagName("name")[0].textContent;
-	} else { // use file name
-		trackName = fileName.substring(0,fileName.length-4);
-	}*/
+
 	var track = new Track(trackName, lls);
 	track.setEle(ele);
+	track.setTime(time);
 	track.setDist(dist);
 	track.setMaxEle(maxEle);
 	track.setMinEle(minEle);
@@ -152,9 +173,11 @@ function loadGpxTrack(points, trackName) {
 	tracksList.push(track);
 	refreshLoadedTracks();
 	return true;	
+
 }
 
 function loadGpxRoute(points, fileName) {
+	var vp;
 	for (i = 0; i < points.length; i++) {
 		// Create route or append to existing route
 		var pointName;
@@ -164,9 +187,20 @@ function loadGpxRoute(points, fileName) {
 			pointName = "Point " + (i+1);	
 		}
 		
-		vp = new ViaPoint(points[i].getAttribute("lat"),points[i].getAttribute("lon"),pointName); 
+		var lat = points[i].getAttribute("lat");
+		var lon = points[i].getAttribute("lon");		
+		
+		// if next point is same as current, consider it a stop point
+		if ( (i+1) < points.length && 
+		     lat === points[i+1].getAttribute("lat") && 
+		     lon === points[i+1].getAttribute("lon")) {
+		     i++; // skip next
+		     pointName = pointName + "#S#";
+		}
+		
+		vp = new ViaPoint(lat,lon,pointName); 
 		addViaPoint(vp);
-		addMarkerToMap(vp);		
+		addMarkerToMap(vp);
 		
 		if (activeRoute.viaPoints.length>MAX_ROUTE_POINTS-1) { 
 			//alert(translations["saveLoad.maxViaPointsReached"] ); 
@@ -347,7 +381,7 @@ function exportGpx() {
 		gpxXml += '\n<link href="'+link+'"><text>'+activeRoute.name+'</text></link>';
 		gpxXml += '\n<time>'+time+'</time>';
 		gpxXml += '\n</metadata>';
-	} else { // GPX Ver 1.0 - FIXME: I guess shapingpoint will fail miserably ...
+	} else { // GPX Ver 1.0
 		gpxXml += '<?xml version="1.0" encoding="UTF-8"?>';
 		gpxXml += '\n<gpx version="1.0" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd">';
 		gpxXml += '\n<name>'+activeRoute.name+'</name>';
@@ -359,34 +393,65 @@ function exportGpx() {
 	// WayPoints
 	if (document.getElementById("gExportMenu.wp").checked) {    
 		var vps =  activeRoute.viaPoints;
+		// sym naming from https://www.javawa.nl/wpsymbols.html
+		var start   = "<sym>Flag, Green</sym><type>Start</type>";
+		var via     = "<sym>Flag, Blue</sym><type>ViaPoint</type>";
+		var shaping = "<sym>Waypoint</sym><type>Shaping</type>";
+		var breakp = "<sym>Flag, Gray</sym><type>Break</type>";
+		var stop = "<sym>Flag, Black</sym><type>Stop</type>";
+		var end     = "<sym>Flag, Red</sym><type>End</type>";
 		for (i = 0; i < vps.length; i++) {
-			gpxXml += '\n<wpt lat="'+vps[i].lat+'" lon="'+vps[i].lng+'"><name>'+vps[i].name+'</name></wpt>';
+			var tags = (i==0?start:(i==(vps.length-1)?end:(vps[i].isShaping?shaping:(vps[i].isBreak?breakp:(vps[i].isStop?stop:via)))));
+			gpxXml += '\n<wpt lat="'+vps[i].lat+'" lon="'+vps[i].lng+'"><name>'+vps[i].name+'</name>'+tags+'</wpt>';
 		}
 	}	
 	
-	// Route (no Shaping Points)
+	var legBreak = 1;
+	var legStop = 1;
+	var gpxLegXml = "";
+	var splitRouteOnBreak = (document.getElementById("gExportMenu.gpxSplitOnBreak").checked);
+	var splitRouteOnStop = (document.getElementById("gExportMenu.gpxSplitOnStop").checked);
+
+	// Route (no Shaping Points), plain GPX
 	if (document.getElementById("gExportMenu.route").checked && !document.getElementById("gExportMenu.routeShp").checked) { 
 		var vps =  activeRoute.viaPoints;
-		gpxXml += '\n<rte><name>'+activeRoute.name+'</name>';
+
 		for (i = 0; i < vps.length; i++) {
-			gpxXml += '\n<rtept lat="'+vps[i].lat+'" lon="'+vps[i].lng+'"><name>'+vps[i].name+'</name></rtept>';
+			var gpxViaPoint = '\n<rtept lat="'+vps[i].lat+'" lon="'+vps[i].lng+'"><name>'+vps[i].name+'</name></rtept>';
+			gpxLegXml += gpxViaPoint;
+			if ( i>0 && (i+1) < vps.length) { // skip if first or last point
+			     if ( ( splitRouteOnBreak && vps[i].isBreak ) || (splitRouteOnStop && vps[i].isStop) ) { // split
+				gpxLegXml =  '\n<rte><name>' + activeRoute.name + ' ' + 
+				             (splitRouteOnBreak?(legBreak++):"") + (vps[i].isStop?("#"+legStop++):"") +
+				             '</name>' + gpxLegXml + '\n</rte>';
+				gpxXml += gpxLegXml;
+				// re-add point as first one of new route
+				gpxLegXml = gpxViaPoint;
+			     }
+			}
 		}
-		gpxXml += '\n</rte>';
+		gpxXml +=  '\n<rte><name>'+activeRoute.name+ (legBreak==1?'':(' '+legBreak)) + (legStop==1?'':("#"+legStop))+'</name>' + gpxLegXml + '\n</rte>';
+
 	}
 	
-	// Route with Shaping Points
-	if (document.getElementById("gExportMenu.routeShp").checked) { 
+	// Route with Shaping Points (automatic and manual), use GPX Garmin extensions
+	if (document.getElementById("gExportMenu.route").checked && document.getElementById("gExportMenu.routeShp").checked) { 
 		var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
-		var shpDistance = window.prompt(translations["export.gpxShapingPoint"]+" ("+uom+"): ","10");
+		var shpDistance = 0;
 		
-		if (isNaN(shpDistance) || shpDistance < 1) { shpDistance = 10; alert("Number error, defaulting to 10"); }
+		if (document.getElementById("gExportMenu.routeShpGenerate").checked) {
+		   shpDistance = window.prompt(translations["export.gpxShapingPoint"]+" ("+uom+"): ","10");
+		}
+		if ( isNaN(shpDistance) ) { shpDistance = 10; alert("Number error, defaulting to 10"); }
+		if ( shpDistance < 1)     { shpDistance = 0 ; consoleLog("No Auto Shaping Point"); }
+
 		if ( uom === "mi") shpDistance = shpDistance/(0.621371);
 		consoleLog("Shapingpoint ditance in km: " + shpDistance);
 		
 		var routeType = $('input[name="gOptions.type"]:checked').val();
 		var vps =  activeRoute.viaPoints;
-		gpxXml += '\n<rte><name>'+activeRoute.name+'</name>';
-		gpxXml += "<extensions><trp:Trip><trp:TransportationMode>Motorcycling</trp:TransportationMode></trp:Trip></extensions>";
+		
+		var rteTag = "<extensions><trp:Trip><trp:TransportationMode>Motorcycling</trp:TransportationMode></trp:Trip></extensions>";
 		
 		var calcMode = (routeType=== "s"?"ShorterDistance":"FasterTime"); //FasterTime, CurvyRoads, Direct, ShorterDistance
 		var wayPtTag = "<extensions><trp:ViaPoint><trp:CalculationMode>"+calcMode+"</trp:CalculationMode></trp:ViaPoint></extensions>";
@@ -396,31 +461,58 @@ function exportGpx() {
 		var lls =  activeRoute.routePoly.getLatLngs();
 		var llsIdx= 1; // start from 2nd point to calculate distance from previous
 		var distance = 0; // distance from previosu waypoint (start of leg)
+		
+		// loop over route points
 		for (var i = 0; i < vps.length; i++) {
-			gpxXml += '\n<rtept lat="'+vps[i].lat+'" lon="'+vps[i].lng+'">'+
-			          '<name>'+ vps[i].name+'</name>'+wayPtTag+'</rtept>';
-			consoleLog("Leg: " + i + " - llsIdx: " + llsIdx + " - activeRoute.legsIdx[i]: "+ activeRoute.legsIdx[i]);
-			consoleLog("distance: " + distance);
-			while (llsIdx < activeRoute.legsIdx[i]) { 
+			if (vps[i].isShaping) {  // Manual Shaping Point 
+				consoleLog("Adding Manual Shaping Point");
+				gpxLegXml += '\n<rtept lat="'+vps[i].lat+'" lon="'+vps[i].lng+'">'+
+					     '<name>'+ vps[i].name+'</name>'+shpPtTag+'</rtept>';
+			} else  { // Via Point
+				var gpxViaPoint = '\n<rtept lat="'+vps[i].lat+'" lon="'+vps[i].lng+'">'+
+					          '<name>'+ vps[i].name+'</name>'+wayPtTag+'</rtept>';
+				gpxLegXml += gpxViaPoint;
+
+				if ( i>0 && (i+1) < vps.length) { // skip if first or last point
+				     if ( ( splitRouteOnBreak && vps[i].isBreak ) || (splitRouteOnStop && vps[i].isStop) ) { // split
+					gpxLegXml =  '\n<rte><name>' + activeRoute.name + ' ' + 
+						     (splitRouteOnBreak?(legBreak++):"") + (vps[i].isStop?("#"+legStop++):"") +
+						     '</name>' + gpxLegXml + '\n</rte>';
+					gpxXml += gpxLegXml;
+					// re-add point as first one of new route
+					gpxLegXml = gpxViaPoint;
+					distance = 0; // reset distance to generate shaping point from 0
+				     }
+				}
+			}	
+
+			//consoleLog("Leg: " + i + " - llsIdx: " + llsIdx + " - activeRoute.legsIdx[i]: "+ activeRoute.legsIdx[i]);
+			//consoleLog("distance: " + distance);
+			while (shpDistance != 0 && llsIdx < activeRoute.legsIdx[i]) { 
 				distance = distance + getDistance([lls[llsIdx-1].lat,lls[llsIdx-1].lng], [lls[llsIdx].lat,lls[llsIdx].lng], 0,0);
 				if (distance > shpDistance) { // add shapepoint
-					consoleLog("Adding Shapepoint");
-					gpxXml += '\n<rtept lat="'+lls[llsIdx].lat.toFixed(6)+'" lon="'+lls[llsIdx].lng.toFixed(6)+'">'+
-						  '<name>'+translations["export.shapingPointName"]+'</name>'+shpPtTag+'</rtept>';
+					consoleLog("Adding Auto Shaping Point");
+					gpxLegXml += '\n<rtept lat="'+lls[llsIdx].lat.toFixed(6)+'" lon="'+lls[llsIdx].lng.toFixed(6)+'">'+
+						     '<name>'+translations["export.shapingPointName"]+'</name>'+shpPtTag+'</rtept>';
 					distance = 0; // reset
 				}
 				llsIdx++;
 			}
 		}
-		gpxXml += '\n</rte>';
+		gpxXml +=  '\n<rte><name>'+activeRoute.name+ (legBreak==1?'':(' '+legBreak)) + (legStop==1?'':("#"+legStop))+'</name>' + gpxLegXml + '\n</rte>';
 	}
 	
 	// Track
 	if (document.getElementById("gExportMenu.track").checked) { 
 		var lls=  activeRoute.routePoly.getLatLngs();
 		gpxXml += '\n<trk><name>'+activeRoute.name+'</name><trkseg>';
+		var ele = false;
+		var elevation ="";
+		// FIXME: the below logic is redoundant since Feb 18 2024 all activeroutes have ele. Buf id we woudl re-enable mapquest...
+		if ( typeof activeRoute.track.ele != "undefined" && lls.length == activeRoute.track.ele.length ) { ele = true; consoleLog("Route has ele");}
 		for (i = 0; i < lls.length; i++) {
-			gpxXml += '\n<trkpt lat="'+lls[i].lat.toFixed(6)+'" lon="'+lls[i].lng.toFixed(6)+'"></trkpt>';
+			if (ele) elevation = "<ele>"+activeRoute.track.ele[i]+"</ele>";
+			gpxXml += '\n<trkpt lat="'+lls[i].lat.toFixed(6)+'" lon="'+lls[i].lng.toFixed(6)+'">'+elevation+'</trkpt>';
 		}
 		gpxXml += '\n</trkseg></trk>';
 	}

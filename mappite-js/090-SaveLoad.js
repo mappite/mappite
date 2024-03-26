@@ -308,9 +308,11 @@ function loadRoute(url) {
 	var options = getParameterByName("options",url); 
 	
 	var newMapLayer = document.getElementById("gOptions.mapLayer").value;
+	
 	if (newMapLayer !== curMapLayer) {
 		// consoleLog("Changing Map Layer");
-		onMapLayersChange();
+		//onMapLayersChange(); // this is to be used only if UI action
+		setMapLayer(newMapLayer);
 	}
 
 	if (options.charAt(1) != 'o') { // if not a POI list
@@ -350,7 +352,7 @@ function loadRoute(url) {
 			maxClusterRadius: 10, // default was 40
 			showCoverageOnHover: true,
 			iconCreateFunction: function (cluster) {
-				return L.icon({ iconUrl: "./icons/poiPlus.svg", iconSize: [20, 20] });
+				return L.icon({ iconUrl: iconPoiPlus, iconSize: [20, 20] });
 			}
 		});
 
@@ -378,7 +380,7 @@ function loadRoute(url) {
  * NOTE: see note in deleteRouteId() comment
  */
 function refreshSavedRoutes(cloudSync) {
-	consoleLog( "in refreshSavedRoutes()"); 	
+	// consoleLog( "in refreshSavedRoutes()"); 	
 	
 	if (cloudSync == null) cloudSync = true;
 	
@@ -392,6 +394,8 @@ function refreshSavedRoutes(cloudSync) {
 	} else {
 		// call refreshSavedRoutesHtml
 		consoleLog("Not enrolled or cloudSync is " +cloudSync);
+		// show cookie warning
+		// alertOnce("info.cookies");
 		refreshSavedRoutesHtml();	
 	}
 	 

@@ -57,9 +57,7 @@ function  cloudEnroll() {
 				if (json.status === "ok" ) { // unenroll successfull
 					// set html in div
 					document.getElementById("gEnroll").innerHTML=  translations["cloud.unenrolled"];
-					$("JgEnrollButton").remove();
-					//consoleLog("cloudEnroll() - setting enrolled cookie to no");
-					//setCookie("enrolled","no",1); // expires tomorrow (+1 day)			
+					$("JgEnrollButton").remove();			
 					refreshSavedRoutes();
 				} 			  
 			  },
@@ -108,7 +106,7 @@ function  cloudEnroll() {
 
 /*
  * Refresh Cloud Routes
- * invoked from SaveLoad.js if getCookie("enrolled") === "yes"
+ * invoked from refreshSavedRoutes() if getCookie("enrolled") === "yes"
  */
 function refreshCloudRoutes() {
 	var jurl="./cloud.php?action=getRoutes"; 
@@ -126,24 +124,36 @@ function refreshCloudRoutes() {
 				localStorage.setItem("gRoute|"+routes[i].name , "C_"+routes[i].url); // "C_ means from cloud
 			}
 			
-			
 			var jsTokenDate = new Date(Date.parse(json.tokenDate));
-			consoleLog("Token Date: " + jsTokenDate);
-		
-			if (jsTokenDate.setFullYear(jsTokenDate.getFullYear() + 1)<(new Date()) ) { // token expired GRACE PERIOD, show warning
-				consoleLog("Token in Grace Period");
-				// set text in top banner and cloud menu
-				var elem = document.getElementById("gHeaderEnroll"); // this element disappears when one clicks on info icon
-				if (elem != null) elem.innerHTML= translations["cloud.enrollGrace"];
-				document.getElementById("gEnroll").innerHTML=  translations["cloud.enrollGrace"];
-				enrollFile = enrollExpiredFile;
-			}
+			consoleLog("Token Date: " + json.tokenDate);
+			var msg = "<span style='color: #1B76C8'>" + translations["cloud.enrolled"] +"<span>";
 			
-		} else if (json.tokenDate == "false") {
+			if (jsTokenDate > (new Date()) ) { // token in the future, Lifetime user!
+				consoleLog("Lifetime User");
+				msg = "<span style='color: #1B76C8'>" + translations["cloud.lifetimeUser"] +"<span>";
+				enrollFile = enrollExpiredFile; // allow lifetime users to contibute if they wish
+			} else if (jsTokenDate.setFullYear(jsTokenDate.getFullYear() + 1)<(new Date()) ) { // token expired GRACE PERIOD (until 15 mo)
+				consoleLog("Token in Grace Period");
+				msg = translations["cloud.enrollGrace"];
+				enrollFile = enrollExpiredFile;
+			} // note jsTokenDate is one year head now
+			
+			// set text in top banner and cloud menu
+			var elem = document.getElementById("gHeaderEnroll"); // this element disappears when one clicks on info icon
+			if (elem != null) elem.innerHTML = msg;
+			document.getElementById("gEnroll").innerHTML = msg;
+
+		} else if (json.tokenDate == "false") { // no token or token older than 15 months
 			consoleLog("Token Invalid");
-
+			// remove non-http-only token to avoid browser to think it is enrolledFile
+			setCookie("enrolled","no",-1);
+			consoleLog("enrolled cookie removed");
 			alert(translations["cloud.invalid"] );
-
+			// re-set labels
+			document.getElementById("gEnroll").innerHTML = translations["cloud.invalid"] ;
+			var elem = document.getElementById("gHeaderEnroll"); // this element disappears when one clicks on info icon, hence may not exist in DOM
+			if (elem != null) elem.innerHTML= translations["cloud.invalid"];
+			document.getElementById("JgEnrollButton").innerHTML=  translations["cloud.enroll"];
 		} else { // a tokenDate exists, this is an expired token
 			var jsTokenDate = new Date(Date.parse(json.tokenDate));
 			consoleLog("Token Expired: " + jsTokenDate);
@@ -224,7 +234,7 @@ function  deleteRouteCloud(name) {
  * this to overcome javascrip cookie deletion after just 7 days
  */
 function restoreEnrolled() {
-	// check on server side, javascript cookies may be deleted often in some browsers
+	// check on server side, javascript cookies may have been deleted (iOS)
 	var jurl="./cloud.php?action=restore"; 
 	// not using getJSON to set a timeout
 	$.ajax({
@@ -232,7 +242,7 @@ function restoreEnrolled() {
 	  url: jurl,
 	  timeout: 1500,
 	  success: function( json ) {
-		if (json.status === "ok" ) { // password changed
+		if (json.status === "ok" ) { 
 			setCookie("enrolled","yes",1825); // 5 yrs
 			consoleLog( "restoreEnrolled: cookie recovered");
 			updateEnrolledInfo() ;
@@ -256,7 +266,7 @@ function restoreEnrolled() {
  */
 function updateEnrolledInfo() {
 	// update enroll button in header
-	document.getElementById("gHeaderEnroll").innerHTML=  "<span style='color: #1B76C8'>" + translations["cloud.enrolled"] +"<span>";
+	document.getElementById("gHeaderEnroll").innerHTML=  "<span style='color: #1B76C8'>" + translations["cloud.enrolled"] +"<span>"; // FIXME: this is repeated in refreshCloudRoutes
 	// update text in cloud tab gEnroll pane (wipe everything)
 	document.getElementById("gEnroll").innerHTML=  translations["cloud.enrolled"];
 	// update JgEnrollButton label in cloud tab to show unenroll

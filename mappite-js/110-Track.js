@@ -10,10 +10,12 @@ var Track = L.Class.extend({
 	this.lls = lls;
 	this.ele = [];
 	this.dist = [];
+	this.time = []; // secs from [0]
 	this.maxEle = 0;
 	this.minEle = 50000; // defaulted to 50000 mt if no elevation info
+	this.activeRoute = (name == "::activeRoute")?true:false ; // state if this track is teh active route (green line) or a real track that has been loaded
 	
-	if (this.name == "::activeRoute" ) {
+	if (this.activeRoute ) {
 		createActiveRouteTrack(lls);
 	} else {
 		// Create selected (imported) Track 
@@ -31,13 +33,19 @@ var Track = L.Class.extend({
 				e.target.setStyle({color: 'blue', opacity: 0.4});
 			}
 		});
+		
+		// add listener to add route point, this is to facilitate tracing a route over a track
+		this.trackPoly.on("click",  function (e) {
+			L.DomEvent.stopPropagation(e); // avoid the click to create another point
+			// find the point of the track closer to e and add it to current route
+			addRoutePoint(getClosestLatLng(this.getLatLngs(), e.latlng));	
+		});
 	}
 
     },
-    
     setActive: function(b) {
 	if (b) {
-		if (this.name != "::activeRoute" ) {
+		if (!this.activeRoute) {
 			this.trackPoly.mpActive = true;
 			this.trackPoly.setStyle({color: 'red', opacity: 0.6});
 			this.trackPoly.toggleTooltip();
@@ -54,7 +62,7 @@ var Track = L.Class.extend({
 		trackCanvas.setTrack(this); // set this track in canvas and draw it	
 		
 	} else {
-		if (this.name != "::activeRoute" ) {
+		if (!this.activeRoute ) {
 			this.trackPoly.mpActive = false;
 			this.trackPoly.setStyle({color: 'blue', opacity: 0.4});
 		}
@@ -78,6 +86,9 @@ var Track = L.Class.extend({
     setDist: function(dist) {
 	this.dist = dist;    
     },
+    setTime: function(time) {
+	this.time = time;    
+    },    
     setMaxEle: function(el) {
 	this.maxEle = el;    
     },
@@ -86,12 +97,14 @@ var Track = L.Class.extend({
     },
 
     draw: function () { // draw the track on map and altitude canvas
-	if (this.name != "::activeRoute" ) {
-		distance = this.dist[this.dist.length-1]; // total distance in km
+	if ( !this.activeRoute ) {
+		var distance = this.dist[this.dist.length-1]; // total distance in km
+		var duration = this.time[this.time.length-1]; // duration in secs
 		trkPopupText = this.name;
 		    
-		trkPopupText = "<b>"+trkPopupText + "</b><br/> "+ translations["track.totLength"]+": "+ formatUom(distance, 2, "km"); /// PENDING UOM   
-		if (this.maxEle >0) {trkPopupText = trkPopupText + "<br/> "+ translations["track.maxEle"]+": " + formatUom(this.maxEle, 0, "mt")} /// PENDING UOM distance
+		trkPopupText = "<b>"+trkPopupText + "</b><br/> "+ translations["track.totLength"]+": "+ formatUom(distance, 2, "km");
+		if (this.maxEle >0) {trkPopupText = trkPopupText + "<br/> "+ translations["track.maxEle"]+": " + formatUom(this.maxEle, 0, "mt")} 
+		if (duration >0) {trkPopupText = trkPopupText + "<br/> "+ translations["track.duration"]+": " + formatTime(duration)} 
 		// show
 		this.trackPoly.addTo(map);
 		this.trackPoly.bindTooltip(trkPopupText); //, {sticky: true});
@@ -126,7 +139,6 @@ function refreshLoadedTracks() {
 function onDeleteTrack(idx) {
 	consoleLog("Removing track");
 	//map.removeLayer(tracksList[idx].trackPoly); // note track object is not removed actually...   
-	//toggleDiv("gCanvas"); // note canvas is not removed either... thsi does not work. and actually shoudl remove only if this is the active track,
 	// this remove sucks
 	tracksList[idx].remove(); // hide trackpoly, close canvas if current or last
 	tracksList[idx] = null; // free memory hopefully
@@ -282,17 +294,19 @@ function encodeNumber(num) {
  **/
 var TrackCanvas = L.Class.extend({
     initialize: function () { 
-	//toggleDiv("gCanvas"); // show div
 	canvas = document.getElementById('mCanvas');
 	this.ctx = canvas.getContext("2d");
 	this.fontSize = 14;
+	this.offsetX = 0;
+	this.offsetIdx = 0;
 	//this.ctx.fillStyle = "#838383";
 	//this.ctx.font = 'bold ' + this.fontSize+ 'px "Open Sans"';
 	
-	canvas.addEventListener("contextmenu",  function (e) {
+	canvas.addEventListener("contextmenu",  function (e) { // hide canvas on right click
 		if (typeof trackCircleMarker !== 'undefined')  { map.removeLayer(trackCircleMarker);}
-		toggleDiv("gCanvas");
-		// popup menu: taglia fin qui / taglia da qui
+		hideDiv("gCanvas");
+		e.preventDefault(); // prevent browser context menu
+		// TODO: popup menu: cut from/to
 	});
 	    
 	canvas.addEventListener("mousemove",  function (e) {
@@ -301,34 +315,49 @@ var TrackCanvas = L.Class.extend({
 		trackCanvas.draw();
 		// draw straight line on mouse position
 		trackCanvas.drawMarker(e.offsetX);
+		// draw straight line if offset was set (i.e. click on canvas)
+		if (trackCanvas.offsetX != 0) {
+			trackCanvas.drawMarker(trackCanvas.offsetX);
+			trackCanvas.drawHLine(trackCanvas.offsetX, e.offsetX);
+		}
 		
 		ctx = trackCanvas.ctx;
+		var trk = trackCanvas.track;
+		var trackLength = trk.dist[trk.dist.length-1];
 		
 		/* draw circle on map polyline
 		 */
-		//   get distance from mouse pisition offset
-		var trk = trackCanvas.track;
-		var trackLength = trk.dist[trk.dist.length-1];
-		var d = e.offsetX * trackLength / W;
-		
-		// binary search on sorted array
-		var lo = 0, idx = trk.dist.length - 1, m; // low , hi and mid
-		while (lo < idx) {m = Math.round(lo+(idx -lo)/2);(d<trk.dist[m])?(idx=m-1):(lo=m+1);}
+		var idx = trackCanvas.getPointIndex(e.offsetX);
 		
 		// draw cirle at idxs-th point in trackPoly
 		if (typeof trackCircleMarker !== 'undefined')  { map.removeLayer(trackCircleMarker);}
 		trackCircleMarker = L.circleMarker(trk.lls[idx]).addTo(map);
 		//trackCircleMarker.bindPopup(text).addTo(map);
 		
+		// if trackCanvas.offsetX != 0 there is an offset to consider trackCanvas.offsetIdx
+		var distance = trk.dist[idx];
+		var time     = trk.time[idx];
+		
+		if (trackCanvas.offsetX != 0) { // calcualte distance and time from the offset
+			distance = Math.abs(distance-trk.dist[trackCanvas.offsetIdx]);
+			time     = Math.abs(time-trk.time[trackCanvas.offsetIdx]);
+			
+		}
 		// add altitude/distance of current point in canvas
 		var decimals = 0;
 		if (trackLength < 10) decimals = 2; // show 2 decimals only in short tracks (10km)
-		var text = ((trk.minEle != 50000)?formatUom(trk.ele[idx],0, "m"):("")) + " / "+ formatUom(trk.dist[idx],decimals, "km"); /// PENDING UOM
+		// don't show elevation if no elevation (minEle is defaul value) or offset is set
+		var text = ((trk.minEle != 50000 && trackCanvas.offsetX == 0)?formatUom(trk.ele[idx],0, "m / "):("")) + formatUom(distance,decimals, "km"); /// PENDING UOM
 		textWidth = ctx.measureText(text).width;
 		// just before or just after straight line
 		d = (e.offsetX>textWidth+20)?(e.offsetX-textWidth-20):(e.offsetX+10);
 		var fontSize = trackCanvas.fontSize+2;
 		trackCanvas.fillText(text,fontSize, d, fontSize*2);
+		// add time just below (if not activeRoute and it is available from loaded gpx)
+		if (!trk.activeRoute && trk.time[idx] != 0) {
+			var text = formatTime(time);
+			trackCanvas.fillText(text,fontSize, d, fontSize*3);
+		}
 		/*
 		ctx.fillStyle = "RGBA(255, 255, 255, 0.8)";
 		ctx.fillRect(d,trackCanvas.fontSize+2, textWidth,trackCanvas.fontSize );
@@ -341,20 +370,64 @@ var TrackCanvas = L.Class.extend({
 		if (typeof trackCircleMarker !== 'undefined')  { map.removeLayer(trackCircleMarker);}
 		trackCanvas.draw();
 	});
-
+	
+	if (!isTouchDevice()) { // add click event on canvas only on PCs...
+		canvas.addEventListener("click",  function (e) {
+			if (typeof offsetTrackCircleMarker !== 'undefined')  { map.removeLayer(offsetTrackCircleMarker);}
+			if (trackCanvas.offsetX != 0)  { 
+				trackCanvas.offsetX = 0; 
+			} else {
+				trackCanvas.offsetX = e.offsetX; // x-distance in canvas pixel 
+				trackCanvas.offsetIdx = trackCanvas.getPointIndex(e.offsetX); // offset point track index
+				offsetTrackCircleMarker = L.circleMarker(trackCanvas.track.lls[trackCanvas.offsetIdx], { color: 'black', opacity: 0.8}).addTo(map);		
+				
+				// add listener to add route point, this is to facilitate tracing a route over a track
+				offsetTrackCircleMarker.addEventListener("click",  function (e) {
+					L.DomEvent.stopPropagation(e); // avoid the click to create another point
+					addRoutePoint(this.getLatLng());
+				});
+			}
+		});
+	}
+	
     },
-    
     setTrack: function(trk) {
 	document.getElementById("gCanvas").style.display = "block";
 	this.track = trk;    
-	consoleLog("setTrack in Canvas: " + trk.name);
+	// reset offset and remove offset circle
+	trackCanvas.offsetX = 0; 
+	if (typeof offsetTrackCircleMarker !== 'undefined')  { map.removeLayer(offsetTrackCircleMarker);}
+	
+	// consoleLog("setTrack in Canvas: " + trk.name);
 	this.draw();
     },
+    getPointIndex: function(offsetX) { /* returns the index of the track point corresponend to x offset in canvas */
+	//   get distance from mouse position offset
+	var trk = this.track;
+	var trackLength = trk.dist[trk.dist.length-1];
+	var d = offsetX * trackLength / W;
+	
+	// binary search on sorted array
+	var lo = 0, idx = trk.dist.length - 1, m; // low , hi and mid
+	while (lo < idx) {m = Math.round(lo+(idx -lo)/2);(d<trk.dist[m])?(idx=m-1):(lo=m+1);}
+	
+	return idx;
+	    
+    },
     drawMarker: function (offsetX) { /* draw straight line on altitude canvas */
-	this.draw(); // re-draw background
+	// this.draw(); // re-draw background
 	this.ctx.beginPath();
 	this.ctx.moveTo( offsetX, canvas.height);
 	this.ctx.lineTo( offsetX, 0);
+	this.ctx.strokeStyle = "#000000";
+	this.ctx.lineWidth = 1; 
+	this.ctx.stroke();   
+    },
+    drawHLine: function (x1, x2) { /* draw straight line on altitude canvas */
+	// this.draw(); // re-draw background
+	this.ctx.beginPath();
+	this.ctx.moveTo( x1, canvas.height/4);
+	this.ctx.lineTo( x2, canvas.height/4);
 	this.ctx.strokeStyle = "#000000";
 	this.ctx.lineWidth = 1; 
 	this.ctx.stroke();   
@@ -397,7 +470,7 @@ var TrackCanvas = L.Class.extend({
 	//if (m == 50000) { ctx.setLineDash([5, 2]); // dash line for tracks with no elevation
 	//} else { ctx.setLineDash([]); }
 	
-	if (this.track.name== "::activeRoute") {
+	if (this.track.activeRoute) {
 		ctx.strokeStyle = "#DC614F"; // "#DC614F"
 		ctx.lineWidth = 2; 
 		ctx.setLineDash([]); // continuous
@@ -500,7 +573,8 @@ function createActiveRouteTrack(lls) {
 			//L.DomEvent.preventDefault(e);
 		});
 		if ( !isTouchDevice()) { // drag route - not on touch device since it's too hard to pick it
-			var tmpMarker=new L.marker();
+			var tmpMarker= new L.marker([0,0], {zIndexOffset: 1010, icon: L.icon({ iconUrl: routeIconsMap.get("##"), iconSize: [30, 40], iconAnchor: [15,40]})});
+			// ;
 			activeRoute.routePoly.on('mousedown', function (e) {
 				map.dragging.disable();		
 				// chrome need to disable click on map

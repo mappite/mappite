@@ -4,15 +4,6 @@
  * Input: ViaPoint
  * Add the ViaPoint to the route, a new route is created if not existent
  */
-/*function addViaPoint(vp){
-	if (activeRoute==null)  { 
-		activeRoute = new Route(vp,routeDefaultName);
-	} else if (activeRoute.viaPoints.length<MAX_ROUTE_POINTS || isPoiMode()) { // FIXME: no limit on POI, need to extimate on
-		activeRoute.addViaPoint(vp);		
-	} else {
-		alert(translations["route.maxViaPointsReached"] ); 
-	}
-}*/
 
 function addViaPoint(vp){
 	if (activeRoute==null)  { 
@@ -29,30 +20,16 @@ function addViaPoint(vp){
 }
 
 
-/* FUNCTION: addNewViaPoint
- * Input: number, number, string, string
- * Create a new ViaPoint at lat/lng and calls addViaPoint() to add it
- */
-/*function addNewViaPoint(lat,lng,name){ 
-	var vp = new ViaPoint(lat,lng,name);
-	addViaPoint(vp);
-}*/
-
 /* FUNCTION: updateViaPoint
  * Input: number, number, string, string
  * update a given viapoint (id) if it exists, otherwise add a new via point FIXME: does it ever need to add a new viapoint?
- * Note: it does not update the route, if lat/lng are changed  call activeRoute.redraw() to re-compute the route
+ * Note: this does not update the route, if lat/lng are changed  call activeRoute.redraw() to re-compute the route
  *	note: this is called from Control.Geocoder.js also, 
  *		it refreshes the route gPanel and updates Marker popup text 
  */
 function updateViaPoint(lat,lng,name, id){
-	var vp = new ViaPoint(lat,lng,name);
-	/*if (activeRoute==null) {
-		addViaPoint(vp);
-	} else {
-		if ( !activeRoute.updateViaPoint(vp,id) ) { addViaPoint(vp); }// update via point id, if fails (i.e. id does not exists), add it
-	} */
-	
+	var vp = new ViaPoint(lat,lng,name); // name containe the suffix for viapoint type 
+		
 	if ( !activeRoute.updateViaPoint(vp,id) ) { addViaPoint(vp); }// update via point id, if it fails (i.e. id does not exists), add it
 	
 	// remove old marker
@@ -64,32 +41,29 @@ function updateViaPoint(lat,lng,name, id){
 	
 	// need to refresh since there is a new ID now
 	refreshRouteInfo();
-	/*
-	popupText = "<div class='gmid'>"+escapeHTML(name)+"</div>" +
-			"<div class='gsmall'>Lat,Lng  ("+ formatDecimal(lat,6) +","+ formatDecimal(lng,6) + ")<br>"+rightClickText+" on this viapoint to remove</div>"+
-			"<span style='float: left; cursor: pointer;'>"+
-			"<img src='./icons/startArrow.svg' onclick='javascript:rollFirst(\""+vp.id+"\");'  title='First' width='15' height='8' /></span>" +
-			"<span style='float: right; cursor: pointer;'>"+
-			"<img src='./icons/leftBarredArrow.svg'  onclick='javascript:cutRouteBefore(\""+vp.id+"\");' title='Cut Before' width='15' height='8' />&nbsp;&nbsp;"+
-			"<img src='./icons/rightBarredArrow.svg' onclick='javascript:cutRouteAfter(\""+vp.id+"\");'  title='Cut After' width='15' height='8' /></span>";
-	if ( geoResultsNames[vp.id] != null) popupText = popupText + geoResultsNames[vp.id] ;  
-	markers[vp.id].setPopupContent(popupText); // unbindPopup().bindPopup(popupText).openPopup();
-	*/
 }
 
 /* FUNCTION: updateViaPoint
  * Input: number, string
- * update name of the viapoint
+ * update name of the viapoint, used when a Point gets renamed (ref refreshRouteInfo() below) 
+ * Note: point type is preserved honoring the suffix from old point
  */
-function updateViaPointName(name,id) {
+function updateViaPointName(newname,id) {
 	var oldVp = activeRoute.getViaPoint(id);
-	updateViaPoint(oldVp.lat,oldVp.lng,name,id);
+	// honor viaPoint type by appending the suffix
+	newname = newname + oldVp.nameSuffix;
+	updateViaPoint(oldVp.lat,oldVp.lng,newname,id);
 	//var vp = new ViaPoint(oldVp.lat,oldVp.lng,name,id);
 }
 
 
 /**  
  * CLASS: ViaPoint
+ *
+ * Note: special suffix name ending in #s# identifies a shaping point
+ *	 icon (ref. addMarkerToMap()) and export (ref. exportGpx()) uses 
+ *		route.getUrl adds back #s# to point name in URL
+ *	  
  **/
 var ViaPoint = L.Class.extend({
     initialize: function (lat,lng,name) {
@@ -99,6 +73,36 @@ var ViaPoint = L.Class.extend({
 	this.latLng = L.latLng(lat,lng);
 	this.lat = lat;
 	this.lng = lng;
+	this.isShaping = false;
+	this.isBreak = false;
+	this.isStop = false;
+	this.iconUrl = routeIconsMap.get("##"); // default
+	this.nameSuffix = "";
+	    
+	const rexpStop  = new RegExp('#S.?#$');
+	const rexpBreak = new RegExp('#B.?#$');
+	    
+	if (name.endsWith("#s#")) {
+		this.isShaping = true;
+		consoleLog("*** Shaping Point: " + name);
+	} else if (rexpBreak.test(name)) {
+		this.isBreak = true; 
+		consoleLog("*** Break Point: " + name);
+	} else if (rexpStop.test(name)) {
+		this.isStop = true; 
+		consoleLog("*** Stop Point: " + name);
+	} 
+	
+	const rexpType  = new RegExp('#.*#$'); // #s#, #S#, #B#, #S.#, #B.#
+	var s = name.match(rexpType);	
+	if ( s != null) { 
+	   this.nameSuffix = s[0];
+	   this.iconUrl = routeIconsMap.get(s[0]); 
+	}
+	
+	// remove #.*# from name
+	this.name = name.replace(rexpType,"");
+	
     },
     getName: function () {
 	return this.name;
@@ -108,6 +112,21 @@ var ViaPoint = L.Class.extend({
     },  
     getLatLngStr: function () {
 	return this.lat+","+this.lng;
+    },
+    /*isShaping: function () {
+	return this.isShapingPoint;
+    },
+    isBreak: function () {
+	return this.isBreakPoint;
+    },
+    isStop: function () {
+	return this.isStopPoint;
+    },
+    nameSuffix: function () {
+	return this.nameSuffix;
+    }, */
+    getIconUrl: function () {
+	return this.iconUrl;
     }
 });
 
@@ -137,6 +156,7 @@ var Route = L.Class.extend({
 	this.legsIdx = new Array(); // start (or end) point in lls
 
 	this.routePoly; // the Route polyline from direction service (green)
+	this.track;
 
 	this.routeDistance = "n/a"; // displays only if != n/a
 	this.routeFormattedTime; 
@@ -335,6 +355,8 @@ var Route = L.Class.extend({
 	for (i = 0; i < this.viaPoints.length; i++) {
 	    if (this.viaPoints[i].id == id) { break; }
 	}
+	// honoring  shaping points is  managed via isNextPointShaping
+	
 	if ( i == this.viaPoints.length) { 
 		return false;
 	} else {
@@ -408,13 +430,15 @@ var Route = L.Class.extend({
 			markersCluster.removeLayer(markers[id]);
 			delete markers[id] ;
 		}
-		// Fixme: this if is here since applies only if there are points
-		//        and so activeRoute.routePoly is not null
-		if (map.hasLayer(activeRoute.routePoly))  {
-			map.removeLayer(activeRoute.routePoly); // remove route
-		}
-		if (map.hasLayer(activeRoute.linePoly))  map.removeLayer(activeRoute.linePoly);  // hide red poly
 	}
+
+	// activeRoute.routePoly is null for POI or last point has been already deleted
+	if (activeRoute.routePoly != null && map.hasLayer(activeRoute.routePoly))  {
+		map.removeLayer(activeRoute.routePoly); // remove route
+	}
+	if (activeRoute.linePoly != null && map.hasLayer(activeRoute.linePoly))  map.removeLayer(activeRoute.linePoly);  // hide red poly
+
+	
 	// remove canvas
 	document.getElementById("gCanvas").style.display = "none";
 	
@@ -433,7 +457,9 @@ var Route = L.Class.extend({
 
 	var names = "";
 	for (var i = 0; i < this.viaPoints.length; i++) {
-	    names = names + "|" + encodeURIComponent(this.viaPoints[i].name); // pipe separated list
+	    names = names + "|" + encodeURIComponent(this.viaPoints[i].name+(this.viaPoints[i].nameSuffix)); // pipe separated list
+		//console.log("*** vp name: " + this.viaPoints[i].name);
+		//console.log(this.viaPoints[i]);
 	}
 	var compressed = this.getCompressedPoints(); //trackCompress(points,5);
 
@@ -482,7 +508,7 @@ var Route = L.Class.extend({
 });		
 
 /* FUNCTION: getPointLegIdx
- * returns the lls index of the point closest to ll
+ * returns the lls index of the point closest to ll // FIXME: evaluate to use getClosestPointIdx
  * Input: LatLng
  */
 function getPointLegIdx (ll) {
@@ -505,107 +531,6 @@ function getPointLegIdx (ll) {
 	return idx;
 	
 }
-
-/* FUNCTION: createRoutePoly
- * create the "draggable" route polyline (green) in active route
- * Input: [lat,lng] couples array
- 
-function createRoutePoly(lls) {
-	return; // FIXME - remove
-	
-	if (activeRoute.routePoly ) { 
-		activeRoute.routePoly.off();
-		map.removeLayer(activeRoute.routePoly);
-		routeMilestonesGroup.clearLayers();
-	}	
-	
-	routeColor = mapRouteColor[document.getElementById("gOptions.mapLayer").value];
-	activeRoute.routePoly = L.polyline(lls, {color: routeColor, opacity: 0.8, weight: 4}).addTo(map);
-	
-	if ( !isTouchDevice()){ // no with touch devices since onmouseout would fail
-		var d= 100; // default in uom (km/mi) - FIXME: need to allow user to set this on UI and save as a cookie
-		var dist = []; // holds points total distance from start
-		dist[0] = 0;
-		//var segment = 0; // id of each route segment with lenght d
-		var uom = (document.getElementById("gOptions.uom").value==="k"?"km":"mi");
-		//var idx[]; // array with lls ids with circle
-		for(var i = 1; i<lls.length;i++) {
-			var ll = lls[i];
-			dist[i] =  dist[i-1]+getDistance([lls[i][0],lls[i][1]], [lls[i-1][0],lls[i-1][1]], 0,0)*(uom=="km"?1:0.621371);
-			if (dist[i]>=d) { // we reached the first route point after d
-				//idx[segment++]=i;
-				routeColor = mapRouteColor[document.getElementById("gOptions.mapLayer").value];
-				var cm =   L.circleMarker(lls[i], {color: routeColor, fill: true, fillOpacity: 1, radius: 3}).bindTooltip(d + uom );
-				cm.on('mouseover',function(e) { e.target.openTooltip(); });
-				cm.on('mouseout' ,function(e) { e.target.closeTooltip();});			
-				routeMilestonesGroup.addLayer(cm);
-				d = d+100;
-			}
-		}
-		routeMilestonesGroup.addTo(map);
-	}
-	
-	var tmpMarker=new L.marker(); // FIXME: shouldn't this be within 2nd if below???
-
-	//Touch/Click/Over on polyline
-	 
-	if (!isIE()) { 
-		activeRoute.routePoly.on('mouseover',function(e) { 
-			//consoleLog("mouseover");
-			//e.target.setStyle({color: '#00EE00', opacity: 0.8, weight: 5});
-			e.target.setStyle({color: routeColor, opacity: 1, weight: 5});
-			});
-		activeRoute.routePoly.on('mouseout',function(e) { 
-			routeColor = mapRouteColor[document.getElementById("gOptions.mapLayer").value];
-			e.target.setStyle({color: routeColor, opacity: 0.8, weight: 4});
-			});
-		activeRoute.routePoly.on('click', function (e) { // avoid click on line to be a click on map and generate a new point
-			L.DomEvent.stopPropagation(e);
-			//L.DomEvent.preventDefault(e);
-		});
-		if ( !isTouchDevice()) { // drag route - not on touch device since it's too hard to pick it
-			activeRoute.routePoly.on('mousedown', function (e) {
-				map.dragging.disable();		
-				// chrome need to disable click on map
-				map.off('click');
-
-				//pressTimer = window.setTimeout(function() { // DRAG BEGINS
-					//consoleLog("200ms after mousedown");
-				consoleLog("Down at:" + e.latlng );
-				//console.log("legsIdx length :" + activeRoute.legsIdx.length );
-				//console.log("legs length :" + activeRoute.legs.length );
-				onDrag = true;
-
-				var idx =  getPointLegIdx(e.latlng);
-
-				//console.log("clicked point is in leg (start from 0): " + (idx));
-
-				activeRoute.insertPointAt(idx+1);
-
-				tmpMarker.setLatLng(e.latlng);
-				map.addLayer(tmpMarker);
-				map.on('mousemove', function (e) {
-					  tmpMarker.setLatLng(e.latlng);
-					});
-				map.on('mouseup', function (e)  { // clear event 
-					map.dragging.enable();
-					map.removeEventListener('mousemove');
-					map.removeEventListener('mouseup');
-					map.removeLayer(tmpMarker);
-					onMapClick(e);
-					// chrome needs to renable but after a while
-					// ref https://gis.stackexchange.com/questions/190049/leaflet-map-draggable-marker-events			
-					setTimeout(function() {
-						map.on(isTouchDevice()?'contextmenu':'click', onMapClick);
-					      }, 100);
-					consoleLog("Up at:" + e.latlng);
-				});				   
-				
-			});
-		}
-	}
-}
-*/
 
 
 /* 
@@ -651,7 +576,7 @@ function refreshRouteInfo() {
 
 	var legsTimeTotal = 0;
 	var legsDistanceTotal = 0;
-
+	
 	for (var i = 0; i < arrayLength; i++) {
 		vp = activeRoute.viaPoints[i];
 
@@ -682,11 +607,16 @@ function refreshRouteInfo() {
 			}
 		}
 		
-		//displayName = escapeHTML((vp.name.length>15?(vp.name.substring(0,12)+"..."):vp.name));
-		//consoleLog("Street Name " + displayName);
+		// style point number and name based on point type
+		var numberstyle ="padding-left: 2px; border-radius: 3px;";
+		var txtstyle = "";
+		if (vp.isStop) numberstyle += "color: white;background-color: black;";
+		else if (vp.isBreak) numberstyle += "color: black;background-color: #aaaaaa;";
+		else if (vp.isShaping) txtstyle+= "font-weight: normal;";
+		
 		s = s +"<span class='groute_vp'>"+
 		     preS +
-	             (i+1)+". <input type='text'  id='"+vp.id+"' onclick='javascript:openViaPointMarker(\""+vp.id+"\")'  class='inputsRoute' value='" +escapeHTML(vp.name)+"' size='20' maxlength='50'>" +
+	             "<span style='"+numberstyle +"'>"+(i+1)+".</span> <input style='"+txtstyle +"' type='text'  id='"+vp.id+"' onclick='javascript:openViaPointMarker(\""+vp.id+"\")'  class='inputsRoute' value='" +escapeHTML(vp.name)+"' size='20' maxlength='50'>" +
 	             postS+
 		     "</span>";
 		elid = "#"+vp.id;
@@ -701,24 +631,43 @@ function refreshRouteInfo() {
 				history.pushState(name, name, activeRoute.getUrl());
 			}));	
 
-		//consoleLog("* legs" + i);
+		// Add distance/time
 		if (arrayLength>1 && activeRoute.legs[i] != null && i< arrayLength-1)  {
-			legsTimeTotal = legsTimeTotal+activeRoute.legs[i].time;
-			legsDistanceTotal =  legsDistanceTotal+activeRoute.legs[i].distance;
+			
+			var legIcon = "legViaVia";
+			if (legsInfo==1) legIcon = "legStopVia"; 
+			else if (legsInfo==2) legIcon = "legBreakVia"; 
+			
+			// reset totals at day stops or at breaks if legsInfo==2
+			if (vp.isStop || (vp.isBreak && legsInfo==2) ) {
+				legsTimeTotal = 0;
+				legsDistanceTotal = 0;
+				//legIcon = "legStartCont.svg";  // cumul start *-°
+			} 
+			legsTimeTotal += +activeRoute.legs[i].time;
+			legsDistanceTotal += activeRoute.legs[i].distance;
+			
 			var time = activeRoute.legs[i].time;
 			var distance = activeRoute.legs[i].distance;
-			if (legsIsCumulative) {
+			if (legsInfo!=0) {
 			    time = legsTimeTotal;
 			    distance = legsDistanceTotal;
+			}
+			// if next viaPoint exists and it is a stop/break, update icon
+			if (legsInfo!=0 && i < (arrayLength-1)) {
+				var nextVp = activeRoute.viaPoints[i+1];
+				if ( (nextVp.isStop || nextVp.isBreak) && legsInfo==2) legIcon = "legBreakBreak";
+				else if (nextVp.isStop) legIcon = "legStopStop";
 			}
 			// The "+" sign can be clicked on to add next point after this one
 			// keyboard keys pressed when "+" sign is focused are passed to onCutKeyPress
 			// to cut the route
-			s = s + "<div class='legsInfo' onclick='javascript:legsCumulativeToggle()'>"+ 
-			        "<span style='width: 20px; display: inline-block;'></span> &#8870; "+
-			        // (activeRoute.legs[i].hasUnpaved?'~':'')+formatDecimal(distance,2)+ uom +
-			        formatDecimal(distance,2)+ uom +
-				" ("+ formatTime(time) + ") </div>&nbsp;<a class='gaddWayPoint' title='Add Point Here' onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a>";
+			s += "<div id='dd_"+vp.id+ "' class='legsInfo'>"+ 
+			        "<span onclick='javascript:legsInfoToggle()' style='width: 230px;'>"+
+				 "<img src='./icons/"+ legIcon + ".svg' width='20' height='20'>"+ formatDecimal(distance,2)+ uom + " ("+ formatTime(time) + ")"+ 
+			        "</span>" + 
+				"<span>&nbsp;<a class='gaddWayPoint' title='Add Point Here' onclick='javascript:addPointHereCss(this);' href='javascript:activeRoute.insertPointAt(\""+(i+1)+"\");'>+</a></span>"+
+			     "</div>";
 			//consoleLog("* leg("+ i +"): dist/time" + time  + "/" + distance);
 			
 		}

@@ -22,6 +22,9 @@ var mapquestKey= "__mapquestKey__"; // dev __mapquestKeyDev__
 //  Usage: map tiles - 030-Map.js, index.html
 //  *warning* these gets expensive above free threshold
 var mapboxKey = "__mapboxKey__";
+// Protomaps:
+//   https://protomaps.com/dashboard
+var protomapsKey = "__protomapsKey__";
 
 // Other services do not requires keys:
 //

@@ -4,7 +4,7 @@
 function centerMap() {
 	$("#locate").attr("src", "icons/spinner.svg");
 	//map.locate({setView: true, watch: true, maxZoom: 16, timeout: 5000, enableHighAccuracy: true});
-	map.locate({ watch: true, timeout: 5000, enableHighAccuracy: true, maximumAge: 1000});
+	map.locate({ watch: true, timeout: 8000, enableHighAccuracy: true, maximumAge: 1000});
 }
 
 /* Called when location has been found from GPS */

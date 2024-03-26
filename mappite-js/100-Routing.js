@@ -23,12 +23,24 @@ function isInternalRoutingArea(rvps) {
 }
 
 function isInternalRoutingPoint(lat, lng) {
+	return isLatLngWithin(lat, lng,INTERNAL_ROUTING_LATS);
+	/*
 	var lats = INTERNAL_ROUTING_LATS;
 	for(var j=0; j<lats.length;j++) { 
 		if  ( (lat < lats[j][0] && lat > lats[j][1]) && ( lng > lats[j][2] && lng < lats[j][3] ) ) return true;
 	} 
-	return false;
+	return false;*/
 }
+
+// used by isInternalRoutingPoint and 040-Mapfuntions initiateMap
+// return false if not found, or the index+1 of the lats
+function isLatLngWithin( lat, lng, lats) {
+	for(var j=0; j<lats.length;j++) { 
+		if  ( (lat < lats[j][0] && lat > lats[j][1]) && ( lng > lats[j][2] && lng < lats[j][3] ) ) return (j+1);
+	} 
+	return false;	
+}
+
 	
 /* Wrapper to select which provider to use */
 function computeRoute(rvps, cacheAndfocus){
@@ -65,15 +77,15 @@ function computeRoute(rvps, cacheAndfocus){
 				attrDir = attrs['ors_dir'];
 			}
 		} else {
-			if ((routeType === "f" || routeType === "s") && (document.getElementById("gOptions.clickOnRoad").value === "n" || rvps.length > 30 )) { 
+			/*if ((routeType === "f" || routeType === "s") && (document.getElementById("gOptions.clickOnRoad").value === "n" || rvps.length > 30 )) { 
 				consoleLog("Using MapQuest");
 				computeRouteMapQuest(rvps, cacheAndfocus);
 				attrDir = attrs['mapquest_dir'];
-			} else {
+			} else { */
 				consoleLog("Using ORS");
 				computeRouteORS(rvps, cacheAndfocus);
 				attrDir = attrs['ors_dir'];
-			}
+			// }
 		}
 	}
 	
@@ -165,8 +177,14 @@ function computeRouteGSpeed(rvps, focus, server){
 		    
 		var ghpath = json.paths[0];
 
-		consoleLog("Distance KM: " + ghpath.distance);
+		consoleLog("Distance Mt: " + ghpath.distance);
 		consoleLog("Time: " + ghpath.time);
+		    
+		if (ghpath.distance > 20000000) { // 20k km
+			var error = { code: 1, message: "Route Too long, please split in multiple routes" };
+			ghError(error);
+			return;
+		}
 
 		// Elevation
 		var ele = new Array(); // elevation for each point
@@ -229,6 +247,8 @@ function computeRouteGSpeed(rvps, focus, server){
 		track.setMaxEle(maxEle);
 		track.setMinEle(minEle);
 		track.draw();
+		
+		activeRoute.track = track;
 
 		refreshRouteInfo(); // redraw Route Info Panel
 		computeDone();
@@ -536,6 +556,8 @@ function computeRouteMapQuest(rvps, focus){
 		track.setDist(dist);
 		track.draw();
 		
+		activeRoute.track = track; // note, ele is missed
+		
 		refreshRouteInfo(); // redraw Route Info Panel so it shows updated time&distance 
 		computeDone();
 
@@ -640,9 +662,14 @@ function computeRouteORS(rvps, focus){
 			// consoleLog(JSON.stringify(json, undefined, 2));
 			var d = new Date();
 			consoleLog(">>>> ORS Calc Time: " + (d.getTime()-computeStartTime ) );
-		    
-		        if (json.error) {
+			consoleLog(json);
+		        /*if (json.error.code !== 'undefined') {
 				document.getElementById("gRoute").innerHTML = "Error: " + json.error;
+			}*/
+			
+			if (typeof json.error !== 'undefined') {
+				orsError(json.error);
+				return;
 			}
 
 			consoleLog( 'total length in uom:'+json.routes[0].summary.distance);
@@ -707,7 +734,7 @@ function computeRouteORS(rvps, focus){
 			track.setMinEle(minEle);
 			track.draw();
 			
-			
+			activeRoute.track = track;
 			
 			refreshRouteInfo(); // redraw Route Info Panelso it shows updated time&distance 
 			computeDone();
@@ -718,11 +745,19 @@ function computeRouteORS(rvps, focus){
 		  error: function(jqXHR, textStatus, errorThrown) {
 			consoleLog("ORS Error - textStatus: "+textStatus +" - errorThrown: " + errorThrown);
 			//alert(jqXHR.responseText);
-			processingError();
+			//processingError();
 			  
 			//var responseJson = JSON.parse(jqXHR.responseText); // fails if not a proper json which is the case whent iemout occours  !!!
-			consoleLog(jqXHR);
-			
+			// consoleLog(jqXHR);
+			var json = jqXHR.responseJSON;
+			//consoleLog(json.error.code);
+			//consoleLog(json.error.message);
+			orsError(json.error);
+			/*if (json.error.code == "2010") {
+				var msg = json.error.message;
+				var pointIdx = parseInt(msg.substring(0,msg.indexOf(':')).slice(-2))+1;
+				alert(translations["route.errPointNotOnStreet"] +  pointIdx);
+			} */
 			  /*
 			if ( responseJson.error.code == 2004 ) { errorThrown = translations["compute.errorMaxLenghDyn"]
 			} else if ( errorThrown === "Bad Request" ) { errorThrown = translations["compute.errorBadRequest"]; 
@@ -737,4 +772,19 @@ function computeRouteORS(rvps, focus){
 	});
 			
    }
+
+function ghError(err) {
+	 orsError(err); // fixme, need to review all errors. In the meantmie the else catch them all
+}
+
+function orsError(err) {
+	processingError();
+	var msg = err.message;
+	if (err.code == "2010") {
+		var pointIdx = parseInt(msg.substring(0,msg.indexOf(':')).slice(-2))+1;
+		alert(translations["route.errPointNotOnStreet"] +  pointIdx);
+	} else { // 2004 route too long, 2009 two points not reachable (sea)
+		alert(err.message); // FIXME: only in english
+	}
+}
 

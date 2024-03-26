@@ -20,7 +20,7 @@ function isIE() {
   return userAgent.indexOf("MSIE ") > -1 || userAgent.indexOf("Trident/") > -1 || userAgent.indexOf("Edge/") > -1;
 }
 
-/* get cookie */
+/* get cookie value*/
 function getCookie(cname) {
     var name = cname + "=";
     var ca = document.cookie.split(';'); // FIXME: we ignore path
@@ -32,6 +32,7 @@ function getCookie(cname) {
     return null;
 } 
 
+/* set cookie value*/
 function setCookie(cname, cvalue, expireDays) {
     var d = new Date();
     d.setTime(d.getTime() + (expireDays*24*60*60*1000));
@@ -40,14 +41,25 @@ function setCookie(cname, cvalue, expireDays) {
     document.cookie = cname + "=" + cvalue + "; " + expires;
 }
 
+
 /* display alert (translated) only if not displayed before */
 function alertOnce(code) {
     var c = getCookie(code);
     if (c == null) {  
-	alert(translations[code] );
+	showToast(translations[code] ,false,"")
 	setCookie(code, 1, 360);
     }
 }
+
+function alertOnceIcon(code, icon, autoDismiss) {
+    var c = getCookie(code);
+    if (c == null) {  
+	var iconImg = (icon==""?"":"<img src='./icons/"+icon+"' width='24'/>");
+	showToast(iconImg+translations[code] ,autoDismiss,"")
+	setCookie(code, 1, 360);
+    }
+}
+
 
 /* FUNCTION: formatTime
  * Input: time in seconds
@@ -143,6 +155,20 @@ function getDistance(coords1, coords2, ele1, ele2) {
   return Math.sqrt(d*d+h*h);
 }
 
+/* FUNCTION getClosestLatLng()
+ *  Returns closer latLng of the lls array to latLng ll
+ *   Used: . Track.js to return oint closer to wher a user clicked
+ */
+function getClosestLatLng(lls, ll) {
+	var idx = -1;
+	var minDist = -1;
+	for(var i = 0; i<lls.length;i++) {
+		var d = getDistance([lls[i].lat,lls[i].lng], [ll.lat, ll.lng], 0,0);
+		if (d<minDist || minDist == -1) { minDist = d; idx=i; }
+	}
+	return lls[idx];
+}
+
 /* FUNCTION: getParameterByName
  * Input: parameter_name, (url)
  * get the parametere value from an url or location.search is url is not provided
@@ -167,5 +193,11 @@ function isEnrolled() {
 	return (getCookie("enrolled") === "yes");
 }
 
+function canUseMap() {
+   var ml = document.getElementById("gOptions.mapLayer").value;
+   if (!isEnrolled() && 
+       (ml === "mapboxCust" || ml === "mapboxOut") ) 
+      { return false;} else { return true; }
+}
 
 

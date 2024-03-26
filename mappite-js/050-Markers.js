@@ -2,32 +2,57 @@
 
 /* Add a marker in the map for a route viapoint */
 function addMarkerToMap(vp) { // shall this be renamed add marker to route ????
-	marker = isPoiMode()?L.marker(vp.latLng, {icon: L.icon({ iconUrl: iconPoiEdit, iconSize: [30, 30], iconAnchor: [20,30]}), draggable:'true' }):L.marker(vp.latLng, {draggable:'true'});
+	marker = null; // = isPoiMode()?L.marker(vp.latLng, {icon: L.icon({ iconUrl: iconPoiEdit, iconSize: [30, 30], iconAnchor: [20,30]}), draggable:'true' }):L.marker(vp.latLng, {draggable:'true'});
+	
+	if (isPoiMode()) {
+		marker = L.marker(vp.latLng, {zIndexOffset: 1001, icon: L.icon({ iconUrl: iconPoiEdit, iconSize: [30, 30], iconAnchor: [20,30]}), draggable:'true' });
+	} else if (vp.isShaping) { // different size & different anchor offset
+		marker = L.marker(vp.latLng, {zIndexOffset: 1005, icon: L.icon({ iconUrl: vp.getIconUrl(), iconSize: [20, 20], iconAnchor: [8,20]}), draggable:'true'});		
+	} else { // normal marker
+		// marker = L.marker(vp.latLng, {zIndexOffset: 1010, draggable:'true'});
+		marker = L.marker(vp.latLng, {zIndexOffset: 1010, icon: L.icon({ iconUrl: vp.getIconUrl(), iconSize: [30, 40], iconAnchor: [15,40]}), draggable:'true'});
+	}
 	
 	markers[vp.id] = marker;
 	removeText = "Double-click or long tap to remove";
 	if (translations != undefined) { // nasty workaroung if async call to translate has not been completed yet...
 		removeText = doubleClickText+"/"+rightClickText+" " + translations["popup.remove"]; 
 	}
-	popupText =  	"<div class='gmid'>"+escapeHTML(vp.name)+"</div>" +
+	popupContent =  "<div id='popup_"+vp.id+"'>"+
+	                "<div class='gmid'>"+escapeHTML(vp.name)+"</div>" +
 			"<div class='gsmall'>Lat,Lng ("+ vp.latLng.lat.toFixed(6) + ","+ vp.latLng.lng.toFixed(6)+  ")</div>";
 	
 	if (isPoiMode()) {
-	  popupText = popupText + "<a onclick='javascript:removeMarker(\""+vp.id+"\");'>   <img src='./scripts/images/trash.svg'   title='Delete' width='18' height='15' />    </a>&nbsp;";
+	  popupContent = popupContent + "<a onclick='javascript:removeMarker(\""+vp.id+"\");'>   <img src='./scripts/images/trash.svg'   title='"+translations["point.delete"]+"' width='18' height='15' />    </a>&nbsp;";
 	} else {
-	  popupText = popupText + "<div style='cursor: pointer; display: flex; align-items: center; justify-content: space-between;'>" + // <span style='float: left; cursor: pointer;'>"+
-				"<a class='gaddWayPoint' title='Add Point Before' onclick='javascript:addPointHereCss(this);' href='javascript:insertPointBeforeId(\""+vp.id+"\");'>+</a>&nbsp;" +
-				"<a onclick='javascript:cutRouteBefore(\""+vp.id+"\");'> <img src='./icons/leftBarredArrow.svg'  title='Cut Before' width='18' height='10' /></a>&nbsp;"+
-				"<a onclick='javascript:rollFirst(\""+vp.id+"\");'>      <img src='./icons/startArrow.svg'       title='Make First' width='18' height='10' /></a>&nbsp;" +
-				"<a onclick='javascript:removeMarker(\""+vp.id+"\");'>   <img src='./scripts/images/trash.svg'   title='Delete' width='18' height='15' />    </a>&nbsp;" +
-				"<a onclick='javascript:cutRouteAfter(\""+vp.id+"\");'>  <img src='./icons/rightBarredArrow.svg' title='Cut After' width='18' height='10' /> </a>&nbsp;" +
-				"<a class='gaddWayPoint' title='Add Point After' onclick='javascript:addPointHereCss(this);' href='javascript:insertPointAfterId(\""+vp.id+"\");'>+</a>"+
-			"</div>";
+	  popupContent = popupContent + "<div style='cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-width: 200px;'>" + // <span style='float: left; cursor: pointer;'>"+
+				"<a class='gaddWayPoint' title='"+translations["point.addBefore"]+"' onclick='javascript:addPointHereCss(this);' href='javascript:insertPointBeforeId(\""+vp.id+"\");'>+</a>" +
+				"<span class='justifiedEvenly gactions' id='t_"+vp.id+"'>"+
+				 "<span><a onclick='javascript:removeMarker(\""+vp.id+"\");'><img src='./scripts/images/trash-gray.svg'   title='Delete' width='18' height='18' /></a></span>" +
+				 "<span onclick='javascript:switchDivs(\"t_"+vp.id+"\",\"h_"+vp.id+"\");' ><img src='./icons/hamburger-gray.svg' alt='Export Settings' width='18' height='18'></span>"+
+				"</span>" +
+				"<span id='h_"+vp.id+"'  class='justifiedEvenly gactions' style='display: none;'>"+
+				"<a onclick='javascript:cutRouteBefore(\""+vp.id+"\");'><img src='./icons/leftBarredArrow.svg'  title='"+translations["point.cutBefore"]+"' width='18' height='18' /></a>&nbsp;&nbsp;"+
+				"<a onclick='javascript:rollFirst(\""+vp.id+"\");'><img src='./icons/startArrow.svg'       title='"+translations["point.makeFirst"]+"' width='18' height='18' /></a>&nbsp;&nbsp;" +
+				
+				"<a href='javascript:selectPointType(\""+vp.id+"\");'><img src='./icons/routeMarkersType.svg'  title='"+translations["point.type"]+"' width='18' height='18' /></a>&nbsp;&nbsp;" +
+				"<a onclick='javascript:changeRoutePointType(\""+vp.id+"\", \"#s#\");'><img src='./icons/poiShaping-gray.svg'  title='ViaPoint <-> ShapingPoint' width='18' height='18' /></a>&nbsp;&nbsp;" +
+				"<a onclick='javascript:cutRouteAfter(\""+vp.id+"\");'><img src='./icons/rightBarredArrow.svg' title='"+translations["point.cutAfter"]+"' width='18' height='18' /></a>" +
+				"</span>" +
+				"<a class='gaddWayPoint' title='"+translations["point.addAfter"]+"' onclick='javascript:addPointHereCss(this);' href='javascript:insertPointAfterId(\""+vp.id+"\");'>+</a>"+
+				"</div>";
 	}
-		
-	marker.bindPopup(popupText); //.addTo(map);// rfcuster
+	popupContent = popupContent + "</div>";
+	
+	marker.bindPopup(popupContent); //.addTo(map);// rfcuster
 	markersCluster.addLayer(marker);
+	
+	marker.on('contextmenu dblclick',function(e) {
+		e.target.openPopup();
+	});
 	// remove on long tap/rigth click or doubleclick
+	
+	/*
 	marker.on('contextmenu dblclick',function(e) {
 		//map.removeLayer(e.target); //  rfcuster
 		consoleLog("contextmenu or dblclick");
@@ -42,10 +67,39 @@ function addMarkerToMap(vp) { // shall this be renamed add marker to route ????
 			//delete markers[vp.id] ;
 			//activeRoute.removeViaPoint(vp.id, true);
 		}
-	});
+	}); */
 	
 	draggerize(marker, vp);
 
+}
+
+/* Update a point type: icon an GPX export behaviour is affected */
+function changeRoutePointType(id, nameSuffix) {
+	// updateViaPointName(activeRoute.getViaPoint(id).name+nameSuffix,id); 
+	// this forces the point to be re-added with a different type:
+	var oldVp = activeRoute.getViaPoint(id);
+	updateViaPoint(oldVp.lat,oldVp.lng,oldVp.name+nameSuffix,id);
+}
+
+/* Show list of available point */
+function selectPointType(id) {
+	//alertOnce("route.changeRoutePointType");  
+	var marker = document.getElementById("popup_"+id);
+	
+	// default 
+	var text = "<div class='justified'><a onclick='javascript:changeRoutePointType(\""+id+"\",\"##\");'><img src='"+routeIconsMap.get("##")+"'  width='36' height='36' /></a></div>";
+	var i=1;
+	text += "<div class='justified'>";
+	routeIconsMap.forEach(	(iconUrl, suffix) => {
+	    if (suffix !== "#s#" && suffix !== "##") {
+		text += "<a onclick='javascript:changeRoutePointType(\""+id+"\",\""+suffix+"\");'><img src='"+iconUrl+"'  width='36' height='36' /></a>";
+		if (i++ % 3 == 0 && (i+1) < routeIconsMap.size )  text += "</div><div class='justified'>";
+	    }
+	});
+	text += "</div>";
+	text += "<div class='justified gsmall'><span style='color: black;background-color: #aaaaaa;padding: 3px;' >"+translations["point.break"]+"</span>"+
+	                                      "<span style='color: white;background-color: black;padding: 3px;'>"+translations["point.dayStop"]+"</font></span></div>";
+	marker.innerHTML= text;
 }
 
 function removeMarker(id) {
@@ -82,13 +136,10 @@ function draggerize(marker, vp) {
 			activeRoute.toggleLoop(false); // false = avoid recalculation since we (may) add a new point below 
 			activeRoute.insertPointAt(0); //  first point will be moved
 		} else if (activeRoute.viaPoints.length >1) {
-			//var idx = getPointLegIdx(vp.latLng); /// original marker latLng // on closed loop this returns the last (that's why this if)
-			//activeRoute.insertPointAt(idx);
-			//consoleLog("*  Moving insertPointAt: " +idx);
+			// Set where the point has to be inserted
 			activeRoute.insertPointBeforeId(vp.id);
-			// consoleLog("*  Moving insertPointAt: " +idx);
 		}
-
+		
 		//remove marker
 		markersCluster.removeLayer(e.target);
 		delete markers[vp.id] ;
@@ -102,7 +153,7 @@ function draggerize(marker, vp) {
 		if (cnt.y >80) { // if outside red banner - fake event to generate click and create new marker
 			e.latlng = e.target.getLatLng();
 			onMapClick(e); // it will redraw()
-		} else {
+		} else { // delete point
 			activeRoute.redraw(); // redraw - point has been deleted already
 			activeRoute.insertPointAt(-1); // reset to last
 		}

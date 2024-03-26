@@ -16,7 +16,7 @@
  */
 
 // The domains/page we're allowed to contact
-$allowedDomains = array('http://api.geonames.org/wikipediaBoundingBoxJSON', 'xxxx://openls.geog.uni-heidelberg.de/', 'xxxx://yournavigation.org/');
+$allowedDomains = array('http://api.geonames.org/wikipediaBoundingBoxJSON', 'https://share.garmin.com/Feed/Share/', 'xxxx://openls.geog.uni-heidelberg.de/', 'xxxx://yournavigation.org/');
 
 // Get URL to fetch
 $action = $_REQUEST['url'];
@@ -39,10 +39,10 @@ if ($fail == true) {
     exit("Domain name '".$action."' not allowed. Access denied.");
 }
 
-// For POST url fetch , prepare the fields for query string, don't include the action URL OR method -- NOT USED
+// For POST url fetch , logic needs to be amended here or in IF statement below
 $fields = '';
-if (count($_REQUEST) > 2) {
-    foreach ($_REQUEST as $key => $value) {
+if (count($_GET) > 1) {
+    foreach ($_GET as $key => $value) {
         if ($key != 'url' && $key != 'method') {
             $fields .= $key . '=' . rawurlencode($value) . '&';
         }

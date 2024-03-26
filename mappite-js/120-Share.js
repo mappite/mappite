@@ -53,6 +53,20 @@ function googleMapsShare() {
 		alert(translations["route.noRoute"]);
 		return;
 	}
+	/*
+	Modal
+	if route has breaks
+		show radios 
+			() all
+			() first break
+			() ... break
+			() last break
+			() last point
+	googleMapsShare(breakId)
+		if breakId = 0 as today
+		else i = breakId (che sarà il precedente/primo punto) e nel ciclo sotto cì un breack quando vp.isStop||vp.isBreak
+	*/
+	
 	var length = activeRoute.viaPoints.length;
 	if (length >9) {
 		alert(translations["export.gmapMaxPoints"]);
@@ -66,19 +80,6 @@ function googleMapsShare() {
 		gUrl =  gUrl + "+to:" + vp.lat + "," + vp.lng;
 	}
 
-	/*
-	if (length > 1) {
-		gUrl =  gUrl + "saddr=" + vp.lat + "," + vp.lng;
-		vp = activeRoute.viaPoints[1];
-		gUrl =  gUrl + "&daddr=" + vp.lat + "," + vp.lng;
-		for (var i = 2; i < length; i++) {
-			vp = activeRoute.viaPoints[i];
-			gUrl =  gUrl + "+to:" + vp.lat + "," + vp.lng;
-		}
-	} else {
-		gUrl =  gUrl + "daddr=" + vp.lat + "," + vp.lng;
-	}
-	*/
 	// highways/tools/ferries
 	gUrl =  gUrl + "&dirflg=d";
 	if (!document.getElementById('gOptions.highways').checked ) gUrl =  gUrl + ",h";

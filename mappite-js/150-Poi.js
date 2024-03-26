@@ -134,7 +134,7 @@ function setPoiMode() {
 	}
 	previousMode = currentMode;
 	currentMode = 'gMode.poiEditor';
-	alertOnce(translations["poi.instructions"]);
+	alertOnce("poi.instructions");
 	// highlight bg color
 	$(".gpanel").attr('style','background-color: rgba(255, 190, 190, 0.8)');
 	highlighMode();

@@ -157,7 +157,11 @@ function validateToken($conn) {
 			$userType = $result["TYPE"];
 			global $tokenDate;
 			$tokenDate = $result["TOKEN_DATE"]; // it's a string
-			if ($tokenDate > date("Y/m/d", strtotime("-15 months")) || $userType == 'L' || $userType == 'A') { // Lifetime or Admins
+			
+			if ($userType == 'L') $tokenDate = '2100/01/01'; // lifetime users
+			if ($userType == 'A') $tokenDate = '2050/01/01'; // admins
+			//if ($tokenDate > date("Y/m/d", strtotime("-15 months")) || $userType == 'L' || $userType == 'A') { // Lifetime or Admins
+			if ($tokenDate > date("Y/m/d", strtotime("-15 months")) ) {
 			   $_SESSION['token'] = 'valid'; 
 			   return true;	
 			}

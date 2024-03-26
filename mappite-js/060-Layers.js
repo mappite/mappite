@@ -1,15 +1,15 @@
 /*** Icons actions (when click on right bar) ***/
 
 /*
-How to add a new icon:
+How to add a new Layer:
 prepare the icons svg files:
 	name.svg
 	name-gray.svg
 	namePlus.svg
 add imgs in index.html with id "name"
 add callback functions on click in index.html
-add proper function showName() in 060-Icons.js
-add array aitem in 000-GlobalVas.js
+add proper function showName() in 060-Layers.js
+add array item in 000-GlobalVas.js
 add proper translation in en.json/it.json etc
  */
 
@@ -172,7 +172,7 @@ function getOverpassNodes(id, query) {
 function canGetOverpass() {
 	bbox = map.getBounds();
 	area = Math.abs((bbox.getNorth()-bbox.getSouth())*(bbox.getWest()-bbox.getEast()));
-	consoleLog("Area: " + area);
+	//consoleLog("Area: " + area);
 	return (area<0.6)?true:false;
 }
 /* FUNCTION: getSwne
@@ -255,7 +255,7 @@ function showPicnic() {
  * get Bars
  */
 function showBars() {
-	query = '(way[tourism=cafe]('+getSwne()+');node[tourism=cafe]('+getSwne()+'););';
+	query = '(way[amenity=cafe]('+getSwne()+');node[amenity=cafe]('+getSwne()+'););';
 	getOverpassNodes('bar',query);
 }
 
@@ -277,11 +277,109 @@ function showDrinkingWater() {
 
 /** Overpass... END **/
 
+/** Protomaps Layers **/
 
-/* FUNCTION: removeIcons
+/* FUNCTION: showProtomapsLayer
+ * load protomaps js (if needed) and display the layer 
+ */
+function showProtomapsLayer(id) {
+	if (isProtomapsEnabled) {
+		removeLayers("trackLayer"); // remove and set isProtomapsEnabled false
+	} else {
+		icon="./icons/"+id+".svg";
+		if (isProtomapsLoaded) { 
+			enableProtomapsLayer(id); 
+		} else {
+			$("#"+id).attr("src", "icons/spinner.svg");
+			// protomaps is now loaded by default:
+			//$.getScript('https://unpkg.com/protomaps-leaflet@1.24.0/dist/protomaps-leaflet.min.js', function(){
+			   $.getScript('./scripts/unpavedPaintRules.js', function(){
+				console.log("protomaps loaded");	   
+				isProtomapsLoaded = true;
+				map.createPane('protomaps');
+				map.getPane('protomaps').style.zIndex = 300;
+				// reverse of map.on(... in 040-MapFunctions
+				map.on(!isTouchDevice()?'contextmenu':'click', openProtomapPopUp)
+				enableProtomapsLayer(id);
+				$("#"+id).attr("src", icon);
+			   });
+			//});
+		}
+	}
+}
+
+/* FUNCTION: enableProtomapsLayer
+ * display the layer 
+ */
+function enableProtomapsLayer(id) {
+	// enable the layer closer to where we area
+	console.log("in enableProtomapsLayer for id: " + id);
+	var mc = map.getBounds().getCenter();
+	var idx = isLatLngWithin( mc.lat, mc.lng, PROTOMAPS_LATS);
+	if (idx) {
+		var tilesName = PROTOMAPS_LATS_PROTOTILES[idx-1];
+		console.log("toast for  " + tilesName);
+		showToast("Enabled: " + tilesName.toUpperCase(), true,'');
+						
+		// first layer
+		var l = protomapsL.leafletLayer({
+			url:'https://www.mappite.org/vector/'+tilesName+'.pmtiles', 
+			attribution: '<a href="https://protomaps.com">Protomaps</a>',
+			paintRules: myPaintRules(), // FIXME: in unpavedPaintRules.js
+			pane: 'protomaps'
+		});
+		map.addLayer(l);
+		mapIcons[id].push(l);
+
+		isProtomapsEnabled = true;
+		alertOnce("prototype.warning");
+
+		// FIXME: this will be valid only for some layers
+		document.getElementById("gOptions.clickOnRoad").value = "n";
+	} else {
+		alert("Area not covered");
+	}
+}
+
+function openProtomapPopUp(e) {
+	var ll = e.latlng;
+	if ( isProtomapsLoaded && isProtomapsEnabled ) {
+		var layer = mapIcons["trackLayer"][0]; // FIXME
+		var content = "";
+		var unspecified = "<span style='color: gray;'>n/a</span>";
+		//for (var [sourceName, results] of layer.queryFeatures(ll.lng,ll.lat)) {
+		for (var [sourceName, results] of layer.queryTileFeaturesDebug(ll.lng,ll.lat,8) ) {
+                     for (var result of results) {
+		        var props = result.feature.props;
+			var kind = props["pmap:kind"].replace("_", " ").toUpperCase();
+			var kind_detail = props["pmap:kind_detail"].split("|");
+
+			var osmId = props["osm:id"];
+			content += "<div><b>Way: <a href='https://www.openstreetmap.org/way/"+osmId+"' target='_blank'>"+osmId+"</a></b></div>";
+			content += "<div><b>"+ kind + "</b></div>";
+			//content += "<div>Unpaved: " + props["mappite:unpaved"] + "</div>";
+			content += "<div>Track Type: <a href='https://wiki.openstreetmap.org/wiki/Key:tracktype' target='_blank'>" + (kind_detail[0]=="?"?unspecified:kind_detail[0]) + "</a></div>";
+			content += "<div>Surface: <a href='https://wiki.openstreetmap.org/wiki/Key:surface' target='_blank'>" + (kind_detail[1]=="?"?unspecified:kind_detail[1]) + "</a></div>";
+			content += "<div>Access: <a href='https://wiki.openstreetmap.org/wiki/Key:access' target='_blank'>" + (kind_detail[2]=="?"?unspecified:kind_detail[2]) + "</a></div>";
+			content += "<div>Motor Vehicle: <a href='https://wiki.openstreetmap.org/wiki/Key:motor%20vehicle'target='_blank'>" + (kind_detail[3]=="?"?unspecified:kind_detail[3]) + "</a></div>";
+			console.log(props);
+		     }
+
+                }
+		if (content !== "") {
+			L.popup().setLatLng(ll)
+			         .setContent('<div style="max-height:400px;padding-right:8px">' + content +  '</div>')
+			         .openOn(layer._map);
+		}
+	}	
+}
+
+/** Protomaps End **/
+
+/* FUNCTION: removeLayers
  * remove sIcon from map, id is one of fuel, supermarket, etc
  */
-function removeIcons(id) {
+function removeLayers(id) {
 	consoleLog("in remove Icons for " + id);
 
 	if (id === "locate" ) {
@@ -293,6 +391,7 @@ function removeIcons(id) {
 		//alert("stoplocate Called");
 	} else {
 		while(mapIcons[id].length>0) { map.removeLayer(mapIcons[id].pop()); }		
+		if (id === "trackLayer") isProtomapsEnabled = false;
 	}
 	
 }

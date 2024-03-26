@@ -20,6 +20,7 @@ routeSearchDefaultName = "search"; // route name search as you type
 // called on document ready in index.html via getJSON method
 var translate = function (jsdata) {
 	translations = jsdata;
+	console.log("*** translations[] is set");
 	clickText = isTouchDevice()?translations["info.tapText"]:translations["info.clickText"];
 	rightClickText = isTouchDevice()?translations["info.longTapText"]:translations[ "info.rightClickText"]; // "Long-Tap":"Right-Click";
 	doubleClickText = isTouchDevice()?translations["info.doubleTapText"]:translations["info.doubleClickText"]; // "Double-Tap":"Double-Click";
@@ -36,15 +37,15 @@ var translate = function (jsdata) {
 	    $(this).html (strTr);
 	});
 	
-	// FIXME: "translate" is not the proper place form a functional standpoint for this one
-	//        however this guarantees translations are available
-	if (getCookie("enrolled") === "yes") {
+	// FIXME: "translate" is not the proper place from a functional standpoint to check if user is enrolled
+	//        however this guarantees translations are available before showing if one is enrolled or not
+	if (isEnrolled()) {
 		updateEnrolledInfo();
 		refreshSavedRoutes();
 	} else {
 		// attempt to restore enrolled cookie from server
 		// (ref. iOS https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/)
-		// this will invoke updateEnrolledInfo() and refreshSavedRoutes()
+		// this will invoke updateEnrolledInfo() and refreshSavedRoutes() only if it succeeds
 		restoreEnrolled() ;
 	}
 }
@@ -54,7 +55,7 @@ function initTranslations() {
 	langCode = navigator.language.substr (0, 2);
 	console.log( "mappite lang " + langCode);
 	if ($.inArray(langCode , langs) !== -1) {
-		console.log( "mappite lang inArray");
+		// mversion assure the page is not cached
 		$.getJSON('./lang/'+langCode+'.json?ver='+mversion, translate);
 		infoFile = "./lang/"+langCode+"-info.html"; 
 		saveFile = "./lang/"+langCode+"-save.html"; 
@@ -69,6 +70,23 @@ function initTranslations() {
 	}
 }
 
-
-
-
+// return the promise when translations object has been initialized or after a timeout
+// used in index.html to load a route from url only after transations are set
+function ensureTranslationsAreSet(timeout) {
+	var start = Date.now();
+	return new Promise(translationAreSet);
+	function translationAreSet(resolve, reject) {
+		// this double check allows to define translations as an array
+		// thus allowing to debug mappite from file:/// protocol
+		if ( translations !== null) { //  && typeof translations === "object" ) { 
+			//console.log("*** promise maintained!!!");
+			resolve();
+		} else if ((Date.now() - start) >= timeout) {
+			//console.log("*** promise timeout");
+			resolve(); // actually it shoudl reject but who cares, we'll proceed wihtout translations
+		} else { // reevaluate in 50ms
+			//console.log("*** reevaluate promise in 50ms");
+			setTimeout(translationAreSet.bind(this, resolve, reject), 50);
+		}
+	}
+}

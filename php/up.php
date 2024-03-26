@@ -70,7 +70,7 @@ $conn  = null;
 
 function updatePassword($newPwd, $tmpPwd) { // and update new token as well
 	global $conn;
-	$newPwd = $newPwd.trim();
+	$newPwd = trim($newPwd);
 	$stmt = $conn->prepare("UPDATE USERS SET PWD = MD5(:newPwd), TOKEN = :token WHERE TMPPWD = :tmpPwd AND TMPPWD_DATE > DATE_SUB(NOW(), INTERVAL 12 HOUR)") ; // FIXME not smart, risk of a mass update
 	$stmt->bindParam(':newPwd', $newPwd );
 	$token= bin2hex(random_bytes(10)).uniqid();

@@ -1,51 +1,5 @@
 /*** UI functions ***/
 
-// Some functions to manipulate the UI, most are embedded in other objects.
-// FIXME: need a better MVC separation
-
-/* failed attempt
-function dragElement(elmnt) {
-  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  //  the handle is where to move the DIV from:
-  document.getElementById(elmnt.id + "Handler").onmousedown = dragMouseDown;
-  document.getElementById(elmnt.id + "Handler").ontouchstart = dragMouseDown;
-  
-
-  function dragMouseDown(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // get the mouse cursor position at startup:
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    document.ontouchend = closeDragElement;
-    // call a function whenever the cursor moves:
-    document.onmousemove = elementDrag;
-    document.ontouchmove = elementDrag;
-  }
-
-  function elementDrag(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // calculate the new cursor position:
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-  }
-
-  function closeDragElement() {
-    // stop moving when mouse button is released:
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
-}
-*/
-
-
 // called by index.html body onresize and on document ready events
 function onResize() { 
 	consoleLog("onResize()");
@@ -57,10 +11,35 @@ function onResize() {
 	if (typeof activeTrack != "undefined" ) activeTrack.setActive(true); // redraw
 }
 
-// toggle an element display style
+// toggle an element display style from block to none and viceversa
 function toggleDiv(id) { 
-	var display = document.getElementById(id).style.display;
+	var display = document.getElementById(id).style.display; // this returns the element display, not the class one
 	document.getElementById(id).style.display = ( display === "block")?"none":"block";
+}
+
+function showHiddenDiv(id) {
+	document.getElementById(id).removeAttribute('style'); // actuall class display style will take over
+}
+function hideDiv(id) {
+	document.getElementById(id).style.display = "none";
+}
+function switchDivs(id1, id2) {
+	hideDiv(id1);
+	showHiddenDiv(id2);
+}
+
+// FIXME: I can't belive there is not a cleaner way...
+// uncheck id if elem is checked
+function onCheckUnCheck(elem, id) {
+	if (elem.checked) document.getElementById(id).checked = false;
+}
+// check id if elem is checked
+function onCheckCheck(elem, id) {
+	if (elem.checked) document.getElementById(id).checked = true;
+}
+// uncheck id if elem is unchecked
+function onUnCheckUnCheck(elem, id) {
+	if (!elem.checked) document.getElementById(id).checked = false;
 }
 
 // toggle an element witdh
@@ -154,15 +133,15 @@ function processingError() {
 /* Bottom Left panel, reset "+" link color to red and set as green the one clicked by the user */ 
 function addPointHereCss(el) {
 	$('.gaddWayPoint').css('color', '#DC614F');
-	$('.gaddWayPoint').css('font-size', '22px');
+	// $('.gaddWayPoint').css('font-size', '22px');
 	el.style.color= 'green';
 	el.style.fontSize= '26px';
 }
 
 /* when click on a leg info (time/km) toggle among cumulative or per leg info */
-function legsCumulativeToggle() {
-	consoleLog("legsCumulativeToggle");
-	legsIsCumulative = !legsIsCumulative;
+function legsInfoToggle() {
+	(legsInfo==2?legsInfo=0:legsInfo++)
+	consoleLog("llegsInfo: " + legsInfo);
 	refreshRouteInfo();
 }
 
@@ -206,13 +185,15 @@ function onRouteOptionsChange (){
 function getOptionsString() {
 
 	var s = document.getElementById("gOptions.uom").value; // k (km) or m (miles)
-	var routeType;
+	if (s === "") s = "k";
+	var routeType = "";
 	switch( currentMode ) {
-		case 'gMode.bicycle':   routeType = 'b'; break;
-		case 'gMode.walk':      routeType = 'p'; break;
-		case 'gMode.poiEditor': routeType = 'o'; break;
+		case 'gMode.bicycle':   routeType = 'b'; break; // bike
+		case 'gMode.walk':      routeType = 'p'; break; // pedestrian
+		case 'gMode.poiEditor': routeType = 'o'; break; // pOi
 		default:                routeType = $('input[name="gOptions.type"]:checked').val(); // f,s,x
 	}
+	if (routeType === "") s = "f"; // car fastest
 	
 	s = s + routeType +
 		(!document.getElementById('gOptions.highways').checked?"h":"x") +
@@ -225,7 +206,8 @@ function getOptionsString() {
 	    case "mapboxOut":  m = "u"; break;
 	    case "mapboxSat":  m = "i"; break;
 	    case "mapboxCust": m = "c"; break;
-	    case "stamen.terrain": m = "t"; break;
+	    case "protomaps.l": m = "l"; break;
+	    case "protomaps.d": m = "d"; break;
 	    default:  m = "o";// osm
 	} 	
 	// pad with one more char for future usage
@@ -239,7 +221,7 @@ function getOptionsString() {
 }
 /* Set checkbox/drop down element according to option string, used when loading a route and when accessing the site from cookie*/
 function setOptionsString(s) {
-	// [k|m][f|s|p|b|o|x][h|x][t|x][f|x]   options = ksxxx
+	// [k|m][f|s|p|b|o|x][h|x][t|x][f|x][o|i|u|c|m|t][-|n]   options = kfxxxon
 	document.getElementById('gOptions.uom').value = s[0];
 	// note s[1] is 'o' for POI
 	switch(s[1]) {
@@ -268,7 +250,9 @@ function setOptionsString(s) {
 	    case "m": mv  = "opentopo"; break;
 	    //case "s": mv  = "mapsurfer"; break; // discontinued May 2020, fallback on OSM
 	    //case "s": mv  = "wikimedia"; break; // takes s from mapsurfer
-	    case "t": mv  = "stamen.terrain"; break;
+	    //case "t": mv  = "stamen.terrain"; break; // discontinued Jan 2024, fallback on OSM
+	    case "l": mv  = "protomaps.l"; break;
+	    case "d": mv  = "protomaps.d"; break;
 	    default: mv  = "osm"; // default to osm
 	} 	
 	document.getElementById("gOptions.mapLayer").value = mv;
@@ -278,4 +262,22 @@ function setOptionsString(s) {
 /* Used to autoselect text field on click,  see index.html */
 function onTextFieldClickSelect() {
 	this.select();
+}
+
+/** Toast **/
+
+function showToast(msg,autoDismiss,type) { // type: success, warning, etc see css
+  console.log("showToast");
+  var close = autoDismiss ? '' : '&times;'; // show "x" or not
+  var toast = $('<div class="toast ' + type + '"><p>' + msg + '</p>' +
+	        '<div class="close bigfont gray" onClick="$(this).parent().remove()">' + close + '</div>' +
+	        '</div>');
+  $('#toasts').append(toast);
+  toast.addClass('show');
+  
+  if(autoDismiss){
+      setTimeout(function(){
+        toast.find('.close').click();
+      }, 3000); // timout 3 secs
+  }
 }

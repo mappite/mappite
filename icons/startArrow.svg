@@ -5,11 +5,35 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    id="svg965"
    version="1.1"
    viewBox="0 0 7.7462969 4.5268559"
    height="4.5268559mm"
-   width="7.7462969mm">
+   width="7.7462969mm"
+   sodipodi:docname="startArrow.svg"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1385"
+     inkscape:window-height="711"
+     id="namedview8"
+     showgrid="false"
+     inkscape:zoom="9.700334"
+     inkscape:cx="-1.5978833"
+     inkscape:cy="8.5546884"
+     inkscape:window-x="0"
+     inkscape:window-y="31"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg965" />
   <defs
      id="defs959" />
   <metadata
@@ -20,21 +44,22 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
      transform="translate(-57.358994,-64.171096)"
-     id="layer1">
+     id="layer1"
+     style="fill:#838383;fill-opacity:1">
     <g
        id="text907"
-       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#c3c3c3;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#838383;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        aria-label="↛"
        transform="translate(-22.62062,31.322227)">
       <path
          id="path917"
-         style="fill:#c3c3c3;fill-opacity:1;stroke-width:0.26458332px"
+         style="fill:#838383;fill-opacity:1;stroke-width:0.26458332px"
          d="m 79.964112,34.673047 -0.02481,-1.793172 h 0.529167 l 0.513663,1.793172 h 5.296835 l -1.204061,-1.20406 0.620117,-0.620118 2.030884,2.030884 v 0.465088 l -2.030884,2.030884 -0.620117,-0.620117 1.204061,-1.204061 h -5.279264 l -0.531234,1.561661 h -0.529167 l 0.04237,-1.561661 h -0.0021 v -0.8785 z" />
     </g>
   </g>
