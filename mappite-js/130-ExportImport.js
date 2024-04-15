@@ -368,7 +368,7 @@ function exportGpx() {
 	consoleLog(time);
 	var link = window.location.protocol+"/"+window.location.hostname+activeRoute.getUrl();
 	link ="http://www.mappite.org"; // FIXME: remove this
-
+	var routeName = escapeXml(activeRoute.name);
 	// Header and metadata
 	if (!document.getElementById("gExportMenu.oldGpx").checked ) { // GPX Ver 1.1
 		gpxXml += '<?xml version="1.0" encoding="UTF-8"?>';
@@ -376,15 +376,15 @@ function exportGpx() {
 		if ( document.getElementById("gExportMenu.routeShp").checked) { gpxXml += '\n<gpx version="1.1" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v2" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" xmlns:trp="http://www.garmin.com/xmlschemas/TripExtensions/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v2 http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd http://www.garmin.com/xmlschemas/TripExtensions/v1 http://www.garmin.com/xmlschemas/TripExtensionsv1.xsd">'; }
 		else {gpxXml += '\n<gpx version="1.1" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">';}
 		gpxXml += '\n<metadata>';
-		gpxXml += '\n<name>'+activeRoute.name+'</name>';
+		gpxXml += '\n<name>'+routeName+'</name>';
 		gpxXml += '\n<author><name>mappite.org</name><link href="https://www.mappite.org"><text>mappite routes made easy thanks to openstreetmap and others</text></link></author>';
-		gpxXml += '\n<link href="'+link+'"><text>'+activeRoute.name+'</text></link>';
+		gpxXml += '\n<link href="'+link+'"><text>'+routeName+'</text></link>';
 		gpxXml += '\n<time>'+time+'</time>';
 		gpxXml += '\n</metadata>';
 	} else { // GPX Ver 1.0
 		gpxXml += '<?xml version="1.0" encoding="UTF-8"?>';
 		gpxXml += '\n<gpx version="1.0" creator="mappite.org" xmlns="http://www.topografix.com/GPX/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd">';
-		gpxXml += '\n<name>'+activeRoute.name+'</name>';
+		gpxXml += '\n<name>'+routeName+'</name>';
 		gpxXml += '\n<author>mappite.org</author>';
 		gpxXml += '\n<url>https://mappite.org</url>';
 		gpxXml += '\n<time>'+time+'</time>';
@@ -402,7 +402,7 @@ function exportGpx() {
 		var end     = "<sym>Flag, Red</sym><type>End</type>";
 		for (i = 0; i < vps.length; i++) {
 			var tags = (i==0?start:(i==(vps.length-1)?end:(vps[i].isShaping?shaping:(vps[i].isBreak?breakp:(vps[i].isStop?stop:via)))));
-			gpxXml += '\n<wpt lat="'+vps[i].lat+'" lon="'+vps[i].lng+'"><name>'+vps[i].name+'</name>'+tags+'</wpt>';
+			gpxXml += '\n<wpt lat="'+vps[i].lat+'" lon="'+vps[i].lng+'"><name>'+escapeXml(vps[i].name)+'</name>'+tags+'</wpt>';
 		}
 	}	
 	
@@ -417,11 +417,11 @@ function exportGpx() {
 		var vps =  activeRoute.viaPoints;
 
 		for (i = 0; i < vps.length; i++) {
-			var gpxViaPoint = '\n<rtept lat="'+vps[i].lat+'" lon="'+vps[i].lng+'"><name>'+vps[i].name+'</name></rtept>';
+			var gpxViaPoint = '\n<rtept lat="'+vps[i].lat+'" lon="'+vps[i].lng+'"><name>'+escapeXml(vps[i].name)+'</name></rtept>';
 			gpxLegXml += gpxViaPoint;
 			if ( i>0 && (i+1) < vps.length) { // skip if first or last point
 			     if ( ( splitRouteOnBreak && vps[i].isBreak ) || (splitRouteOnStop && vps[i].isStop) ) { // split
-				gpxLegXml =  '\n<rte><name>' + activeRoute.name + ' ' + 
+				gpxLegXml =  '\n<rte><name>' + routeName + ' ' + 
 				             (splitRouteOnBreak?(legBreak++):"") + (vps[i].isStop?("#"+legStop++):"") +
 				             '</name>' + gpxLegXml + '\n</rte>';
 				gpxXml += gpxLegXml;
@@ -430,7 +430,7 @@ function exportGpx() {
 			     }
 			}
 		}
-		gpxXml +=  '\n<rte><name>'+activeRoute.name+ (legBreak==1?'':(' '+legBreak)) + (legStop==1?'':("#"+legStop))+'</name>' + gpxLegXml + '\n</rte>';
+		gpxXml +=  '\n<rte><name>'+routeName+ (legBreak==1?'':(' '+legBreak)) + (legStop==1?'':("#"+legStop))+'</name>' + gpxLegXml + '\n</rte>';
 
 	}
 	
@@ -467,15 +467,15 @@ function exportGpx() {
 			if (vps[i].isShaping) {  // Manual Shaping Point 
 				consoleLog("Adding Manual Shaping Point");
 				gpxLegXml += '\n<rtept lat="'+vps[i].lat+'" lon="'+vps[i].lng+'">'+
-					     '<name>'+ vps[i].name+'</name>'+shpPtTag+'</rtept>';
+					     '<name>'+ escapeXml(vps[i].name)+'</name>'+shpPtTag+'</rtept>';
 			} else  { // Via Point
 				var gpxViaPoint = '\n<rtept lat="'+vps[i].lat+'" lon="'+vps[i].lng+'">'+
-					          '<name>'+ vps[i].name+'</name>'+wayPtTag+'</rtept>';
+					          '<name>'+ escapeXml(vps[i].name)+'</name>'+wayPtTag+'</rtept>';
 				gpxLegXml += gpxViaPoint;
 
 				if ( i>0 && (i+1) < vps.length) { // skip if first or last point
 				     if ( ( splitRouteOnBreak && vps[i].isBreak ) || (splitRouteOnStop && vps[i].isStop) ) { // split
-					gpxLegXml =  '\n<rte><name>' + activeRoute.name + ' ' + 
+					gpxLegXml =  '\n<rte><name>' + routeName + ' ' + 
 						     (splitRouteOnBreak?(legBreak++):"") + (vps[i].isStop?("#"+legStop++):"") +
 						     '</name>' + gpxLegXml + '\n</rte>';
 					gpxXml += gpxLegXml;
@@ -499,13 +499,13 @@ function exportGpx() {
 				llsIdx++;
 			}
 		}
-		gpxXml +=  '\n<rte><name>'+activeRoute.name+ (legBreak==1?'':(' '+legBreak)) + (legStop==1?'':("#"+legStop))+'</name>' + gpxLegXml + '\n</rte>';
+		gpxXml +=  '\n<rte><name>'+routeName+ (legBreak==1?'':(' '+legBreak)) + (legStop==1?'':("#"+legStop))+'</name>' + gpxLegXml + '\n</rte>';
 	}
 	
 	// Track
 	if (document.getElementById("gExportMenu.track").checked) { 
 		var lls=  activeRoute.routePoly.getLatLngs();
-		gpxXml += '\n<trk><name>'+activeRoute.name+'</name><trkseg>';
+		gpxXml += '\n<trk><name>'+routeName+'</name><trkseg>';
 		var ele = false;
 		var elevation ="";
 		// FIXME: the below logic is redoundant since Feb 18 2024 all activeroutes have ele. Buf id we woudl re-enable mapquest...

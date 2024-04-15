@@ -102,9 +102,12 @@ function formatUom(value, precision, uom) {
 /* Escape special chars
  */
 function escapeHTML(s) { // slash is escaped to avoud \\u to be interpreted as an unicode char in js
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;').replace(/'/g,'&#39;').replace(/\\/g,'\\\\');
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;').replace(/'/g,'&apos;').replace(/\\/g,'\\\\');
 }
 
+function escapeXml(s) {
+    return escapeHTML(s); // .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;').replace(/'/g,'&apos;');
+}
 /* FUNCTION: warnIfNoName
  * used by shortenUrl() and whatsAppShare() to warn route has no name
  */
